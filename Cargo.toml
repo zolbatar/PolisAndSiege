@@ -1,0 +1,8 @@
+[package]
+name = "PolisAndSiege"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+skia-bindings = "0.78.0"
+raylib = "5.0.2"
