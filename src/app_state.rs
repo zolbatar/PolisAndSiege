@@ -1,4 +1,6 @@
 use raylib::{RaylibHandle, RaylibThread};
+use raylib::ffi::{GetCurrentMonitor, GetMonitorWidth, GetMonitorHeight};
+use crate::skia::Skia;
 
 pub struct AppState {
     pub rl: RaylibHandle,
@@ -8,9 +10,10 @@ pub struct AppState {
     pub half_width: i32,
     pub half_height: i32,
     pub dpi: f32,
+
+    pub skia: Skia,
 }
 
-// You can also define associated methods for the struct if needed
 impl AppState {
     pub fn new(rl: RaylibHandle, thread: RaylibThread) -> Self {
         let width = rl.get_screen_width();
@@ -18,6 +21,11 @@ impl AppState {
         let half_width = width / 2;
         let half_height = height / 2;
         let dpi = rl.get_window_scale_dpi().x;
+        unsafe {
+            let monitor = GetCurrentMonitor();
+            println!("Native resolution: {} x {} ({} DPI)", GetMonitorWidth(monitor), GetMonitorHeight(monitor), dpi);
+        }
+        println!("Window resolution: {} x {}", width, height);
 
         AppState {
             rl,
@@ -27,6 +35,7 @@ impl AppState {
             half_width,
             half_height,
             dpi,
+            skia: Skia::new(),
         }
     }
 }

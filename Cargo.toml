@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-skia-bindings = "0.78.0"
+skia-safe = { version = "0.78.0", features = ["gl", "textlayout", "svg", "binary-cache"] }
 raylib = "5.0.2"
