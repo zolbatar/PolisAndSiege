@@ -52,7 +52,7 @@ impl Skia {
             texture,
         }
     }
-    
+
     fn get_raw_surface(&mut self) -> &mut MySurface {
         self.surface.as_mut().unwrap()
     }

@@ -26,6 +26,8 @@ fn main() {
         paint.set_style(PaintStyle::Stroke);
         canvas.draw_line(Point { x: 0.0, y: 0.0 }, Point { x: 100.0, y: 100.0 }, &paint);
 
+        unsafe { state.skia.render(); }
+
         let mut d = state.rl.begin_drawing(&state.thread);
 
         d.clear_background(Color::WHITE);
