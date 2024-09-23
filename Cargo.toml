@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 skia-safe = { version = "0.78.0", features = ["gl", "textlayout", "svg", "binary-cache"] }
 raylib = "5.0.2"
+rand = "0.8.5"
