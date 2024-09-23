@@ -1,5 +1,8 @@
 mod app_state;
 mod skia;
+mod fonts {
+    pub mod ebgaramond;
+}
 
 use app_state::AppState;
 use rand::Rng;

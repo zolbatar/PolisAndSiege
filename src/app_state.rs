@@ -1,9 +1,8 @@
 use crate::skia::{MySurface, Skia};
 use raylib::color::Color;
-use raylib::ffi::{DrawTexturePro, GetCurrentMonitor, GetMonitorHeight, GetMonitorWidth, GetScreenHeight, GetScreenWidth, Vector2};
+use raylib::ffi::{DrawTexturePro, GetCurrentMonitor, GetMonitorHeight, GetMonitorWidth, Vector2};
 use raylib::prelude::RaylibDraw;
 use raylib::{RaylibHandle, RaylibThread};
-use skia_safe::Canvas;
 
 pub struct AppState {
     pub rl: RaylibHandle,
@@ -46,6 +45,13 @@ impl AppState {
     }
 
     pub unsafe fn render(&mut self) {
+        
+        // FPS
+        let fps = format!("FPS: {}", self.rl.get_fps());
+        let canvas = self.surface.skia_surface.canvas();
+        println!("{}", fps);
+//        canvas.draw_text_align(fps, Point {x:0.0, y:0.0}, 
+        
         unsafe { self.skia.flush(&mut self.surface); }
 
         let mut d = self.rl.begin_drawing(&self.thread);

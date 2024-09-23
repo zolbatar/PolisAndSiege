@@ -5,7 +5,9 @@ use skia_safe::gpu::gl::{FramebufferInfo, Interface};
 use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
-use skia_safe::{colors, Canvas, ColorType, Surface};
+use skia_safe::{colors, Canvas, ColorType, FontMgr, Shaper, Surface};
+use skia_safe::textlayout::TypefaceFontProvider;
+use crate::fonts;
 
 pub struct MySurface {
     pub texture: RenderTexture2D,
@@ -14,6 +16,8 @@ pub struct MySurface {
 
 pub struct Skia {
     context: DirectContext,
+    typeface_font_provider: TypefaceFontProvider,
+    shaper: Shaper,
 }
 
 impl Skia {
@@ -22,8 +26,21 @@ impl Skia {
         let options = ContextOptions::new();
         let context = make_gl(&interface, &options).expect("Can't create Skia context");
 
+        // Fonts
+        let mut typeface_font_provider = TypefaceFontProvider::new();
+        let font_mgr = FontMgr::new();
+        let typeface = font_mgr
+            .new_from_data(fonts::ebgaramond::EBGARAMOND_REGULAR_TTF, None)
+            .expect("Failed to load font");
+        typeface_font_provider.register_typeface(typeface, "EB Garamond");
+
+        // Shaper
+        let shaper = Shaper::new_shaper_driven_wrapper(font_mgr).expect("Can't create shaper");
+
         Skia {
             context,
+            typeface_font_provider,
+            shaper,
         }
     }
 
@@ -43,10 +60,6 @@ impl Skia {
             skia_surface: surface,
             texture,
         }
-    }
-
-    pub fn get_canvas(surface: &mut MySurface) -> &Canvas {
-        surface.skia_surface.canvas()
     }
 
     pub unsafe fn flush(&mut self, surface: &mut MySurface) {
