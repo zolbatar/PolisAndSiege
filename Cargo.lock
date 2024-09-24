@@ -9,6 +9,7 @@ dependencies = [
  "ciborium",
  "rand",
  "raylib",
+ "skia-bindings",
  "skia-safe",
 ]
 

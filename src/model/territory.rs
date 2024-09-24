@@ -18,8 +18,8 @@ impl Territory {
         }
     }
 
-    pub fn prerender_polygons(&mut self) {
-        let color = match self.name.as_str() {
+    pub fn prerender_polygons(&mut self) -> Color {
+        let colour = match self.name.as_str() {
             "Europe" => Color::from_argb(255, 0, 51, 204),
             "Eastern Europe" => Color::from_argb(255, 255, 59, 48),
             "Asia" => Color::from_argb(255, 50, 205, 50),
@@ -32,8 +32,9 @@ impl Territory {
         };
 
         for polygon in &mut self.polygons {
-            polygon.prerender(color);
+            polygon.prerender(colour);
         }
+        colour
     }
 
     pub fn render_polygons(&self, canvas: &Canvas) {

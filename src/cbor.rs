@@ -50,7 +50,10 @@ pub fn import() -> HashMap<String, Territory> {
             }
         }
 
-        // Array of cities
+        // Pre-render, i.e. create Skia stuff
+        let colour = territory.prerender_polygons();
+        
+        // Cities
         for city in polygons_cities[1].as_array().expect("CBOR: Expecting array of cities")
         {
             let city_details = city.as_array().expect("CBOR: Expected an array of city details");
@@ -58,12 +61,10 @@ pub fn import() -> HashMap<String, Territory> {
             let latitude = city_details[1].as_float().unwrap();
             let longitude = city_details[2].as_float().unwrap();
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
-            territory.cities.push(City::new(name.to_string(), latitude as f32, longitude as f32, population));
+            territory.cities.push(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour));
             cities_count += 1;
         }
-
-        // Pre-render, i.e. create Skia stuff
-        territory.prerender_polygons();
+        
         territories.insert(territory_name_unwrapped, territory);
     }
 

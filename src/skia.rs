@@ -7,7 +7,9 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{colors, Canvas, ColorType, FontMgr, Paint, Point, Surface, PaintStyle};
+use skia_safe::{colors, Canvas, ColorType, FontMgr, Paint, Point, Surface, PaintStyle, ImageFilter, Vector, ColorSpace, Rect, Color4f};
+use skia_safe::colors::BLACK;
+use skia_safe::image_filters::{drop_shadow_only};
 use crate::app_state::AppState;
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
@@ -20,6 +22,7 @@ pub struct MySurface {
 pub struct Skia {
     context: DirectContext,
     font_collection: FontCollection,
+    pub drop_shadow: ImageFilter,
 }
 
 impl Skia {
@@ -43,9 +46,33 @@ impl Skia {
         let mut font_collection = FontCollection::new();
         font_collection.set_default_font_manager(Some(typeface_font_provider.into()), "EB Garamond");
 
+        let c: Color4f = BLACK.into();
+        let d1: Option<ColorSpace> = None;
+        let d2: ColorSpace = d1.into();
+        let d = d2.into_ptr_or_null();
+        let e = None.into().into_ptr_or_null();
+        let f = None.into().native();
+        unsafe {
+            skia_bindings::C_SkImageFilters_DropShadowOnly(
+                1.5,
+                -1.5,
+                1.5,
+                1.5,
+                c, d, e, f,
+            );
+        }
+
+        // Filters
+        let drop_shadow = drop_shadow_only(
+            Vector::new(1.5, -1.5),
+            (1.5, 1.5),
+            BLACK,
+            None, None, Rect::new_empty()).expect("Can't create drop shadow filter");
+
         Skia {
             context,
             font_collection,
+            drop_shadow,
         }
     }
 
