@@ -1,3 +1,4 @@
+use rand::Rng;
 use raylib::ffi::{BeginTextureMode, EndTextureMode, LoadRenderTexture, RenderTexture2D};
 use skia_safe::gpu::backend_render_targets;
 use skia_safe::gpu::direct_contexts::make_gl;
@@ -5,8 +6,8 @@ use skia_safe::gpu::gl::{FramebufferInfo, Interface};
 use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
-use skia_safe::{colors, Canvas, ColorType, FontMgr, Paint, Point, Surface};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
+use skia_safe::{colors, Canvas, ColorType, FontMgr, Paint, Point, Surface, PaintStyle};
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
 
@@ -47,6 +48,16 @@ impl Skia {
         }
     }
 
+    pub fn test(self: &Self, canvas: &Canvas, width: i32, height: i32) {
+        let mut rng = rand::thread_rng();
+        let mut paint = Paint::default();
+        paint.set_anti_alias(true);
+        paint.set_style(PaintStyle::Stroke);
+        for _ in 1..=10000 {
+            canvas.draw_line(Point { x: rng.gen_range(0..=width) as f32, y: rng.gen_range(0..=height) as f32 }, Point { x: rng.gen_range(0..=width) as f32, y: rng.gen_range(0..=height) as f32 }, &paint);
+        }
+    }
+
     pub fn make_surface(&mut self, width: i32, height: i32) -> MySurface {
 
         // Create raylib texture
@@ -83,9 +94,7 @@ impl Skia {
         canvas.restore();
     }
 
-    pub fn write_text(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, x: f32, y: f32) {
-
-        // Paragraph style
+    fn create_paragraph_builder(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str) -> ParagraphBuilder {
         let mut paragraph_style = ParagraphStyle::new();
         paragraph_style.set_text_align(TextAlign::Left);
         paragraph_style.set_max_lines(1);
@@ -105,10 +114,20 @@ impl Skia {
         // Add text style and text
         builder.push_style(&text_style);
         builder.add_text(text);
+        builder
+    }
 
-        // Render
+    pub fn text_dimensions(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str) -> f32 {
+        let mut builder = self.create_paragraph_builder(canvas, font_size, paint, text);
         let mut paragraph = builder.build();
-        paragraph.layout(256.0);
+        paragraph.layout(10000.0);
+        paragraph.max_intrinsic_width()
+    }
+
+    pub fn write_text(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, x: f32, y: f32, width: f32) {
+        let mut builder = self.create_paragraph_builder(canvas, font_size, paint, text);
+        let mut paragraph = builder.build();
+        paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
         paragraph.paint(canvas, Point::new(x, y));
     }
 }

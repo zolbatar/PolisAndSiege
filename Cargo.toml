@@ -7,3 +7,4 @@ edition = "2021"
 skia-safe = { version = "0.78.0", features = ["gl", "textlayout", "svg", "binary-cache"] }
 raylib = "5.0.2"
 rand = "0.8.5"
+ciborium = "0.2.2"

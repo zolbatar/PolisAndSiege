@@ -4,6 +4,7 @@ use raylib::ffi::{DrawTexturePro, GetCurrentMonitor, GetMonitorHeight, GetMonito
 use raylib::prelude::RaylibDraw;
 use raylib::{RaylibHandle, RaylibThread};
 use skia_safe::{Paint, PaintStyle};
+use crate::cbor::Cbor;
 
 pub struct AppState {
     pub rl: RaylibHandle,
@@ -18,7 +19,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(rl: RaylibHandle, thread: RaylibThread) -> Self {
+    pub fn new(rl: RaylibHandle, thread: RaylibThread, cbor: Cbor) -> Self {
         let width = rl.get_screen_width();
         let height = rl.get_screen_height();
         //        let half_width = width / 2;
@@ -53,7 +54,7 @@ impl AppState {
         let mut paint = Paint::default();
         paint.set_style(PaintStyle::StrokeAndFill);
         paint.set_argb(255, 0, 0, 0);
-        self.skia.write_text(canvas, 20.0 * self.dpi, &paint, fps.as_str(), 0.0, 0.0);
+        self.skia.write_text(canvas, 20.0 * self.dpi, &paint, fps.as_str(), 0.0, 0.0, 0.0);
 
         // Flush all Skia ops
         unsafe { self.skia.flush(&mut self.surface); }
