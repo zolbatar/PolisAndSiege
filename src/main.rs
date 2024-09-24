@@ -1,8 +1,5 @@
 mod app_state;
 mod skia;
-mod fonts {
-    pub mod ebgaramond;
-}
 
 use app_state::AppState;
 use rand::Rng;
@@ -10,8 +7,6 @@ use skia_safe::{Paint, PaintStyle};
 use skia_safe::Point;
 
 fn main() {
-    println!("Hello, world!");
-
     let (rl, thread) = raylib::init()
         .size(1600, 950)
         .title("Simulation")

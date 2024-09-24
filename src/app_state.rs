@@ -3,6 +3,7 @@ use raylib::color::Color;
 use raylib::ffi::{DrawTexturePro, GetCurrentMonitor, GetMonitorHeight, GetMonitorWidth, Vector2};
 use raylib::prelude::RaylibDraw;
 use raylib::{RaylibHandle, RaylibThread};
+use skia_safe::{Paint, PaintStyle};
 
 pub struct AppState {
     pub rl: RaylibHandle,
@@ -45,20 +46,21 @@ impl AppState {
     }
 
     pub unsafe fn render(&mut self) {
-        
+
         // FPS
         let fps = format!("FPS: {}", self.rl.get_fps());
         let canvas = self.surface.skia_surface.canvas();
-        println!("{}", fps);
-//        canvas.draw_text_align(fps, Point {x:0.0, y:0.0}, 
-        
+        let mut paint = Paint::default();
+        paint.set_style(PaintStyle::StrokeAndFill);
+        paint.set_argb(255, 0, 0, 0);
+        self.skia.write_text(canvas, 20.0 * self.dpi, &paint, fps.as_str(), 0.0, 0.0);
+
+        // Flush all Skia ops
         unsafe { self.skia.flush(&mut self.surface); }
 
+        // Do raylib render phase
         let mut d = self.rl.begin_drawing(&self.thread);
-
         d.clear_background(Color::WHITE);
-        d.draw_text("Hello, world!", 12, 12, 20, Color::BLACK);
-
         let source = raylib::ffi::Rectangle { x: 0.0, y: 0.0, width: (self.width as f32) * self.dpi, height: (self.height as f32) * self.dpi };
         let dest = raylib::ffi::Rectangle { x: 0.0, y: 0.0, width: (self.width as f32), height: self.height as f32 };
         DrawTexturePro(
