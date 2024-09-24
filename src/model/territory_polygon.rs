@@ -1,26 +1,29 @@
-use skia_safe::{Canvas, Paint, PaintStyle, Path, Point};
+use skia_safe::{Canvas, Color, Paint, PaintStyle, Path, Picture, PictureRecorder, Point, Rect};
 use crate::model::location::Location;
 
 pub struct TerritoryPolygon {
     pub locations: Vec<Location>,
     path: Option<Path>,
     paint: Paint,
+    pic: Option<Picture>,
 }
 
 impl TerritoryPolygon {
     pub fn new() -> Self {
         let mut paint = Paint::default();
-        paint.set_anti_alias(true);
-        paint.set_style(PaintStyle::Stroke);
+        //        paint.set_anti_alias(true);
+        paint.set_style(PaintStyle::Fill);
         paint.set_argb(255, 255, 0, 0);
         TerritoryPolygon {
             locations: Vec::new(),
             path: None,
             paint,
+            pic: None,
         }
     }
 
-    pub fn prerender(&mut self) {
+    pub fn prerender(&mut self, color: Color) {
+        self.paint.set_color(color);
         let mut path = Path::new();
         path.move_to(Point::new(self.locations[0].x, self.locations[0].y));
         for location in self.locations.iter().skip(1) {
@@ -29,9 +32,14 @@ impl TerritoryPolygon {
         path.close();
 
         self.path = Some(path);
+
+        let mut recorder = PictureRecorder::new();
+        let canvas = recorder.begin_recording(Rect::from_wh(0.0, 0.0), None);
+        canvas.draw_path(self.path.as_ref().unwrap(), &self.paint);
+        self.pic = recorder.finish_recording_as_picture(None);
     }
 
     pub fn render(&self, canvas: &Canvas) {
-        canvas.draw_path(self.path.as_ref().unwrap(), &self.paint);
+        canvas.draw_picture(self.pic.as_ref().unwrap(), None, None);
     }
 }
