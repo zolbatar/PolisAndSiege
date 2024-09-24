@@ -8,6 +8,7 @@ use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
 use skia_safe::{colors, Canvas, ColorType, FontMgr, Paint, Point, Surface, PaintStyle};
+use crate::app_state::AppState;
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
 
@@ -48,7 +49,7 @@ impl Skia {
         }
     }
 
-    pub fn test(self: &Self, canvas: &Canvas, width: i32, height: i32) {
+    pub fn test(&self, canvas: &Canvas, width: i32, height: i32) {
         let mut rng = rand::thread_rng();
         let mut paint = Paint::default();
         paint.set_anti_alias(true);
@@ -85,16 +86,34 @@ impl Skia {
         surface.skia_surface.canvas().clear(colors::TRANSPARENT);
     }
 
-    pub fn set_matrix(&mut self, canvas: &Canvas, dpi: f32) {
+    pub fn set_matrix(&mut self, canvas: &Canvas, app_state: &AppState) {
         canvas.save();
-        canvas.scale((dpi, dpi));
+        canvas.reset_matrix();
+        canvas.scale((app_state.dpi, app_state.dpi));
+    }
+
+    pub fn set_matrix_centre(&mut self, canvas: &Canvas, app_state: &AppState) {
+        canvas.save();
+        canvas.reset_matrix();
+        canvas.scale((app_state.dpi, app_state.dpi));
+        canvas.translate((app_state.half_width, app_state.half_height));
+    }
+
+    pub fn set_matrix_camera(&mut self, canvas: &Canvas, app_state: &AppState) {
+        canvas.save();
+        canvas.reset_matrix();
+        canvas.scale((app_state.dpi, app_state.dpi));
+        canvas.translate((app_state.camera.offset.x, app_state.camera.offset.y));
+        canvas.scale((app_state.camera.zoom, app_state.camera.zoom));
+        canvas.translate((-app_state.camera.target.x, -app_state.camera.target.y));
+        canvas.scale((1.0, -1.0)); // Flip vertically
     }
 
     pub fn clear_matrix(&mut self, canvas: &Canvas) {
         canvas.restore();
     }
 
-    fn create_paragraph_builder(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str) -> ParagraphBuilder {
+    fn create_paragraph_builder(&mut self, font_size: f32, paint: &Paint, text: &str) -> ParagraphBuilder {
         let mut paragraph_style = ParagraphStyle::new();
         paragraph_style.set_text_align(TextAlign::Left);
         paragraph_style.set_max_lines(1);
@@ -117,15 +136,15 @@ impl Skia {
         builder
     }
 
-    pub fn text_dimensions(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str) -> f32 {
-        let mut builder = self.create_paragraph_builder(canvas, font_size, paint, text);
+    pub fn text_dimensions(&mut self, font_size: f32, paint: &Paint, text: &str) -> f32 {
+        let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
         paragraph.layout(10000.0);
         paragraph.max_intrinsic_width()
     }
 
     pub fn write_text(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, x: f32, y: f32, width: f32) {
-        let mut builder = self.create_paragraph_builder(canvas, font_size, paint, text);
+        let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
         paragraph.paint(canvas, Point::new(x, y));

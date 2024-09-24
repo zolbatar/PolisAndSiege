@@ -11,8 +11,8 @@ fn radians_to_degrees(radians: f32) -> f32 {
 pub struct Location {
     latitude: f32,
     longitude: f32,
-    x: f32,
-    y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
 impl Location {
