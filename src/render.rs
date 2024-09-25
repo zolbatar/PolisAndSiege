@@ -18,7 +18,7 @@ pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Sk
     // Cities
     for territory in &app_state.territories {
         for city in &territory.1.cities {
-            city.render(canvas, skia);
+            city.render(canvas, skia, &app_state);
         }
     }
     skia.clear_matrix(canvas);
@@ -27,8 +27,8 @@ pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Sk
     let fps = format!("FPS: {}", rl.get_fps());
     let canvas = surface.skia_surface.canvas();
     let mut paint = Paint::default();
-    paint.set_style(PaintStyle::StrokeAndFill);
-    paint.set_argb(255, 0, 0, 0);
+    paint.set_style(PaintStyle::Fill);
+    paint.set_color(skia_safe::Color::WHITE);
     skia.write_text(canvas, 20.0 * app_state.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
 
     // Flush all Skia ops

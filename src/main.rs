@@ -33,6 +33,7 @@ fn main() {
     // Skia and surfaces
     let mut skia = Skia::new();
     let mut surface = skia.make_surface(app_state.width * app_state.dpi as i32, app_state.height * app_state.dpi as i32);
+    unsafe { skia.flush(&mut surface); }
 
     // Loop
     while !rl.window_should_close() {

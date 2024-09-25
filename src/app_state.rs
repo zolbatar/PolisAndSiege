@@ -3,6 +3,8 @@ use raylib::{RaylibHandle};
 use raylib::prelude::Camera2D;
 use crate::model::territory::Territory;
 
+pub(crate) const MIN_ZOOM: f32 = 4.675;
+
 pub struct AppState {
     pub width: i32,
     pub height: i32,
@@ -25,7 +27,7 @@ impl AppState {
         camera.target.y = -9.5;
         camera.offset.x = half_width as f32;
         camera.offset.y = half_height as f32;
-        camera.zoom = 4.675;
+        camera.zoom = MIN_ZOOM;
 
         AppState {
             width,
@@ -36,5 +38,10 @@ impl AppState {
             territories,
             camera,
         }
+    }
+
+    pub fn show_all_info(&self) -> bool {
+        true
+        //        self.camera.zoom > 7.5
     }
 }

@@ -45,6 +45,6 @@ pub unsafe fn handle_input(app_state: &mut AppState) {
     if GetMouseWheelMove() != 0.0 {
         let delta = GetMouseWheelMove() * 0.25;
         app_state.camera.zoom += delta;
-        app_state.camera.zoom = app_state.camera.zoom.clamp(1.0, 15.0);
+        app_state.camera.zoom = app_state.camera.zoom.clamp(crate::app_state::MIN_ZOOM, 15.0);
     }
 }

@@ -1,5 +1,6 @@
 use crate::app_state::AppState;
 use rand::Rng;
+use raylib::data;
 use raylib::ffi::{BeginTextureMode, EndTextureMode, LoadRenderTexture, RenderTexture2D};
 use skia_safe::gpu::backend_render_targets;
 use skia_safe::gpu::direct_contexts::make_gl;
@@ -8,9 +9,12 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{colors, Canvas, Color, ColorType, FontMgr, ImageFilter, Paint, PaintStyle, Point, Surface};
+use skia_safe::{Canvas, Color, ColorType, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, RuntimeEffect, Surface};
+use skia_safe::runtime_effect::Uniform;
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
+const NOISE_SKSL: &[u8] = include_bytes!("../assets/noise.sksl");
+pub const ELLIPSIS: &str = "\u{2026}";
 
 pub struct MySurface {
     pub texture: RenderTexture2D,
@@ -22,6 +26,7 @@ pub struct Skia {
     font_collection: FontCollection,
     pub blur: Option<ImageFilter>,
     pub drop_shadow: Option<ImageFilter>,
+    noise_shader: RuntimeEffect,
 }
 
 impl Skia {
@@ -45,6 +50,9 @@ impl Skia {
         let mut font_collection = FontCollection::new();
         font_collection.set_default_font_manager(Some(typeface_font_provider.into()), "EB Garamond");
 
+        // Shaders
+        let noise_shader = RuntimeEffect::make_for_shader(std::str::from_utf8(NOISE_SKSL).unwrap(), None).unwrap();
+
         // Filters
         /*        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
                 let drop_shadow = drop_shadow_only(
@@ -60,6 +68,7 @@ impl Skia {
             font_collection,
             drop_shadow: None,
             blur: None,
+            noise_shader,
         }
     }
 
@@ -97,7 +106,7 @@ impl Skia {
         surface.skia_surface.image_snapshot();
         self.context.flush_and_submit();
         EndTextureMode();
-        surface.skia_surface.canvas().clear(colors::TRANSPARENT);
+        surface.skia_surface.canvas().clear(Color::from_argb(255, 63, 63, 63));
     }
 
     pub fn set_matrix(&mut self, canvas: &Canvas, app_state: &AppState) {
@@ -130,6 +139,7 @@ impl Skia {
         let mut paragraph_style = ParagraphStyle::new();
         paragraph_style.set_text_align(TextAlign::Left);
         paragraph_style.set_max_lines(1);
+        paragraph_style.set_ellipsis(ELLIPSIS);
 
         // Use the Make method to create a ParagraphBuilder
         let mut builder = ParagraphBuilder::new(&paragraph_style, &self.font_collection);
@@ -169,6 +179,21 @@ impl Skia {
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
         paragraph.paint(canvas, Point::new(xy.x - dimensions / 2.0, xy.y));
+    }
+
+    fn create_noise_shader(&self, effect: &RuntimeEffect, base_color: Color, mix: f32) -> Option<Shader> {
+//        let mut data = Data::
+        let mut builder = self.noise_shader.
+
+        // Set the uniform for "u_noiseMix"
+        builder.set_uniform("u_noiseMix", mix);
+
+        // Set the uniform for "u_baseColor" (convert SkColor to SkColor4f)
+        let base_color_4f = Color4f::from_color(base_color);
+        builder.set_uniform("u_baseColor", base_color_4f);
+
+        // Create the shader from the builder
+        builder.make_shader(None)
     }
 }
 
