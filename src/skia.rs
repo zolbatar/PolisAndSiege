@@ -8,7 +8,7 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{colors, Canvas, ColorType, FontMgr, ImageFilter, Paint, PaintStyle, Point, Surface};
+use skia_safe::{colors, Canvas, Color, ColorType, FontMgr, ImageFilter, Paint, PaintStyle, Point, Surface};
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
 
@@ -120,14 +120,13 @@ impl Skia {
         canvas.translate((app_state.camera.offset.x, app_state.camera.offset.y));
         canvas.scale((app_state.camera.zoom, app_state.camera.zoom));
         canvas.translate((-app_state.camera.target.x, -app_state.camera.target.y));
-        canvas.scale((1.0, -1.0)); // Flip vertically
     }
 
     pub fn clear_matrix(&mut self, canvas: &Canvas) {
         canvas.restore();
     }
 
-    fn create_paragraph_builder(&mut self, font_size: f32, paint: &Paint, text: &str) -> ParagraphBuilder {
+    fn create_paragraph_builder(&self, font_size: f32, paint: &Paint, text: &str) -> ParagraphBuilder {
         let mut paragraph_style = ParagraphStyle::new();
         paragraph_style.set_text_align(TextAlign::Left);
         paragraph_style.set_max_lines(1);
@@ -150,17 +149,42 @@ impl Skia {
         builder
     }
 
-    pub fn text_dimensions(&mut self, font_size: f32, paint: &Paint, text: &str) -> f32 {
+    pub fn text_dimensions(&self, font_size: f32, paint: &Paint, text: &str) -> f32 {
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
         paragraph.layout(10000.0);
         paragraph.max_intrinsic_width()
     }
 
-    pub fn write_text(&mut self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, x: f32, y: f32, width: f32) {
+    pub fn write_text(&self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, x: f32, y: f32, width: f32) {
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
         paragraph.paint(canvas, Point::new(x, y));
     }
+}
+
+pub fn mix_colors(color1: Color, color2: Color, mut ratio: f32) -> Color {
+    // Clamp the ratio between 0.0 and 1.0
+    ratio = ratio.clamp(0.0, 1.0);
+
+    // Extract RGBA components from each color
+    let r1 = color1.r() as f32;
+    let g1 = color1.g() as f32;
+    let b1 = color1.b() as f32;
+    let a1 = color1.a() as f32;
+
+    let r2 = color2.r() as f32;
+    let g2 = color2.g() as f32;
+    let b2 = color2.b() as f32;
+    let a2 = color2.a() as f32;
+
+    // Linearly interpolate between the two colors' components based on the ratio
+    let r = (r1 * (1.0 - ratio) + r2 * ratio) as u8;
+    let g = (g1 * (1.0 - ratio) + g2 * ratio) as u8;
+    let b = (b1 * (1.0 - ratio) + b2 * ratio) as u8;
+    let a = (a1 * (1.0 - ratio) + a2 * ratio) as u8;
+
+    // Return the blended color
+    Color::from_argb(a, r, g, b)
 }

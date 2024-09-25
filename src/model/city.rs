@@ -1,18 +1,28 @@
 use crate::model::location::Location;
-use skia_safe::colors::BLACK;
-use skia_safe::{Canvas, Color, Paint, PaintStyle, Point};
+use skia_safe::{Canvas, Color, Paint, PaintStyle, Point, Shader, TileMode};
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use skia_safe::gradient_shader::GradientShaderColors;
+use crate::skia;
+use crate::skia::Skia;
+
+pub enum CityType {
+    Metropolis,
+    Fortopolis,
+    Argopolis,
+    Technopolis,
+}
 
 pub struct City {
     name: String,
     location: Location,
     population: i64,
     paint_territory: Color,
+    size: i8,
+    typ: CityType,
 }
 
-const MIN_SIZE: f32 = 1.0;
-const MAX_SIZE: f32 = 2.5;
+const SIZE: f32 = 2.0;
 const MINIMUM_ALLOWED_DISTANCE: f32 = 12.0;
 lazy_static! {
     static ref EXISTING_CITIES: Mutex<Vec<Location>> = Mutex::new(Vec::new());
@@ -20,57 +30,68 @@ lazy_static! {
 
 impl City {
     pub fn new(name: String, latitude: f32, longitude: f32, population: i64, paint_territory: Color) -> Self {
+        let size = match population {
+            0..150000 => 1,
+            150000..250000 => 2,
+            250000..500000 => 3,
+            500000..1000000 => 4,
+            1000000..2500000 => 5,
+            2500000..5000000 => 6,
+            5000000..10000000 => 7,
+            _ => 8
+        };
         City {
             name,
             location: Location::new(latitude, longitude),
             population,
             paint_territory,
+            size,
+            typ: CityType::Metropolis,
         }
     }
 
-    pub fn render(&self, canvas: &Canvas) {
+    pub fn render(&self, canvas: &Canvas, skia: &Skia) {
         let mut paint = Paint::default();
         paint.set_anti_alias(false);
         paint.set_style(PaintStyle::Fill);
 
+        let centre = Point::new(self.location.x, self.location.y);
+
         // Size
-        let size = City::log_transform(self.population as f32).clamp(MIN_SIZE, MAX_SIZE);
+        //        let size = self.size; //City::log_transform(self.population as f32).clamp(MIN_SIZE, MAX_SIZE);
+
+        // Create a radial gradient shader
+        let shader = Shader::radial_gradient(
+            centre,
+            SIZE,
+            GradientShaderColors::Colors(&[skia::mix_colors(self.paint_territory, Color::WHITE, 0.5), self.paint_territory]),
+            None,
+            TileMode::Clamp,
+            None,
+            None,
+        );
 
         // Draw
         let mut paint_fill = Paint::default();
         paint_fill.set_style(PaintStyle::Fill);
-        paint_fill.set_color(self.paint_territory);
-        //paint_fill.setColor(Skia::MixColors(paint_territory, SkColors::kWhite.toSkColor(), 0.5f));
+        paint_fill.set_shader(shader);
         paint_fill.set_image_filter(None);
-        canvas.draw_circle(Point::new(self.location.x, self.location.y), size, &paint_fill);
+        canvas.draw_circle(centre, SIZE, &paint_fill);
 
         // Outline
         let mut paint_outline = Paint::default();
         paint_outline.set_anti_alias(true);
         paint_outline.set_style(PaintStyle::Stroke);
-        paint_outline.set_color4f(BLACK, None);
-        paint_outline.set_stroke_width(size / 8.0);
-        canvas.draw_circle(Point::new(self.location.x, self.location.y), size, &paint_outline);
-    }
+        paint_outline.set_color(Color::BLACK);
+        paint_outline.set_stroke_width(SIZE / 8.0);
+        canvas.draw_circle(centre, SIZE, &paint_outline);
 
-    fn log_transform(x: f32) -> f32 {
-        const MIN_INPUT: f32 = 100_000.0;
-        const MAX_INPUT: f32 = 25_000_000.0;
-
-        // Calculate log_min and log_max for normalization
-        let log_min = MIN_INPUT.ln(); // ln() is the natural logarithm in Rust
-        let log_max = MAX_INPUT.ln();
-
-        // Calculate the log of the input value (no need to add 1 if x is non-zero)
-        let log_x = x.ln();
-
-        // Normalize log_x to a range between 0 and 1
-        let normalized_log_x = (log_x - log_min) / (log_max - log_min);
-
-        // Scale and shift to the desired output range
-        let output = MIN_SIZE + normalized_log_x * (MAX_SIZE - MIN_SIZE);
-
-        output
+        // Size label
+        let mut paint_text = Paint::default();
+        paint_text.set_anti_alias(true);
+        paint_text.set_style(PaintStyle::Fill);
+        paint_text.set_color(Color::WHITE);
+        skia.write_text(canvas, 4.0, &paint_text, &*self.size.to_string(), self.location.x, self.location.y, 0.0);
     }
 
     pub fn calculate_distance(city1: &City, city2: &City) -> f32 {

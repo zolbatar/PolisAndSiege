@@ -38,7 +38,7 @@ pub fn import() -> HashMap<String, Territory> {
             let mut territory_polygon = TerritoryPolygon::new();
             for latitude_longitude in polygon.as_array().expect("CBOR: Expecting array of points") {
                 let latitude = latitude_longitude.as_array().unwrap()[0].as_float().unwrap();
-                let longitude = latitude_longitude.as_array().unwrap()[1].as_float().unwrap();
+                let longitude = -latitude_longitude.as_array().unwrap()[1].as_float().unwrap();
                 if longitude >= -172.44 && longitude != 0.0 && latitude != 0.0 {
                     territory_polygon.locations.push(Location::new(longitude as f32, latitude as f32));
                     point_count_total += 1;
@@ -58,7 +58,7 @@ pub fn import() -> HashMap<String, Territory> {
         {
             let city_details = city.as_array().expect("CBOR: Expected an array of city details");
             let name = city_details[0].as_text().unwrap();
-            let latitude = city_details[1].as_float().unwrap();
+            let latitude = -city_details[1].as_float().unwrap();
             let longitude = city_details[2].as_float().unwrap();
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
             territory.cities.push(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour));
