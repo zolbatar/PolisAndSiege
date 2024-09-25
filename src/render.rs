@@ -4,15 +4,19 @@ use raylib::color::Color;
 use raylib::ffi::{DrawTexturePro, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
 use raylib::prelude::RaylibDraw;
-use skia_safe::{Paint, PaintStyle};
+use skia_safe::{Paint, PaintStyle, Point};
 
 pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Skia, surface: &mut MySurface, app_state: &AppState) {
-
-    // Render
     let canvas = surface.skia_surface.canvas();
     skia.set_matrix_camera(canvas, &app_state);
+
+    // Territories
     for territory in &app_state.territories {
         territory.1.render_polygons(canvas);
+    }
+    
+    // Cities
+    for territory in &app_state.territories {
         for city in &territory.1.cities {
             city.render(canvas, skia);
         }
@@ -25,7 +29,7 @@ pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Sk
     let mut paint = Paint::default();
     paint.set_style(PaintStyle::StrokeAndFill);
     paint.set_argb(255, 0, 0, 0);
-    skia.write_text(canvas, 20.0 * app_state.dpi, &paint, fps.as_str(), 0.0, 0.0, 0.0);
+    skia.write_text(canvas, 20.0 * app_state.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
 
     // Flush all Skia ops
     unsafe { skia.flush(surface); }

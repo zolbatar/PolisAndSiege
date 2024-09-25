@@ -156,11 +156,19 @@ impl Skia {
         paragraph.max_intrinsic_width()
     }
 
-    pub fn write_text(&self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, x: f32, y: f32, width: f32) {
+    pub fn write_text(&self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
-        paragraph.paint(canvas, Point::new(x, y));
+        paragraph.paint(canvas, xy);
+    }
+
+    pub fn write_text_centre(&self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
+        let dimensions = self.text_dimensions(font_size, paint, text);
+        let mut builder = self.create_paragraph_builder(font_size, paint, text);
+        let mut paragraph = builder.build();
+        paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
+        paragraph.paint(canvas, Point::new(xy.x - dimensions / 2.0, xy.y));
     }
 }
 

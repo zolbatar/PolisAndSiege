@@ -1,10 +1,9 @@
 use crate::model::location::Location;
-use skia_safe::{Canvas, Color, Paint, PaintStyle, Point, Shader, TileMode};
-use lazy_static::lazy_static;
-use std::sync::Mutex;
-use skia_safe::gradient_shader::GradientShaderColors;
 use crate::skia;
 use crate::skia::Skia;
+use lazy_static::lazy_static;
+use skia_safe::{Canvas, Color, Paint, PaintStyle, Point};
+use std::sync::Mutex;
 
 pub enum CityType {
     Metropolis,
@@ -57,25 +56,10 @@ impl City {
 
         let centre = Point::new(self.location.x, self.location.y);
 
-        // Size
-        //        let size = self.size; //City::log_transform(self.population as f32).clamp(MIN_SIZE, MAX_SIZE);
-
-        // Create a radial gradient shader
-        let shader = Shader::radial_gradient(
-            centre,
-            SIZE,
-            GradientShaderColors::Colors(&[skia::mix_colors(self.paint_territory, Color::WHITE, 0.5), self.paint_territory]),
-            None,
-            TileMode::Clamp,
-            None,
-            None,
-        );
-
         // Draw
         let mut paint_fill = Paint::default();
         paint_fill.set_style(PaintStyle::Fill);
-        paint_fill.set_shader(shader);
-        paint_fill.set_image_filter(None);
+        paint_fill.set_color(skia::mix_colors(self.paint_territory, Color::WHITE, 0.5));
         canvas.draw_circle(centre, SIZE, &paint_fill);
 
         // Outline
@@ -90,8 +74,8 @@ impl City {
         let mut paint_text = Paint::default();
         paint_text.set_anti_alias(true);
         paint_text.set_style(PaintStyle::Fill);
-        paint_text.set_color(Color::WHITE);
-        skia.write_text(canvas, 4.0, &paint_text, &*self.size.to_string(), self.location.x, self.location.y, 0.0);
+        paint_text.set_color(Color::BLACK);
+        skia.write_text_centre(canvas, 3.0, &paint_text, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE), self.location.y);
     }
 
     pub fn calculate_distance(city1: &City, city2: &City) -> f32 {
