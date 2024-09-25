@@ -7,9 +7,9 @@ name = "PolisAndSiege"
 version = "0.1.0"
 dependencies = [
  "ciborium",
+ "lazy_static",
  "rand",
  "raylib",
- "skia-bindings",
  "skia-safe",
 ]
 

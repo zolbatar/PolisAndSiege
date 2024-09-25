@@ -9,13 +9,13 @@ mod model {
     pub mod location;
     pub mod territory;
     pub mod territory_polygon;
+    pub mod math;
 }
 
 use crate::input::handle_input;
 use crate::render::render;
 use crate::skia::Skia;
 use app_state::AppState;
-use raylib::ffi::{GetCurrentMonitor, GetMonitorHeight, GetMonitorWidth};
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -29,11 +29,6 @@ fn main() {
 
     // Create an AppState instance using the new method
     let mut app_state = AppState::new(&rl, territories);
-    unsafe {
-        let monitor = GetCurrentMonitor();
-        println!("Native resolution: {} x {} ({} DPI)", GetMonitorWidth(monitor), GetMonitorHeight(monitor), app_state.dpi);
-    }
-    println!("Window resolution: {} x {}", app_state.width, app_state.height);
 
     // Skia and surfaces
     let mut skia = Skia::new();

@@ -6,7 +6,7 @@ use crate::model::location::Location;
 use crate::model::territory::Territory;
 use crate::model::territory_polygon::TerritoryPolygon;
 
-static REGIONS_CBOR: &[u8] = include_bytes!("../assets/Regions.cbor");
+const REGIONS_CBOR: &[u8] = include_bytes!("../assets/Regions.cbor");
 
 pub fn import() -> HashMap<String, Territory> {
 
@@ -64,6 +64,9 @@ pub fn import() -> HashMap<String, Territory> {
             territory.cities.push(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour));
             cities_count += 1;
         }
+        
+        // Choose sensible cities
+        territory.cities = City::select_evenly_spaced_cities(territory.cities, 25);
         
         territories.insert(territory_name_unwrapped, territory);
     }

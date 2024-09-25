@@ -1,3 +1,4 @@
+use crate::app_state::AppState;
 use rand::Rng;
 use raylib::ffi::{BeginTextureMode, EndTextureMode, LoadRenderTexture, RenderTexture2D};
 use skia_safe::gpu::backend_render_targets;
@@ -7,10 +8,7 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{colors, Canvas, ColorType, FontMgr, Paint, Point, Surface, PaintStyle, ImageFilter, Vector, ColorSpace, Rect, Color4f};
-use skia_safe::colors::BLACK;
-use skia_safe::image_filters::{drop_shadow_only};
-use crate::app_state::AppState;
+use skia_safe::{colors, Canvas, ColorType, FontMgr, ImageFilter, Paint, PaintStyle, Point, Surface};
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
 
@@ -22,7 +20,8 @@ pub struct MySurface {
 pub struct Skia {
     context: DirectContext,
     font_collection: FontCollection,
-    pub drop_shadow: ImageFilter,
+    pub blur: Option<ImageFilter>,
+    pub drop_shadow: Option<ImageFilter>,
 }
 
 impl Skia {
@@ -46,33 +45,21 @@ impl Skia {
         let mut font_collection = FontCollection::new();
         font_collection.set_default_font_manager(Some(typeface_font_provider.into()), "EB Garamond");
 
-        let c: Color4f = BLACK.into();
-        let d1: Option<ColorSpace> = None;
-        let d2: ColorSpace = d1.into();
-        let d = d2.into_ptr_or_null();
-        let e = None.into().into_ptr_or_null();
-        let f = None.into().native();
-        unsafe {
-            skia_bindings::C_SkImageFilters_DropShadowOnly(
-                1.5,
-                -1.5,
-                1.5,
-                1.5,
-                c, d, e, f,
-            );
-        }
-
         // Filters
-        let drop_shadow = drop_shadow_only(
-            Vector::new(1.5, -1.5),
-            (1.5, 1.5),
-            BLACK,
-            None, None, Rect::new_empty()).expect("Can't create drop shadow filter");
+        /*        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
+                let drop_shadow = drop_shadow_only(
+                    Vector::new(1.5, -1.5),
+                    (1.5, 1.5),
+                    Color::BLACK,
+                    None,
+                    None,
+                    None);*/
 
         Skia {
             context,
             font_collection,
-            drop_shadow,
+            drop_shadow: None,
+            blur: None,
         }
     }
 

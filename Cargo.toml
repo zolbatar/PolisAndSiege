@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 skia-safe = { version = "0.78.0", features = ["gl", "textlayout", "svg", "binary-cache"] }
-skia-bindings = "0.78.0"
 raylib = "5.0.2"
 rand = "0.8.5"
 ciborium = "0.2.2"
+lazy_static = "1.5.0"

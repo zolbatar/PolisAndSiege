@@ -14,7 +14,7 @@ pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Sk
     for territory in &app_state.territories {
         territory.1.render_polygons(canvas);
         for city in &territory.1.cities {
-            city.render(canvas, &skia.drop_shadow);
+            city.render(canvas);
         }
     }
     skia.clear_matrix(canvas);

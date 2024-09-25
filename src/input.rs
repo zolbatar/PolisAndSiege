@@ -3,7 +3,7 @@ use raylib::ffi::{GetMouseDelta, GetMouseWheelMove, IsMouseButtonPressed, IsMous
 use crate::app_state::AppState;
 
 static mut PANNING: bool = false;
-static THRESHOLD: f32 = 64.0;
+const THRESHOLD: f32 = 64.0;
 
 fn vector2_subtract(v1: raylib::core::math::Vector2, v2: raylib::core::math::Vector2) -> raylib::core::math::Vector2 {
     raylib::core::math::Vector2 {

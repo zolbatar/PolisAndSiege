@@ -1,13 +1,7 @@
 use std::f32::consts::PI;
+use crate::model::math::{degrees_to_radians, radians_to_degrees};
 
-fn degrees_to_radians(degrees: f32) -> f32 {
-    degrees * (PI / 180.0)
-}
-
-fn radians_to_degrees(radians: f32) -> f32 {
-    radians * (180.0 / PI)
-}
-
+#[derive(Clone)]
 pub struct Location {
     latitude: f32,
     longitude: f32,
@@ -25,5 +19,11 @@ impl Location {
             x: longitude,
             y,
         }
+    }
+
+    pub fn calculate_distance(city1: &Location, city2: &Location) -> f32 {
+        let dx = city1.x - city2.x;
+        let dy = city1.y - city2.y;
+        (dx * dx + dy * dy).sqrt()
     }
 }
