@@ -1,6 +1,5 @@
 use crate::app_state::AppState;
 use rand::Rng;
-use raylib::data;
 use raylib::ffi::{BeginTextureMode, EndTextureMode, LoadRenderTexture, RenderTexture2D};
 use skia_safe::gpu::backend_render_targets;
 use skia_safe::gpu::direct_contexts::make_gl;
@@ -9,8 +8,7 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{Canvas, Color, ColorType, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, RuntimeEffect, Surface};
-use skia_safe::runtime_effect::Uniform;
+use skia_safe::{Canvas, Color, Color4f, ColorType, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, RuntimeEffect, Shader, Surface};
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
 const NOISE_SKSL: &[u8] = include_bytes!("../assets/noise.sksl");
@@ -181,19 +179,16 @@ impl Skia {
         paragraph.paint(canvas, Point::new(xy.x - dimensions / 2.0, xy.y));
     }
 
-    fn create_noise_shader(&self, effect: &RuntimeEffect, base_color: Color, mix: f32) -> Option<Shader> {
-//        let mut data = Data::
-        let mut builder = self.noise_shader.
+    fn create_noise_shader(&self, base_color: Color, mix: f32) -> Shader {
+        let uniforms = {
+            let mut data = vec![];
+            data.extend_from_slice(bytemuck::bytes_of(&mix));
+            let colour = Color4f::from(base_color);
+            data.extend_from_slice(bytemuck::bytes_of(&colour.to_bytes()));
+            Data::new_copy(&data)
+        };
 
-        // Set the uniform for "u_noiseMix"
-        builder.set_uniform("u_noiseMix", mix);
-
-        // Set the uniform for "u_baseColor" (convert SkColor to SkColor4f)
-        let base_color_4f = Color4f::from_color(base_color);
-        builder.set_uniform("u_baseColor", base_color_4f);
-
-        // Create the shader from the builder
-        builder.make_shader(None)
+        self.noise_shader.make_shader(uniforms, &[], None).unwrap()
     }
 }
 
