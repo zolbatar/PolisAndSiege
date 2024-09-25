@@ -8,10 +8,10 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{Canvas, Color, Color4f, ColorType, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, RuntimeEffect, Shader, Surface};
+use skia_safe::{Canvas, Color, Color4f, ColorType, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect, Shader, Surface};
 
 static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
-const NOISE_SKSL: &[u8] = include_bytes!("../assets/noise.sksl");
+const NOISE_SKSL: &str = include_str!("../assets/noise.sksl");
 pub const ELLIPSIS: &str = "\u{2026}";
 
 pub struct MySurface {
@@ -49,7 +49,7 @@ impl Skia {
         font_collection.set_default_font_manager(Some(typeface_font_provider.into()), "EB Garamond");
 
         // Shaders
-        let noise_shader = RuntimeEffect::make_for_shader(std::str::from_utf8(NOISE_SKSL).unwrap(), None).unwrap();
+        let noise_shader = RuntimeEffect::make_for_shader(NOISE_SKSL, None).unwrap();
 
         // Filters
         /*        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
@@ -104,7 +104,16 @@ impl Skia {
         surface.skia_surface.image_snapshot();
         self.context.flush_and_submit();
         EndTextureMode();
-        surface.skia_surface.canvas().clear(Color::from_argb(255, 63, 63, 63));
+
+        // Clear
+        let w = surface.skia_surface.width();
+        let h = surface.skia_surface.height();
+        let canvas = surface.skia_surface.canvas();
+        canvas.clear(Color::from_argb(255, 63, 63, 63));
+        let mut paint_background = Paint::default();
+        paint_background.set_style(PaintStyle::Fill);
+        paint_background.set_shader(self.create_noise_shader(Color::from_argb(255, 63, 63, 63), 0.05));
+        canvas.draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }
 
     pub fn set_matrix(&mut self, canvas: &Canvas, app_state: &AppState) {
@@ -179,15 +188,14 @@ impl Skia {
         paragraph.paint(canvas, Point::new(xy.x - dimensions / 2.0, xy.y));
     }
 
-    fn create_noise_shader(&self, base_color: Color, mix: f32) -> Shader {
+    fn create_noise_shader(&mut self, base_color: Color, mix: f32) -> Shader {
         let uniforms = {
             let mut data = vec![];
-            data.extend_from_slice(bytemuck::bytes_of(&mix));
-            let colour = Color4f::from(base_color);
-            data.extend_from_slice(bytemuck::bytes_of(&colour.to_bytes()));
+            data.extend_from_slice(&mix.to_ne_bytes());
+            data.extend_from_slice(&Color4f::from(base_color).to_bytes().to_ne_bytes());
             Data::new_copy(&data)
         };
-
+        self.context.reset(None);
         self.noise_shader.make_shader(uniforms, &[], None).unwrap()
     }
 }
