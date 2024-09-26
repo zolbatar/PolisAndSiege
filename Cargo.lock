@@ -7,7 +7,6 @@ name = "PolisAndSiege"
 version = "0.1.0"
 dependencies = [
  "ciborium",
- "lazy_static",
  "rand",
  "raylib",
  "skia-safe",
@@ -784,7 +783,6 @@ dependencies = [
  "cc",
  "flate2",
  "heck",
- "lazy_static",
  "regex",
  "serde_json",
  "tar",

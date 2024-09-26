@@ -1,6 +1,8 @@
 mod app_state;
-mod skia;
-mod cbor;
+mod lib {
+    pub mod skia;
+    pub mod cbor;
+}
 mod input;
 mod render;
 
@@ -14,8 +16,9 @@ mod model {
 
 use crate::input::handle_input;
 use crate::render::render;
-use crate::skia::Skia;
+use crate::lib::skia::Skia;
 use app_state::AppState;
+use crate::lib::cbor;
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -24,11 +27,12 @@ fn main() {
         //        .undecorated()
         .build();
 
-    // Load CBOR data
-    let territories = cbor::import();
-
     // Create an AppState instance using the new method
-    let mut app_state = AppState::new(&rl, territories);
+    let mut app_state = AppState::new(&rl);
+
+    // Load CBOR data
+    let territories = cbor::import(&mut app_state);
+    app_state.territories = territories;
 
     // Skia and surfaces
     let mut skia = Skia::new();

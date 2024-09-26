@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use raylib::{RaylibHandle};
 use raylib::prelude::Camera2D;
+use crate::model::location::Location;
 use crate::model::territory::Territory;
 
 pub(crate) const MIN_ZOOM: f32 = 4.675;
@@ -14,10 +15,11 @@ pub struct AppState {
     pub territories: HashMap<String, Territory>,
     pub camera: Camera2D,
     pub panning: bool,
+    pub existing_cities: Vec<Location>,
 }
 
 impl AppState {
-    pub fn new(rl: &RaylibHandle, territories: HashMap<String, Territory>) -> Self {
+    pub fn new(rl: &RaylibHandle) -> Self {
         let width = rl.get_screen_width();
         let height = rl.get_screen_height();
         let half_width = width / 2;
@@ -36,9 +38,10 @@ impl AppState {
             half_width,
             half_height,
             dpi,
-            territories,
+            territories: HashMap::new(),
             camera,
             panning: false,
+            existing_cities: Vec::new(),
         }
     }
 

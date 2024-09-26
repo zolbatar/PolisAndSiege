@@ -1,10 +1,8 @@
 use crate::model::location::Location;
-use crate::skia;
-use crate::skia::Skia;
-use lazy_static::lazy_static;
+use crate::lib::skia::Skia;
 use skia_safe::{Canvas, Color, Paint, PaintStyle, Point, Rect};
-use std::sync::Mutex;
 use crate::app_state::AppState;
+use crate::lib::skia;
 
 pub enum CityType {
     Metropolis,
@@ -25,10 +23,6 @@ pub struct City {
 const SIZE: f32 = 2.0;
 const MINIMUM_ALLOWED_DISTANCE: f32 = 12.0;
 const MAXIMUM_LABEL_WIDTH: f32 = 12.0;
-
-lazy_static! {
-    static ref EXISTING_CITIES: Mutex<Vec<Location>> = Mutex::new(Vec::new());
-}
 
 impl City {
     pub fn new(name: String, latitude: f32, longitude: f32, population: i64, paint_territory: Color) -> Self {
@@ -95,6 +89,7 @@ impl City {
 
     // Function to select evenly spaced cities
     pub fn select_evenly_spaced_cities(
+        app_state: &mut AppState,
         mut cities: Vec<City>,
         num_cities_to_select: usize,
     ) -> Vec<City> {
@@ -108,8 +103,7 @@ impl City {
             let mut want = true;
 
             // Check distance to already selected cities
-            let mut existing_cities = EXISTING_CITIES.lock().unwrap();
-            for existing in existing_cities.iter() {
+            for existing in app_state.existing_cities.iter() {
                 if existing.x != city.location.x && existing.y != city.location.y {
                     let dist = Location::calculate_distance(&city.location, existing);
                     if dist <= MINIMUM_ALLOWED_DISTANCE {
@@ -121,7 +115,7 @@ impl City {
 
             // If the city is far enough, select it
             if want {
-                existing_cities.push(city.location.clone());
+                app_state.existing_cities.push(city.location.clone());
                 selected_cities.push(city);
 
                 // Stop if we have selected enough cities

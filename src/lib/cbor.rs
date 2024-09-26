@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 use ciborium::de::from_reader;
 use ciborium::Value;
+use crate::app_state::AppState;
 use crate::model::city::City;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 use crate::model::territory_polygon::TerritoryPolygon;
 
-const REGIONS_CBOR: &[u8] = include_bytes!("../assets/Regions.cbor");
+const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
 
-pub fn import() -> HashMap<String, Territory> {
+pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
 
     // Open file
     let reader = from_reader::<Value, _>(REGIONS_CBOR).expect("Can't load CBOR file");
@@ -52,7 +53,7 @@ pub fn import() -> HashMap<String, Territory> {
 
         // Pre-render, i.e. create Skia stuff
         let colour = territory.prerender_polygons();
-        
+
         // Cities
         for city in polygons_cities[1].as_array().expect("CBOR: Expecting array of cities")
         {
@@ -64,10 +65,10 @@ pub fn import() -> HashMap<String, Territory> {
             territory.cities.push(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour));
             cities_count += 1;
         }
-        
+
         // Choose sensible cities
-        territory.cities = City::select_evenly_spaced_cities(territory.cities, 25);
-        
+        territory.cities = City::select_evenly_spaced_cities(app_state, territory.cities, 25);
+
         territories.insert(territory_name_unwrapped, territory);
     }
 

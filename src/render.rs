@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::skia::{MySurface, Skia};
+use crate::lib::skia::{MySurface, Skia};
 use raylib::color::Color;
 use raylib::ffi::{DrawTexturePro, Vector2};
 use raylib::{RaylibHandle, RaylibThread};

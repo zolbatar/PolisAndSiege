@@ -8,10 +8,11 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::SurfaceOrigin::TopLeft;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{Canvas, Color, Color4f, ColorType, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect, Shader, Surface};
+use skia_safe::{Canvas, Color, Color4f, ColorType, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect, Shader, Surface, TileMode, Vector};
+use skia_safe::image_filters::{blur, drop_shadow_only};
 
-static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../assets/EBGaramond-Regular.ttf");
-const NOISE_SKSL: &str = include_str!("../assets/noise.sksl");
+static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-Regular.ttf");
+const NOISE_SKSL: &str = include_str!("../../assets/noise.sksl");
 pub const ELLIPSIS: &str = "\u{2026}";
 
 pub struct MySurface {
@@ -52,20 +53,20 @@ impl Skia {
         let noise_shader = RuntimeEffect::make_for_shader(NOISE_SKSL, None).unwrap();
 
         // Filters
-        /*        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
-                let drop_shadow = drop_shadow_only(
-                    Vector::new(1.5, -1.5),
-                    (1.5, 1.5),
-                    Color::BLACK,
-                    None,
-                    None,
-                    None);*/
+        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
+        let drop_shadow = drop_shadow_only(
+            Vector::new(1.5, -1.5),
+            (1.5, 1.5),
+            Color::BLACK,
+            None,
+            None,
+            None);
 
         Skia {
             context,
             font_collection,
-            drop_shadow: None,
-            blur: None,
+            drop_shadow,
+            blur,
             noise_shader,
         }
     }
