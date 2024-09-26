@@ -112,6 +112,7 @@ impl Skia {
         canvas.clear(Color::from_argb(255, 63, 63, 63));
         let mut paint_background = Paint::default();
         paint_background.set_style(PaintStyle::Fill);
+//        paint_background.set_color(Color::from_argb(255, 63, 63, 63));
         paint_background.set_shader(self.create_noise_shader(Color::from_argb(255, 63, 63, 63), 0.05));
         canvas.draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }
