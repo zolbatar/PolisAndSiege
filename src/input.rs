@@ -2,7 +2,6 @@ use raylib::prelude::{MouseButton};
 use raylib::ffi::{GetMouseDelta, GetMouseWheelMove, IsMouseButtonPressed, IsMouseButtonReleased};
 use crate::app_state::AppState;
 
-static mut PANNING: bool = false;
 const THRESHOLD: f32 = 64.0;
 
 fn vector2_subtract(v1: raylib::core::math::Vector2, v2: raylib::core::math::Vector2) -> raylib::core::math::Vector2 {
@@ -22,12 +21,12 @@ pub unsafe fn handle_input(app_state: &mut AppState) {
 
     // Mouse inputs
     if IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_RIGHT as i32) {
-        PANNING = true; // Start panning when right button is pressed
+        app_state.panning = true; // Start panning when right button is pressed
     } else if IsMouseButtonReleased(MouseButton::MOUSE_BUTTON_RIGHT as i32) {
-        PANNING = false; // Stop panning when button is released
+        app_state.panning = false; // Stop panning when button is released
     }
 
-    if PANNING {
+    if app_state.panning {
         // Calculate mouse movement delta
         let mut delta = GetMouseDelta();
         if delta.x.abs() < THRESHOLD && delta.y.abs() < THRESHOLD {

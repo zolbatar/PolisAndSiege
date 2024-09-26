@@ -13,6 +13,7 @@ pub struct AppState {
     pub dpi: f32,
     pub territories: HashMap<String, Territory>,
     pub camera: Camera2D,
+    pub panning: bool,
 }
 
 impl AppState {
@@ -37,6 +38,7 @@ impl AppState {
             dpi,
             territories,
             camera,
+            panning: false,
         }
     }
 
