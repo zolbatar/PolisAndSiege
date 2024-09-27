@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-skia-safe = { version = "0.78.0", default-features = false, features = ["gl", "textlayout", "svg", "binary-cache"] }
+skia-safe = { version = "0.78.1", features = ["gl", "shaper", "svg"] }
+#skia-safe = { version = "0.78.0", features = ["embed-freetype", "gl", "textlayout", "svg"] }
 raylib = "5.0.2"
 rand = "0.8.5"
 ciborium = "0.2.2"

@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::model::location::Location;
 use crate::lib::skia::Skia;
 use skia_safe::{Canvas, Color, Paint, PaintStyle, Point, Rect};
@@ -90,10 +91,10 @@ impl City {
     // Function to select evenly spaced cities
     pub fn select_evenly_spaced_cities(
         app_state: &mut AppState,
-        mut cities: Vec<City>,
+        mut cities: Vec<Arc<City>>,
         num_cities_to_select: usize,
-    ) -> Vec<City> {
-        let mut selected_cities: Vec<City> = Vec::new();
+    ) -> Vec<Arc<City>> {
+        let mut selected_cities: Vec<Arc<City>> = Vec::new();
 
         // Sort the cities by population (largest first)
         cities.sort_by(|a, b| b.population.cmp(&a.population)); // Sort largest first

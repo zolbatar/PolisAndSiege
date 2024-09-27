@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use ciborium::de::from_reader;
 use ciborium::Value;
 use crate::app_state::AppState;
@@ -62,7 +63,7 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
             let latitude = -city_details[1].as_float().unwrap();
             let longitude = city_details[2].as_float().unwrap();
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
-            territory.cities.push(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour));
+            territory.cities.push(Arc::new(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour)));
             cities_count += 1;
         }
 

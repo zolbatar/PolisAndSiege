@@ -12,6 +12,7 @@ mod model {
     pub mod territory;
     pub mod territory_polygon;
     pub mod math;
+    pub mod connection;
 }
 
 use crate::input::handle_input;
