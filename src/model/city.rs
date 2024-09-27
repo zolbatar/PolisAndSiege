@@ -1,4 +1,5 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+use petgraph::graph::NodeIndex;
 use crate::model::location::Location;
 use crate::lib::skia::Skia;
 use skia_safe::{Canvas, Color, Paint, PaintStyle, Point, Rect};
@@ -13,12 +14,13 @@ pub enum CityType {
 }
 
 pub struct City {
-    name: String,
-    location: Location,
+    pub name: String,
+    pub location: Location,
     population: i64,
     paint_territory: Color,
     size: i8,
     typ: CityType,
+    pub node: NodeIndex,
 }
 
 const SIZE: f32 = 2.0;
@@ -44,6 +46,7 @@ impl City {
             paint_territory,
             size,
             typ: CityType::Metropolis,
+            node: NodeIndex::new(0),
         }
     }
 
@@ -91,13 +94,13 @@ impl City {
     // Function to select evenly spaced cities
     pub fn select_evenly_spaced_cities(
         app_state: &mut AppState,
-        mut cities: Vec<Arc<City>>,
+        mut cities: Vec<Arc<Mutex<City>>>,
         num_cities_to_select: usize,
-    ) -> Vec<Arc<City>> {
-        let mut selected_cities: Vec<Arc<City>> = Vec::new();
+    ) -> Vec<Arc<Mutex<City>>> {
+        let mut selected_cities: Vec<Arc<Mutex<City>>> = Vec::new();
 
         // Sort the cities by population (largest first)
-        cities.sort_by(|a, b| b.population.cmp(&a.population)); // Sort largest first
+        cities.sort_by(|a, b| b.lock().unwrap().population.cmp(&a.lock().unwrap().population)); // Sort largest first
 
         // Loop through all cities
         for city in cities {
@@ -105,8 +108,8 @@ impl City {
 
             // Check distance to already selected cities
             for existing in app_state.existing_cities.iter() {
-                if existing.x != city.location.x && existing.y != city.location.y {
-                    let dist = Location::calculate_distance(&city.location, existing);
+                if existing.x != city.lock().unwrap().location.x && existing.y != city.lock().unwrap().location.y {
+                    let dist = Location::calculate_distance(&city.lock().unwrap().location, existing);
                     if dist <= MINIMUM_ALLOWED_DISTANCE {
                         want = false;
                         break;
@@ -116,7 +119,7 @@ impl City {
 
             // If the city is far enough, select it
             if want {
-                app_state.existing_cities.push(city.location.clone());
+                app_state.existing_cities.push(city.lock().unwrap().location.clone());
                 selected_cities.push(city);
 
                 // Stop if we have selected enough cities
