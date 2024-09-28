@@ -10,7 +10,7 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn new(mut latitude: f32, longitude: f32) -> Self {
+    pub fn new(longitude: f32, mut latitude: f32) -> Self {
         latitude = latitude.clamp(-89.5, 89.5);
         let y: f32 = radians_to_degrees(f32::ln(f32::tan(PI / 4.0 + degrees_to_radians(latitude) / 2.0)));
         Location {

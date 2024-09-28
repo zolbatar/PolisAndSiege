@@ -20,8 +20,8 @@ impl Connection {
         paint.set_argb(255, 20, 20, 20);
         paint.set_stroke_width(0.25);
         paint.set_style(PaintStyle::Stroke);
-        //        let dash = PathEffect::dash(&[1.0, 0.5], 0.0).unwrap();
-        //        paint.set_path_effect(dash);
+        let dash = PathEffect::dash(&[1.0, 0.5], 0.0).unwrap();
+        //paint.set_path_effect(dash);
         Connection {
             paint,
             city1: Arc::clone(&city1),

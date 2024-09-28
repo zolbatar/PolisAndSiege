@@ -53,20 +53,20 @@ impl Skia {
         let noise_shader = RuntimeEffect::make_for_shader(NOISE_SKSL, None).unwrap();
 
         // Filters
-/*        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
+        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
         let drop_shadow = drop_shadow_only(
-            Vector::new(1.5, -1.5),
+            Vector::new(1.5, 1.5),
             (1.5, 1.5),
             Color::BLACK,
             None,
             None,
-            None);*/
+            Rect::from_xywh(0.0, 0.0, 10.0, 10.0));
 
         Skia {
             context,
             font_collection,
-            drop_shadow: None,
-            blur: None,
+            drop_shadow,
+            blur,
             noise_shader,
         }
     }

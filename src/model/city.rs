@@ -28,7 +28,7 @@ const MINIMUM_ALLOWED_DISTANCE: f32 = 12.0;
 const MAXIMUM_LABEL_WIDTH: f32 = 12.0;
 
 impl City {
-    pub fn new(name: String, latitude: f32, longitude: f32, population: i64, paint_territory: Color) -> Self {
+    pub fn new(name: String, longitude: f32, latitude: f32, population: i64, paint_territory: Color) -> Self {
         let size = match population {
             0..150000 => 1,
             150000..250000 => 2,
@@ -41,7 +41,7 @@ impl City {
         };
         City {
             name,
-            location: Location::new(latitude, longitude),
+            location: Location::new(longitude, latitude),
             population,
             paint_territory,
             size,
@@ -62,6 +62,9 @@ impl City {
         paint_name.set_anti_alias(true);
         paint_name.set_style(PaintStyle::Fill);
         paint_name.set_color(Color::BLACK);
+        let mut paint_shadow = Paint::default();
+        paint_shadow.set_style(PaintStyle::Fill);
+        paint_shadow.set_image_filter(skia.drop_shadow.clone());
         let mut paint_fill = Paint::default();
         paint_fill.set_style(PaintStyle::Fill);
         paint_fill.set_color(skia::mix_colors(self.paint_territory, Color::WHITE, 0.7));
@@ -79,6 +82,7 @@ impl City {
         }
 
         // Draw
+//        canvas.draw_circle(centre, SIZE, &paint_shadow);
         canvas.draw_circle(centre, SIZE, &paint_fill);
         canvas.draw_circle(centre, SIZE, &paint_outline);
         skia.write_text_centre(canvas, 3.0, &paint_name, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);
