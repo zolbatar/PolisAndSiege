@@ -1,5 +1,7 @@
+use std::os::raw::c_int;
 use raylib::prelude::{MouseButton};
-use raylib::ffi::{GetMouseDelta, GetMouseWheelMove, IsMouseButtonPressed, IsMouseButtonReleased};
+use raylib::ffi::{GetMouseDelta, GetMouseWheelMove, IsKeyPressed, IsMouseButtonPressed, IsMouseButtonReleased};
+use raylib::prelude::KeyboardKey::KEY_L;
 use crate::app_state::AppState;
 
 const THRESHOLD: f32 = 64.0;
@@ -45,5 +47,10 @@ pub unsafe fn handle_input(app_state: &mut AppState) {
         let delta = GetMouseWheelMove() * 0.25;
         app_state.camera.zoom += delta;
         app_state.camera.zoom = app_state.camera.zoom.clamp(crate::app_state::MIN_ZOOM, 15.0);
+    }
+
+    // Keys
+    if IsKeyPressed(KEY_L as c_int) {
+        app_state.show_labels = !app_state.show_labels;
     }
 }

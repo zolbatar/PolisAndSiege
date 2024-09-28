@@ -61,7 +61,7 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
             }
             territory_polygon.locations.append(&mut locations);
 
-            if territory_polygon.locations.len() >= 2 {
+            if territory_polygon.locations.len() >= 64 {
                 territory.polygons.push(territory_polygon);
                 polygon_count += 1;
             }

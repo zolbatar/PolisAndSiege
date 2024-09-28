@@ -18,6 +18,7 @@ pub struct AppState {
     pub territories: HashMap<String, Territory>,
     pub existing_cities: Vec<Location>,
     pub connections: Vec<Connection>,
+    pub show_labels: bool,
 }
 
 impl AppState {
@@ -45,11 +46,11 @@ impl AppState {
             panning: false,
             existing_cities: Vec::new(),
             connections: Vec::new(),
+            show_labels: false,
         }
     }
 
     pub fn show_all_info(&self) -> bool {
-        true
-        //        self.camera.zoom > 7.5
+        !self.show_labels
     }
 }
