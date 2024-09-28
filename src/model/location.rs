@@ -1,12 +1,12 @@
-use std::f32::consts::PI;
 use crate::model::math::{degrees_to_radians, radians_to_degrees};
+use skia_safe::Point;
+use std::f32::consts::PI;
 
 #[derive(Clone)]
 pub struct Location {
     _latitude: f32,
     _longitude: f32,
-    pub x: f32,
-    pub y: f32,
+    pub p: Point,
 }
 
 impl Location {
@@ -16,14 +16,13 @@ impl Location {
         Location {
             _latitude: latitude,
             _longitude: longitude,
-            x: longitude,
-            y,
+            p: Point::new(longitude, y),
         }
     }
 
     pub fn calculate_distance(city1: &Location, city2: &Location) -> f32 {
-        let dx = city1.x - city2.x;
-        let dy = city1.y - city2.y;
+        let dx = city1.p.x - city2.p.x;
+        let dy = city1.p.y - city2.p.y;
         (dx * dx + dy * dy).sqrt()
     }
 }

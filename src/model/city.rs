@@ -55,7 +55,7 @@ impl City {
         paint.set_anti_alias(false);
         paint.set_style(PaintStyle::Fill);
 
-        let centre = Point::new(self.location.x, self.location.y);
+        let centre = self.location.p;
         let font_size: f32 = 2.0;
 
         let mut paint_name = Paint::default();
@@ -74,8 +74,8 @@ impl City {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia.text_dimensions(font_size, &paint_name, &self.name).clamp(1.0, MAXIMUM_LABEL_WIDTH);
-            canvas.draw_round_rect(Rect::from_xywh(self.location.x, self.location.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
-            canvas.draw_round_rect(Rect::from_xywh(self.location.x, self.location.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
+            canvas.draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
+            canvas.draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
         }
 
         // Draw
@@ -108,7 +108,7 @@ impl City {
 
             // Check distance to already selected cities
             for existing in app_state.existing_cities.iter() {
-                if existing.x != city.lock().unwrap().location.x && existing.y != city.lock().unwrap().location.y {
+                if existing.p != city.lock().unwrap().location.p {
                     let dist = Location::calculate_distance(&city.lock().unwrap().location, existing);
                     if dist <= MINIMUM_ALLOWED_DISTANCE {
                         want = false;

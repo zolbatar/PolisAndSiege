@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use raylib::{RaylibHandle};
 use raylib::prelude::Camera2D;
+use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 
@@ -12,10 +13,11 @@ pub struct AppState {
     pub half_width: i32,
     pub half_height: i32,
     pub dpi: f32,
-    pub territories: HashMap<String, Territory>,
     pub camera: Camera2D,
     pub panning: bool,
+    pub territories: HashMap<String, Territory>,
     pub existing_cities: Vec<Location>,
+    pub connections: Vec<Connection>,
 }
 
 impl AppState {
@@ -42,6 +44,7 @@ impl AppState {
             camera,
             panning: false,
             existing_cities: Vec::new(),
+            connections: Vec::new(),
         }
     }
 

@@ -5,18 +5,32 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use petgraph::algo::min_spanning_tree;
 use petgraph::data::FromElements;
+use skia_safe::{Canvas, Paint, PaintStyle, PathEffect};
 
 pub struct Connection {
+    paint: Paint,
     city1: Arc<Mutex<City>>,
     city2: Arc<Mutex<City>>,
 }
 
 impl Connection {
     pub fn new(city1: Arc<Mutex<City>>, city2: Arc<Mutex<City>>) -> Connection {
+        let mut paint = Paint::default();
+        paint.set_anti_alias(true);
+        paint.set_argb(255, 20, 20, 20);
+        paint.set_stroke_width(0.25);
+        paint.set_style(PaintStyle::Stroke);
+        //        let dash = PathEffect::dash(&[1.0, 0.5], 0.0).unwrap();
+        //        paint.set_path_effect(dash);
         Connection {
+            paint,
             city1: Arc::clone(&city1),
             city2: Arc::clone(&city2),
         }
+    }
+
+    pub fn render(&mut self, canvas: &Canvas) {
+        canvas.draw_line(self.city1.lock().unwrap().location.p, self.city2.lock().unwrap().location.p, &self.paint);
     }
 }
 

@@ -64,8 +64,10 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
             let latitude = -city_details[1].as_float().unwrap();
             let longitude = city_details[2].as_float().unwrap();
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
-            territory.cities.push(Arc::new(Mutex::new(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour))));
-            cities_count += 1;
+            if  population > 350000 {
+                territory.cities.push(Arc::new(Mutex::new(City::new(name.to_string(), latitude as f32, longitude as f32, population, colour))));
+                cities_count += 1;
+            }
         }
 
         // Choose sensible cities
@@ -75,7 +77,7 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
     }
 
     // Now build connections
-    build_connections(&mut territories);
+    app_state.connections = build_connections(&territories);
 
     println!("CBOR: Total territories: {}", territories.len());
     println!("CBOR: Total polygons: {}", polygon_count);

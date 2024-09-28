@@ -1,4 +1,4 @@
-use skia_safe::{Canvas, Color, Paint, PaintStyle, Path, Picture, PictureRecorder, Point, Rect};
+use skia_safe::{Canvas, Color, Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
 use crate::model::location::Location;
 
 pub struct TerritoryPolygon {
@@ -25,9 +25,9 @@ impl TerritoryPolygon {
     pub fn prerender(&mut self, color: Color) {
         self.paint.set_color(color);
         let mut path = Path::new();
-        path.move_to(Point::new(self.locations[0].x, self.locations[0].y));
+        path.move_to(self.locations[0].p);
         for location in self.locations.iter().skip(1) {
-            path.line_to(Point::new(location.x, location.y));
+            path.line_to(location.p);
         }
         path.close();
 

@@ -43,7 +43,7 @@ fn main() {
     // Loop
     while !rl.window_should_close() {
         unsafe { handle_input(&mut app_state); }
-        unsafe { render(&mut rl, &thread, &mut skia, &mut surface, &app_state); }
+        unsafe { render(&mut rl, &thread, &mut skia, &mut surface, &mut app_state); }
     }
 }
 

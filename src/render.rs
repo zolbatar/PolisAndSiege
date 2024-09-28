@@ -6,7 +6,7 @@ use raylib::{RaylibHandle, RaylibThread};
 use raylib::prelude::RaylibDraw;
 use skia_safe::{Paint, PaintStyle, Point};
 
-pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Skia, surface: &mut MySurface, app_state: &AppState) {
+pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Skia, surface: &mut MySurface, app_state: &mut AppState) {
     let canvas = surface.skia_surface.canvas();
     skia.set_matrix_camera(canvas, &app_state);
 
@@ -14,7 +14,12 @@ pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Sk
     for territory in &app_state.territories {
         territory.1.render_polygons(canvas);
     }
-    
+
+    // Connections
+    for connection in app_state.connections.iter_mut() {
+        connection.render(canvas);
+    }
+
     // Cities
     for territory in &app_state.territories {
         for city in &territory.1.cities {
