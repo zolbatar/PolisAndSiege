@@ -15,7 +15,7 @@ static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-R
 const NOISE_SKSL: &str = include_str!("../../assets/noise.sksl");
 pub const ELLIPSIS: &str = "\u{2026}";
 
-pub struct MySurface {
+pub struct RaySurface {
     pub texture: RenderTexture2D,
     pub skia_surface: Surface,
 }
@@ -26,13 +26,32 @@ pub struct Skia {
     pub blur: Option<ImageFilter>,
     pub drop_shadow: Option<ImageFilter>,
     noise_shader: RuntimeEffect,
+    pub surface: RaySurface,
 }
 
 impl Skia {
-    pub fn new() -> Self {
+    fn make_surface(context: &mut DirectContext, width: i32, height: i32) -> RaySurface {
+
+        // Create raylib texture
+        let texture: RenderTexture2D;
+        unsafe {
+            texture = LoadRenderTexture(width, height);
+        }
+
+        // 0x8058 is GL_RGBA8
+        let fb_info = FramebufferInfo { fboid: texture.texture.id, format: 0x8058, ..Default::default() };
+        let target = backend_render_targets::make_gl((width, height), 1, 8, fb_info);
+        let surface = wrap_backend_render_target(context, &target, TopLeft, ColorType::RGBA8888, None, None).expect("Can't create GL surface");
+        RaySurface {
+            skia_surface: surface,
+            texture,
+        }
+    }
+
+    pub fn new(app_state: &AppState) -> Self {
         let interface = Interface::new_native().expect("Can't get GL interface");
         let options = ContextOptions::new();
-        let context = make_gl(&interface, &options).expect("Can't create Skia context");
+        let mut context = make_gl(&interface, &options).expect("Can't create Skia context");
 
         // Fonts
         let typeface_font_provider = {
@@ -62,8 +81,12 @@ impl Skia {
             None,
             Rect::from_xywh(0.0, 0.0, 10.0, 10.0));
 
+        // Surface
+        let surface = Skia::make_surface(&mut context, app_state.width * app_state.dpi as i32, app_state.height * app_state.dpi as i32);
+
         Skia {
             context,
+            surface,
             font_collection,
             drop_shadow,
             blur,
@@ -81,35 +104,21 @@ impl Skia {
         }
     }
 
-    pub fn make_surface(&mut self, width: i32, height: i32) -> MySurface {
-
-        // Create raylib texture
-        let texture: RenderTexture2D;
-        unsafe {
-            texture = LoadRenderTexture(width, height);
-        }
-
-        // 0x8058 is GL_RGBA8
-        let fb_info = FramebufferInfo { fboid: texture.texture.id, format: 0x8058, ..Default::default() };
-        let target = backend_render_targets::make_gl((width, height), 1, 8, fb_info);
-        let surface = wrap_backend_render_target(&mut self.context, &target, TopLeft, ColorType::RGBA8888, None, None).expect("Can't create GL surface");
-        MySurface {
-            skia_surface: surface,
-            texture,
-        }
+    pub fn get_canvas(&mut self) -> &Canvas {
+        self.surface.skia_surface.canvas()
     }
 
-    pub unsafe fn flush(&mut self, surface: &mut MySurface) {
-        BeginTextureMode(surface.texture);
+    pub unsafe fn flush(&mut self) {
+        BeginTextureMode(self.surface.texture);
         self.context.reset(None);
-        surface.skia_surface.image_snapshot();
+        self.surface.skia_surface.image_snapshot();
         self.context.flush_and_submit();
         EndTextureMode();
 
         // Clear
-        let w = surface.skia_surface.width();
-        let h = surface.skia_surface.height();
-        let canvas = surface.skia_surface.canvas();
+        let w = self.surface.skia_surface.width();
+        let h = self.surface.skia_surface.height();
+        let canvas = self.surface.skia_surface.canvas();
         canvas.clear(Color::from_argb(255, 63, 63, 63));
         let mut paint_background = Paint::default();
         paint_background.set_style(PaintStyle::Fill);
@@ -118,20 +127,23 @@ impl Skia {
         canvas.draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }
 
-    pub fn set_matrix(&mut self, canvas: &Canvas, app_state: &AppState) {
+    pub fn set_matrix(&mut self, app_state: &AppState) {
+        let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
         canvas.scale((app_state.dpi, app_state.dpi));
     }
 
-    pub fn set_matrix_centre(&mut self, canvas: &Canvas, app_state: &AppState) {
+    pub fn set_matrix_centre(&mut self, app_state: &AppState) {
+        let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
         canvas.scale((app_state.dpi, app_state.dpi));
         canvas.translate((app_state.half_width, app_state.half_height));
     }
 
-    pub fn set_matrix_camera(&mut self, canvas: &Canvas, app_state: &AppState) {
+    pub fn set_matrix_camera(&mut self, app_state: &AppState) {
+        let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
         canvas.scale((app_state.dpi, app_state.dpi));
@@ -140,7 +152,8 @@ impl Skia {
         canvas.translate((-app_state.camera.target.x, -app_state.camera.target.y));
     }
 
-    pub fn clear_matrix(&mut self, canvas: &Canvas) {
+    pub fn clear_matrix(&mut self) {
+        let canvas = self.get_canvas();
         canvas.restore();
     }
 
@@ -175,19 +188,19 @@ impl Skia {
         paragraph.max_intrinsic_width()
     }
 
-    pub fn write_text(&self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
+    pub fn write_text(&mut self, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
-        paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
-        paragraph.paint(canvas, xy);
+        paragraph.layout(if width == 0.0 { self.get_canvas().base_layer_size().width as f32 } else { width });
+        paragraph.paint(self.get_canvas(), xy);
     }
 
-    pub fn write_text_centre(&self, canvas: &Canvas, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
+    pub fn write_text_centre(&mut self, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
         let dimensions = self.text_dimensions(font_size, paint, text);
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
-        paragraph.layout(if width == 0.0 { canvas.base_layer_size().width as f32 } else { width });
-        paragraph.paint(canvas, Point::new(xy.x - dimensions / 2.0, xy.y));
+        paragraph.layout(if width == 0.0 { self.get_canvas().base_layer_size().width as f32 } else { width });
+        paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions / 2.0, xy.y));
     }
 
     fn create_noise_shader(&mut self, base_color: Color, mix: f32) -> Shader {

@@ -36,14 +36,13 @@ fn main() {
     app_state.territories = territories;
 
     // Skia and surfaces
-    let mut skia = Skia::new();
-    let mut surface = skia.make_surface(app_state.width * app_state.dpi as i32, app_state.height * app_state.dpi as i32);
-    unsafe { skia.flush(&mut surface); }
+    let mut skia = Skia::new(&app_state);
+    unsafe { skia.flush(); }
 
     // Loop
     while !rl.window_should_close() {
         unsafe { handle_input(&mut app_state); }
-        unsafe { render(&mut rl, &thread, &mut skia, &mut surface, &mut app_state); }
+        unsafe { render(&mut rl, &thread, &mut skia, &mut app_state); }
     }
 }
 

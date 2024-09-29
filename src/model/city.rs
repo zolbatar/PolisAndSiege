@@ -1,10 +1,10 @@
-use std::sync::{Arc, Mutex};
-use petgraph::graph::NodeIndex;
-use crate::model::location::Location;
-use crate::lib::skia::Skia;
-use skia_safe::{Canvas, Color, Paint, PaintStyle, Point, Rect};
 use crate::app_state::AppState;
 use crate::lib::skia;
+use crate::lib::skia::Skia;
+use crate::model::location::Location;
+use petgraph::graph::NodeIndex;
+use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
+use std::sync::{Arc, Mutex};
 
 pub enum CityType {
     Metropolis,
@@ -50,7 +50,7 @@ impl City {
         }
     }
 
-    pub fn render(&self, canvas: &Canvas, skia: &Skia, app_state: &AppState) {
+    pub fn render(&self, skia: &mut Skia, app_state: &AppState) {
         let mut paint = Paint::default();
         paint.set_anti_alias(false);
         paint.set_style(PaintStyle::Fill);
@@ -77,17 +77,17 @@ impl City {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia.text_dimensions(font_size, &paint_name, &self.name).clamp(1.0, MAXIMUM_LABEL_WIDTH);
-            canvas.draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
-            canvas.draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
+            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
+            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
         }
 
         // Draw
 //        canvas.draw_circle(centre, SIZE, &paint_shadow);
-        canvas.draw_circle(centre, SIZE, &paint_fill);
-        canvas.draw_circle(centre, SIZE, &paint_outline);
-        skia.write_text_centre(canvas, 3.0, &paint_name, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);
+        skia.get_canvas().draw_circle(centre, SIZE, &paint_fill);
+        skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
+        skia.write_text_centre(3.0, &paint_name, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);
         if app_state.show_all_info() {
-            skia.write_text(canvas, font_size, &paint_name, &self.name, Point::new(centre.x + SIZE + 0.5, centre.y - font_size / 1.5), MAXIMUM_LABEL_WIDTH);
+            skia.write_text(font_size, &paint_name, &self.name, Point::new(centre.x + SIZE + 0.5, centre.y - font_size / 1.5), MAXIMUM_LABEL_WIDTH);
         }
     }
 
