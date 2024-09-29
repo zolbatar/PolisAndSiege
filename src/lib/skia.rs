@@ -38,8 +38,10 @@ impl Skia {
             texture = LoadRenderTexture(width, height);
         }
 
+        let fb_info = FramebufferInfo { fboid: 0, format: 0x8058, ..Default::default() };
+
         // 0x8058 is GL_RGBA8
-        let fb_info = FramebufferInfo { fboid: texture.texture.id, format: 0x8058, ..Default::default() };
+//        let fb_info = FramebufferInfo { fboid: texture.texture.id, format: 0x8058, ..Default::default() };
         let target = backend_render_targets::make_gl((width, height), 1, 8, fb_info);
         let surface = wrap_backend_render_target(context, &target, TopLeft, ColorType::RGBA8888, None, None).expect("Can't create GL surface");
         RaySurface {
@@ -110,7 +112,6 @@ impl Skia {
 
     pub unsafe fn flush(&mut self) {
         BeginTextureMode(self.surface.texture);
-        self.context.reset(None);
         self.surface.skia_surface.image_snapshot();
         self.context.flush_and_submit();
         EndTextureMode();
@@ -203,6 +204,10 @@ impl Skia {
         paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions / 2.0, xy.y));
     }
 
+    pub fn reset_context(&mut self) {
+        self.context.reset(None);
+    }
+
     fn create_noise_shader(&mut self, base_color: Color, mix: f32) -> Shader {
         let uniforms = {
             let mut data = vec![];
@@ -210,7 +215,6 @@ impl Skia {
             data.extend_from_slice(&Color4f::from(base_color).to_bytes().to_ne_bytes());
             Data::new_copy(&data)
         };
-        self.context.reset(None);
         self.noise_shader.make_shader(uniforms, &[], None).unwrap()
     }
 }

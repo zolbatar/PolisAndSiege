@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use petgraph::algo::min_spanning_tree;
 use petgraph::data::FromElements;
-use skia_safe::{Canvas, Paint, PaintStyle, PathEffect};
+use skia_safe::{dash_path_effect, paint, scalar, Canvas, Paint, PaintStyle, PathEffect};
 
 pub struct Connection {
     paint: Paint,
@@ -20,7 +20,7 @@ impl Connection {
         paint.set_argb(255, 20, 20, 20);
         paint.set_stroke_width(0.25);
         paint.set_style(PaintStyle::Stroke);
-        let dash = PathEffect::dash(&[1.0, 0.5], 0.0).unwrap();
+        let dash = dash_path_effect::new(&[1.0, 0.5], 0.0).unwrap();
         //paint.set_path_effect(dash);
         Connection {
             paint,
