@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 use sdl2::video::Window;
-use skia_safe::{Path, Point};
+use skia_safe::{FontMgr, Path, Point, Size};
 use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
+use skia_safe::svg::Dom;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
 
-pub(crate) const MIN_ZOOM: f32 = 3.8375;
+pub(crate) const MIN_ZOOM: f32 = 5.0;
 
 pub struct AppState {
     pub width: i32,
@@ -23,23 +24,24 @@ pub struct AppState {
     pub existing_cities: Vec<Location>,
     pub connections: Vec<Connection>,
     pub show_labels: bool,
-    pub side_path: Path,
-    pub corner_path: Path,
+    pub side_path: Dom,
+    pub corner_path: Dom,
 }
 
 impl AppState {
     pub fn new(window: &Window, dpi: f32) -> Self {
         let width = window.size().0 as i32;
         let height = window.size().1 as i32;
+        println!("Screen resolution: {}x{}", width, height);
         let half_width = width / 2;
         let half_height = height / 2;
 
         let st = "";
         Path::from_svg(st);
-//        let corner_path = Path::from_svg(SVG_CORNER).expect("Error loading SVG");
-//        let side_path = Path::from_svg(SVG_SIDE).expect("Error loading SVG");
-        let corner_path = Path::new();
-        let side_path = Path::new();
+        let mut corner_path = Dom::from_str(SVG_CORNER, FontMgr::new()).expect("Error loading SVG");
+        corner_path.set_container_size(Size::new(160.0, 160.0));
+        let mut side_path = Dom::from_str(SVG_SIDE, FontMgr::new()).expect("Error loading SVG");
+        side_path.set_container_size(Size::new(40.0, 200.0));
 
         AppState {
             width,
@@ -53,7 +55,7 @@ impl AppState {
             connections: Vec::new(),
             show_labels: true,
             zoom: MIN_ZOOM,
-            target: Point::new(82.0, 13.1),
+            target: Point::new(25.0, -10.0),
             corner_path,
             side_path,
         }

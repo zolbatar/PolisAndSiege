@@ -69,6 +69,7 @@ fn main() {
     }
 
     // Create an AppState instance using the new method
+    dpi = dpi.floor();
     let mut app_state = AppState::new(&window, dpi);
 
     // Load CBOR data
