@@ -15,7 +15,7 @@ mod model {
     pub mod connection;
 }
 
-use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion};
+use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
 use crate::render::render;
@@ -109,6 +109,9 @@ fn main() {
                 }
 
                 // Mouse
+                | sdl2::event::Event::MouseWheel { direction, precise_y, .. } => {
+                    handle_mouse_wheel(&mut app_state, direction, precise_y);
+                }
                 | sdl2::event::Event::MouseMotion { x, y, xrel, yrel, .. } => {
                     handle_mouse_motion(&mut app_state, x, y, xrel, yrel);
                 }
@@ -122,7 +125,7 @@ fn main() {
             }
         }
 
-        unsafe { render(&mut skia, &mut app_state); }
+        render(&mut skia, &mut app_state);
         window.gl_swap_window();
     }
 }

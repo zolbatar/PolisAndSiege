@@ -1,6 +1,5 @@
 use crate::app_state::AppState;
 use rand::Rng;
-use sdl2::audio::AudioFormat::F32LSB;
 use skia_safe::gpu::direct_contexts::make_gl;
 use skia_safe::gpu::gl::{FramebufferInfo, Interface};
 use skia_safe::gpu::surfaces::wrap_backend_render_target;
@@ -115,7 +114,6 @@ impl Skia {
         self.get_canvas().clear(Color::from_argb(255, 63, 63, 63));
         let mut paint_background = Paint::default();
         paint_background.set_style(PaintStyle::Fill);
-        //paint_background.set_color(Color::from_argb(255, 63, 63, 63));
         paint_background.set_shader(self.create_noise_shader(Color::from_argb(255, 63, 63, 63), 0.05));
         self.get_canvas().draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }

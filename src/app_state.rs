@@ -5,7 +5,7 @@ use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 
-pub(crate) const MIN_ZOOM: f32 = 4.675;
+pub(crate) const MIN_ZOOM: f32 = 3.8375;
 
 pub struct AppState {
     pub width: i32,
@@ -41,7 +41,7 @@ impl AppState {
             connections: Vec::new(),
             show_labels: true,
             zoom: MIN_ZOOM,
-            target: Point::new(23.0, -9.5),
+            target: Point::new(82.0, 13.1),
         }
     }
 

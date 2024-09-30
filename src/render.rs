@@ -1,7 +1,8 @@
+use skia_safe::{Paint, PaintStyle, Point};
 use crate::app_state::AppState;
 use crate::lib::skia::{Skia};
 
-pub unsafe fn render(skia: &mut Skia, app_state: &mut AppState) {
+pub fn render(skia: &mut Skia, app_state: &mut AppState) {
     skia.reset_context();
     skia.set_matrix_camera(app_state);
 
@@ -24,11 +25,11 @@ pub unsafe fn render(skia: &mut Skia, app_state: &mut AppState) {
     skia.clear_matrix();
 
     // FPS
-/*    let fps = format!("FPS: {}", rl.get_fps());
+    let fps = format!("Zoom: {}, Position: {}/{}", app_state.zoom, app_state.target.x, app_state.target.y);
     let mut paint = Paint::default();
     paint.set_style(PaintStyle::Fill);
     paint.set_color(skia_safe::Color::WHITE);
-    skia.write_text(20.0 * app_state.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);*/
+    skia.write_text(20.0, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
 
     // Flush all Skia ops
     unsafe { skia.flush(); }
