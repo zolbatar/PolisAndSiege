@@ -77,12 +77,13 @@ impl City {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia.text_dimensions(font_size, &paint_name, &self.name).clamp(1.0, MAXIMUM_LABEL_WIDTH);
+            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_shadow);
             skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
             skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
         }
 
         // Draw
-//        canvas.draw_circle(centre, SIZE, &paint_shadow);
+        skia.get_canvas().draw_circle(centre, SIZE, &paint_shadow);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_fill);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
         skia.write_text_centre(3.0, &paint_name, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);

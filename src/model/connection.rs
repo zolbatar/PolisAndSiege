@@ -1,11 +1,11 @@
 use crate::model::city::City;
 use crate::model::territory::Territory;
-use petgraph::graph::UnGraph;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 use petgraph::algo::min_spanning_tree;
 use petgraph::data::FromElements;
-use skia_safe::{dash_path_effect, paint, scalar, Canvas, Paint, PaintStyle, PathEffect};
+use petgraph::graph::UnGraph;
+use skia_safe::{dash_path_effect, Canvas, Paint, PaintStyle};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 pub struct Connection {
     paint: Paint,
@@ -21,7 +21,7 @@ impl Connection {
         paint.set_stroke_width(0.25);
         paint.set_style(PaintStyle::Stroke);
         let dash = dash_path_effect::new(&[1.0, 0.5], 0.0).unwrap();
-        //paint.set_path_effect(dash);
+        paint.set_path_effect(dash);
         Connection {
             paint,
             city1: Arc::clone(&city1),

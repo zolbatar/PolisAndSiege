@@ -1,11 +1,7 @@
 use crate::app_state::AppState;
 use crate::lib::skia::{Skia};
-use raylib::ffi::{DrawTexture, DrawTexturePro, Texture, Vector2};
-use raylib::{RaylibHandle, RaylibThread};
-use raylib::prelude::{Color, RaylibDraw, Texture2D};
-use skia_safe::{Paint, PaintStyle, Point};
 
-pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Skia, app_state: &mut AppState) {
+pub unsafe fn render(skia: &mut Skia, app_state: &mut AppState) {
     skia.reset_context();
     skia.set_matrix_camera(app_state);
 
@@ -28,23 +24,12 @@ pub unsafe fn render(rl: &mut RaylibHandle, thread: &RaylibThread, skia: &mut Sk
     skia.clear_matrix();
 
     // FPS
-    let fps = format!("FPS: {}", rl.get_fps());
+/*    let fps = format!("FPS: {}", rl.get_fps());
     let mut paint = Paint::default();
     paint.set_style(PaintStyle::Fill);
     paint.set_color(skia_safe::Color::WHITE);
-    skia.write_text(20.0 * app_state.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
+    skia.write_text(20.0 * app_state.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);*/
 
     // Flush all Skia ops
     unsafe { skia.flush(); }
-
-    // Do raylib render phase
-/*    let mut d = rl.begin_drawing(thread);
-    d.clear_background(Color::BLANK);
-    let source = raylib::ffi::Rectangle { x: 0.0, y: 0.0, width: (app_state.width as f32) * app_state.dpi, height: (app_state.height as f32) * app_state.dpi };
-    let dest = raylib::ffi::Rectangle { x: 0.0, y: 0.0, width: (app_state.width as f32), height: app_state.height as f32 };
-    DrawTexturePro(
-        skia.surface.texture.texture,
-        source, dest,
-        Vector2 { x: 0.0, y: 0.0 }, 0.0,
-        raylib::ffi::Color { a: 255, r: 255, g: 255, b: 255 });*/
 }

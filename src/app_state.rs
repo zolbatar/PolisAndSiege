@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use raylib::{RaylibHandle};
-use raylib::prelude::Camera2D;
+use sdl2::video::Window;
+use skia_safe::Point;
 use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
@@ -13,7 +13,8 @@ pub struct AppState {
     pub half_width: i32,
     pub half_height: i32,
     pub dpi: f32,
-    pub camera: Camera2D,
+    pub zoom: f32,
+    pub target: Point,
     pub panning: bool,
     pub territories: HashMap<String, Territory>,
     pub existing_cities: Vec<Location>,
@@ -22,18 +23,11 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(rl: &RaylibHandle) -> Self {
-        let width = rl.get_screen_width();
-        let height = rl.get_screen_height();
+    pub fn new(window: &Window, dpi: f32) -> Self {
+        let width = window.size().0 as i32;
+        let height = window.size().1 as i32;
         let half_width = width / 2;
         let half_height = height / 2;
-        let dpi = rl.get_window_scale_dpi().x;
-        let mut camera = Camera2D::default();
-        camera.target.x = 23.0;
-        camera.target.y = -9.5;
-        camera.offset.x = half_width as f32;
-        camera.offset.y = half_height as f32;
-        camera.zoom = MIN_ZOOM;
 
         AppState {
             width,
@@ -42,15 +36,16 @@ impl AppState {
             half_height,
             dpi,
             territories: HashMap::new(),
-            camera,
             panning: false,
             existing_cities: Vec::new(),
             connections: Vec::new(),
-            show_labels: false,
+            show_labels: true,
+            zoom: MIN_ZOOM,
+            target: Point::new(23.0, -9.5),
         }
     }
 
     pub fn show_all_info(&self) -> bool {
-        !self.show_labels
+        self.show_labels
     }
 }
