@@ -65,7 +65,7 @@ impl Skia {
 
         // Shaders
         let noise_shader = RuntimeEffect::make_for_shader(NOISE_SKSL, None);
-//        println!("{}", &noise_shader.clone().unwrap_err());
+        //        println!("{}", &noise_shader.clone().unwrap_err());
 
         // Filters
         let blur = blur((1.0, 1.0), TileMode::default(), None, None);

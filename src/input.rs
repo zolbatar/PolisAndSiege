@@ -3,7 +3,7 @@ use crate::app_state::AppState;
 
 const THRESHOLD: i32 = 64;
 
-pub fn handle_mouse_wheel(app_state: &mut AppState, direction: MouseWheelDirection, precise_y: f32) {
+pub fn handle_mouse_wheel(app_state: &mut AppState, _direction: MouseWheelDirection, precise_y: f32) {
     let delta = precise_y * 0.25;
     app_state.zoom += delta;
     app_state.zoom = app_state.zoom.clamp(crate::app_state::MIN_ZOOM, 15.0);
