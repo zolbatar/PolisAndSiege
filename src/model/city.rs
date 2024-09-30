@@ -13,6 +13,15 @@ pub enum CityType {
     Technopolis,
 }
 
+pub enum Owner {
+    None,
+    Player,
+    Enemy1,
+    Enemy2,
+    Enemy3,
+    Enemy4,
+}
+
 pub struct City {
     pub name: String,
     pub location: Location,
@@ -21,6 +30,7 @@ pub struct City {
     size: i8,
     typ: CityType,
     pub node: NodeIndex,
+    pub owner: Owner,
 }
 
 const SIZE: f32 = 2.0;
@@ -47,6 +57,7 @@ impl City {
             size,
             typ: CityType::Metropolis,
             node: NodeIndex::new(0),
+            owner: Owner::None,
         }
     }
 

@@ -2,6 +2,7 @@ use skia_safe::{BlurStyle, Color, MaskFilter, Paint, PaintStyle, Point, RRect, R
 use skia_safe::paint::Style;
 use crate::app_state::AppState;
 use crate::lib::skia::{Skia};
+use crate::model::city::Owner;
 
 fn render_region_summary(skia: &mut Skia, app_state: &mut AppState) {
     skia.set_matrix(app_state);
@@ -80,53 +81,41 @@ fn render_region_summary(skia: &mut Skia, app_state: &mut AppState) {
         if index % 2 == 0 {
             skia.get_canvas().draw_rrect(RRect::new_rect_xy(skia_safe::Rect::from_xywh(territory_l + 40.0, y + 26.0, territory_r - territory_l - 80.0, 24.0), 5.0, 5.0), &paint_line);
         }
-/*        fonts -> WriteText(canvas, territory_r - 128, y, paint_white, "No bonus", 20, 0.0f);
 
-        int
-        player = 0, enemy = 0, none = 0;
-        for (const auto
-        &city: snd.GetSelected()) {
-            switch(city->owner)
-            {
-                case
-                Owner::Enemy:
-                    enemy + +;
-                break;
-                case
-                Owner::Player:
-                    player + +;
-                break;
-                case
-                Owner::None:
-                    none + +;
-                break;
+        // Bonus?
+        skia.write_text(20.0, &paint_white, "No bonus", Point::new(territory_r - 128.0, y), 0.0);
+
+        let mut player = 0;
+        let mut enemy = 0;
+        let mut none = 0;
+
+        for city in &snd.cities {
+            match city.lock().unwrap().owner {
+                Owner::None => {
+                    none += 1;
+                }
+                Owner::Player => {
+                    player += 1;
+                }
+                Owner::Enemy1 | Owner::Enemy2 | Owner::Enemy3 | Owner::Enemy4 => {
+                    enemy += 1;
+                }
             }
         }
-        const float
-        total = static_cast < float > (player) + static_cast < float > (enemy) + static_cast < float > (none);
-        const float
-        player_segment = static_cast < float > (player) / total * 64.0f;
-        const float
-        enemy_segment = static_cast < float > (enemy) / total * 64.0f;
-        const float
-        none_segment = static_cast < float > (none) / total * 64.0f;
+
+        let total = player as f32 + enemy as f32 + none as f32;
+        let player_segment = player as f32 / total * 64.0;
+        let enemy_segment = enemy as f32 / total * 64.0;
+        let none_segment = none as f32 / total * 64.0;
 
         // Now draw bars for ownership
-        constexpr
-        float
-        bar_start = 335.0f;
-        constexpr
-        float
-        bar_y_offer = 14.0f;
-        canvas -> drawLine(territory_l + bar_start, y + bar_y_offer, territory_l + bar_start + player_segment,
-                           y + bar_y_offer, paint_player);
-        canvas -> drawLine(territory_l + bar_start + player_segment, y + bar_y_offer,
-                           territory_l + bar_start + player_segment + enemy_segment, y + bar_y_offer, paint_enemy);
-        canvas -> drawLine(territory_l + bar_start + player_segment + enemy_segment, y + bar_y_offer,
-                           territory_l + bar_start + player_segment + enemy_segment + none_segment, y + bar_y_offer,
-                           paint_none);
-
-        */
+        let bar_start = 335.0;
+        let bar_y_offer = 14.0;
+        let xx = territory_l + bar_start;
+        let yy = y + bar_y_offer;
+        skia.get_canvas().draw_line(Point::new(xx, yy), Point::new(xx + player_segment, yy), &paint_player);
+        skia.get_canvas().draw_line(Point::new(xx + player_segment, yy), Point::new(xx + player_segment + enemy_segment, yy), &paint_enemy);
+        skia.get_canvas().draw_line(Point::new(xx + player_segment + enemy_segment, yy), Point::new(xx + player_segment + enemy_segment + none_segment, yy), &paint_none);
     }
 
     skia.get_canvas().restore();
@@ -224,7 +213,7 @@ pub fn render(skia: &mut Skia, app_state: &mut AppState) {
     let mut paint = Paint::default();
     paint.set_style(PaintStyle::Fill);
     paint.set_color(skia_safe::Color::WHITE);
-    skia.write_text(20.0 * app_state.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
+//    skia.write_text(20.0 * app_state.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
 
     // Flush all Skia ops
     unsafe { skia.flush(); }
