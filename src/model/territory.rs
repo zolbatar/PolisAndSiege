@@ -5,6 +5,7 @@ use crate::model::territory_polygon::TerritoryPolygon;
 
 pub struct Territory {
     name: String,
+    pub colour: Color,
     pub polygons: Vec<TerritoryPolygon>,
     pub cities: Vec<Arc<Mutex<City>>>,
 }
@@ -16,6 +17,7 @@ impl Territory {
             name: name_cloned,
             polygons: Vec::new(),
             cities: Vec::new(),
+            colour: Color::TRANSPARENT,
         }
     }
 
@@ -31,6 +33,7 @@ impl Territory {
             "North America" => Color::from_argb(255, 219, 112, 147),
             &_ => todo!(),
         };
+        self.colour = colour;
 
         for polygon in &mut self.polygons {
             polygon.prerender(colour);

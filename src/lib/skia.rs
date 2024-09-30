@@ -19,6 +19,7 @@ pub struct Skia {
     pub drop_shadow: Option<ImageFilter>,
     noise_shader: Result<RuntimeEffect, String>,
     pub surface: Surface,
+    pub colour_background: Color,
 }
 
 impl Skia {
@@ -87,6 +88,7 @@ impl Skia {
             drop_shadow,
             blur,
             noise_shader,
+            colour_background: Color::from_argb(255, 63, 63, 63),
         }
     }
 
@@ -111,14 +113,14 @@ impl Skia {
         // Clear
         let w = self.surface.width();
         let h = self.surface.height();
-        self.get_canvas().clear(Color::from_argb(255, 63, 63, 63));
+        self.get_canvas().clear(skia_safe::Color::TRANSPARENT);
         let mut paint_background = Paint::default();
         paint_background.set_style(PaintStyle::Fill);
-        paint_background.set_shader(self.create_noise_shader(Color::from_argb(255, 63, 63, 63), 0.05));
+        paint_background.set_shader(self.create_noise_shader(self.colour_background, 0.05));
         self.get_canvas().draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }
 
-    pub fn _set_matrix(&mut self, app_state: &AppState) {
+    pub fn set_matrix(&mut self, app_state: &AppState) {
         let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
@@ -133,7 +135,7 @@ impl Skia {
         canvas.translate((app_state.half_width, app_state.half_height));
     }
 
-    pub fn set_matrix_camera(&mut self, app_state: &AppState) {
+    pub fn _set_matrix_camera(&mut self, app_state: &AppState) {
         let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
@@ -198,7 +200,7 @@ impl Skia {
         self.context.reset(None);
     }
 
-    fn create_noise_shader(&mut self, base_color: Color, mix: f32) -> Shader {
+    pub fn create_noise_shader(&mut self, base_color: Color, mix: f32) -> Shader {
         let uniforms = {
             let mut data = vec![];
             data.extend_from_slice(&mix.to_ne_bytes());

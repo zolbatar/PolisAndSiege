@@ -51,10 +51,6 @@ impl City {
     }
 
     pub fn render(&self, skia: &mut Skia, app_state: &AppState) {
-        let mut paint = Paint::default();
-        paint.set_anti_alias(false);
-        paint.set_style(PaintStyle::Fill);
-
         let centre = self.location.p;
         let font_size: f32 = 2.0;
 
