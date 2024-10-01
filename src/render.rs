@@ -1,8 +1,9 @@
 use skia_safe::{BlurStyle, Color, MaskFilter, Paint, PaintStyle, Point, RRect, Rect, Vector};
 use skia_safe::paint::Style;
-use crate::app_state::AppState;
+use crate::app_state::{AppState, GameMode, NOISE_MIX};
 use crate::lib::skia::{Skia};
 use crate::model::city::Owner;
+use crate::render_cityselection::render_cityselection;
 
 fn render_region_summary(skia: &mut Skia, app_state: &mut AppState) {
     skia.set_matrix(app_state);
@@ -12,7 +13,7 @@ fn render_region_summary(skia: &mut Skia, app_state: &mut AppState) {
     paint_territories.set_anti_alias(true);
     paint_territories.set_style(Style::Fill);
     //    paint_territories.set_color(skia.colour_background);
-    paint_territories.set_shader(skia.create_noise_shader(skia.colour_background, 0.05));
+    paint_territories.set_shader(skia.create_noise_shader(skia.colour_background, NOISE_MIX));
     let blur = MaskFilter::blur(BlurStyle::Normal, 1.0, None).expect("Blur mask filter failed");
     paint_territories.set_mask_filter(blur);
 
@@ -71,7 +72,7 @@ fn render_region_summary(skia: &mut Skia, app_state: &mut AppState) {
         let y = territory_t + 25.0 * index as f32;
 
         let mut paint_territory = Paint::default();
-        paint_territory.set_color(snd.colour);
+        paint_territory.set_color(snd.lock().unwrap().colour);
         paint_territory.set_anti_alias(true);
         paint_territory.set_style(Style::Fill);
         skia.get_canvas().draw_circle(Point::new(territory_l + 52.0, y + 13.0), 10.0, &paint_territory);
@@ -89,7 +90,7 @@ fn render_region_summary(skia: &mut Skia, app_state: &mut AppState) {
         let mut enemy = 0;
         let mut none = 0;
 
-        for city in &snd.cities {
+        for city in &snd.lock().unwrap().cities {
             match city.lock().unwrap().owner {
                 Owner::None => {
                     none += 1;
@@ -141,7 +142,7 @@ pub fn render(skia: &mut Skia, app_state: &mut AppState) {
 
     // Territories
     for territory in &app_state.territories {
-        territory.1.render_polygons(skia.get_canvas());
+        territory.1.lock().unwrap().render_polygons(skia.get_canvas());
     }
 
     // Connections
@@ -151,7 +152,7 @@ pub fn render(skia: &mut Skia, app_state: &mut AppState) {
 
     // Cities
     for territory in &app_state.territories {
-        for city in &territory.1.cities {
+        for city in &territory.1.lock().unwrap().cities {
             city.lock().unwrap().render(skia, app_state);
         }
     }
@@ -163,7 +164,7 @@ pub fn render(skia: &mut Skia, app_state: &mut AppState) {
         let mut paint = Paint::default();
         paint.set_anti_alias(true);
         paint.set_style(PaintStyle::Stroke);
-        paint.set_shader(skia.create_noise_shader(skia.colour_background, 0.05));
+        paint.set_shader(skia.create_noise_shader(skia.colour_background, NOISE_MIX));
         paint.set_stroke_width(30.0);
         let blur = MaskFilter::blur(BlurStyle::Normal, 5.0, None).expect("Blur mask filter failed");
         paint.set_mask_filter(blur);
@@ -207,6 +208,13 @@ pub fn render(skia: &mut Skia, app_state: &mut AppState) {
     }
 
     render_region_summary(skia, app_state);
+
+    // Now, render based on mode
+    match app_state.mode {
+        GameMode::CitySelection => {
+            render_cityselection(skia, app_state);
+        }
+    }
 
     // FPS
     let fps = format!("FPS: {:.0} Zoom: {}, Position: {}/{}", app_state.fps, app_state.zoom, app_state.target.x, app_state.target.y);

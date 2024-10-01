@@ -5,12 +5,12 @@ use crate::model::location::Location;
 use petgraph::graph::NodeIndex;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use std::sync::{Arc, Mutex};
+use crate::model::territory::Territory;
 
 pub enum CityType {
     Metropolis,
     Fortopolis,
-    Argopolis,
-    Technopolis,
+    Agropolis
 }
 
 pub enum Owner {
@@ -23,6 +23,7 @@ pub enum Owner {
 }
 
 pub struct City {
+    pub territory: Arc<Mutex<Territory>>,
     pub name: String,
     pub location: Location,
     population: i64,
@@ -38,7 +39,7 @@ const MINIMUM_ALLOWED_DISTANCE: f32 = 12.0;
 const MAXIMUM_LABEL_WIDTH: f32 = 12.0;
 
 impl City {
-    pub fn new(name: String, longitude: f32, latitude: f32, population: i64, paint_territory: Color) -> Self {
+    pub fn new(name: String, longitude: f32, latitude: f32, population: i64, territory: Arc<Mutex<Territory>>) -> Self {
         let size = match population {
             0..150000 => 1,
             150000..250000 => 2,
@@ -50,10 +51,11 @@ impl City {
             _ => 8
         };
         City {
+            territory: territory.clone(),
             name,
             location: Location::new(longitude, latitude),
             population,
-            paint_territory,
+            paint_territory : territory.lock().unwrap().colour,
             size,
             typ: CityType::Metropolis,
             node: NodeIndex::new(0),
@@ -84,13 +86,17 @@ impl City {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia.text_dimensions(font_size, &paint_name, &self.name).clamp(1.0, MAXIMUM_LABEL_WIDTH);
-            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_shadow);
+            if app_state.show_shadows {
+                skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_shadow);
+            }
             skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
             skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
         }
 
         // Draw
-        skia.get_canvas().draw_circle(centre, SIZE, &paint_shadow);
+        if app_state.show_shadows {
+            skia.get_canvas().draw_circle(centre, SIZE, &paint_shadow);
+        }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_fill);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
         skia.write_text_centre(3.0, &paint_name, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);
@@ -106,16 +112,16 @@ impl City {
     // Function to select evenly spaced cities
     pub fn select_evenly_spaced_cities(
         app_state: &mut AppState,
-        mut cities: Vec<Arc<Mutex<City>>>,
+        territory: Arc<Mutex<Territory>>,
         num_cities_to_select: usize,
     ) -> Vec<Arc<Mutex<City>>> {
         let mut selected_cities: Vec<Arc<Mutex<City>>> = Vec::new();
 
         // Sort the cities by population (largest first)
-        cities.sort_by(|a, b| b.lock().unwrap().population.cmp(&a.lock().unwrap().population)); // Sort largest first
+        territory.lock().unwrap().cities.sort_by(|a, b| b.lock().unwrap().population.cmp(&a.lock().unwrap().population)); // Sort largest first
 
         // Loop through all cities
-        for city in cities {
+        for city in &territory.lock().unwrap().cities {
             let mut want = true;
 
             // Check distance to already selected cities
@@ -132,7 +138,7 @@ impl City {
             // If the city is far enough, select it
             if want {
                 app_state.existing_cities.push(city.lock().unwrap().location.clone());
-                selected_cities.push(city);
+                selected_cities.push(city.clone());
 
                 // Stop if we have selected enough cities
                 if selected_cities.len() >= num_cities_to_select {

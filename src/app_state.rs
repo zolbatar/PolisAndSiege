@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use sdl2::video::Window;
 use skia_safe::{FontMgr, Path, Point, Size};
 use crate::model::connection::Connection;
@@ -8,10 +9,15 @@ use skia_safe::svg::Dom;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
-
+pub const NOISE_MIX: f32 = 0.075;
 pub(crate) const MIN_ZOOM: f32 = 5.0;
 
+pub enum GameMode {
+    CitySelection,
+}
+
 pub struct AppState {
+    pub mode: GameMode,
     pub fps: f64,
     pub width: i32,
     pub height: i32,
@@ -21,12 +27,14 @@ pub struct AppState {
     pub zoom: f32,
     pub target: Point,
     pub panning: bool,
-    pub territories: HashMap<String, Territory>,
+    pub territories: HashMap<String, Arc<Mutex<Territory>>>,
     pub existing_cities: Vec<Location>,
     pub connections: Vec<Connection>,
-    pub show_labels: bool,
     pub side_path: Dom,
     pub corner_path: Dom,
+
+    pub show_labels: bool,
+    pub show_shadows: bool,
 }
 
 impl AppState {
@@ -45,6 +53,7 @@ impl AppState {
         side_path.set_container_size(Size::new(40.0, 200.0));
 
         AppState {
+            mode: GameMode::CitySelection,
             fps: 0.0,
             width,
             height,
@@ -56,6 +65,7 @@ impl AppState {
             existing_cities: Vec::new(),
             connections: Vec::new(),
             show_labels: true,
+            show_shadows: true,
             zoom: MIN_ZOOM,
             target: Point::new(25.0, -10.0),
             corner_path,

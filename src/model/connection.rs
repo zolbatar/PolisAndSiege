@@ -34,20 +34,21 @@ impl Connection {
     }
 }
 
-pub fn build_connections(territories: &HashMap<String, Territory>) -> Vec<Connection> {
+pub fn build_connections(territories: &HashMap<String, Arc<Mutex<Territory>>>) -> Vec<Connection> {
     let mut connections = Vec::new();
     for territory in territories {
         let mut graph = UnGraph::new_undirected();
+        let cities = &territory.1.lock().unwrap().cities;
 
         // Cities
-        for city in &territory.1.cities {
-            let node = graph.add_node(city);
+        for city in cities {
+            let node = graph.add_node(city.clone());
             city.lock().unwrap().node = node;
         }
 
         // Distances
-        for city_first in &territory.1.cities {
-            for city_second in &territory.1.cities {
+        for city_first in cities {
+            for city_second in cities {
                 if !Arc::ptr_eq(city_first, city_second) {
                     let distance = City::calculate_distance(&city_first.lock().unwrap(), &city_second.lock().unwrap());
                     graph.add_edge(city_first.lock().unwrap().node, city_second.lock().unwrap().node, distance);
@@ -59,8 +60,8 @@ pub fn build_connections(territories: &HashMap<String, Territory>) -> Vec<Connec
         let mst = UnGraph::<_, _>::from_elements(min_spanning_tree(&graph));
         for edge in mst.raw_edges() {
             let _weight = edge.weight;
-            let source = graph[edge.source()];
-            let target = graph[edge.target()];
+            let source = graph[edge.source()].clone();
+            let target = graph[edge.target()].clone();
             connections.push(Connection::new(source.clone(), target.clone()));
         }
     }

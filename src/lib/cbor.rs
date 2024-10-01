@@ -11,7 +11,7 @@ use crate::model::territory_polygon::TerritoryPolygon;
 
 const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
 
-pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
+pub fn import(app_state: &mut AppState) -> HashMap<String, Arc<Mutex<Territory>>> {
 
     // Open file
     let reader = from_reader::<Value, _>(REGIONS_CBOR).expect("Can't load CBOR file");
@@ -34,7 +34,7 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
         let polygons_cities = territory_polygons_cities.as_array().expect("CBOR: Expected arrays of polygons and cities");
 
         // Array of polygons
-        let mut territory = Territory::new(&territory_name_unwrapped);
+        let territory = Arc::new(Mutex::new(Territory::new(&territory_name_unwrapped)));
         for polygon in polygons_cities[0].as_array().expect("CBOR: Expecting array of polygons")
         {
             // Each polygon is an array of points
@@ -62,13 +62,12 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
             territory_polygon.locations.append(&mut locations);
 
             if territory_polygon.locations.len() >= 64 {
-                territory.polygons.push(territory_polygon);
+                territory.lock().unwrap().polygons.push(territory_polygon);
                 polygon_count += 1;
             }
         }
 
-        // Pre-render, i.e. create Skia stuff
-        let colour = territory.prerender_polygons();
+        let _ = territory.lock().unwrap().prerender_polygons();
 
         // Cities
         for city in polygons_cities[1].as_array().expect("CBOR: Expecting array of cities")
@@ -79,13 +78,14 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Territory> {
             let longitude = city_details[2].as_float().unwrap() as f32;
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
             if !name.eq("Honolulu") && longitude > -140.0 {
-                territory.cities.push(Arc::new(Mutex::new(City::new(name.to_string(), longitude, latitude, population, colour))));
+                let city = Arc::new(Mutex::new(City::new(name.to_string(), longitude, latitude, population, territory.clone())));
+                territory.lock().unwrap().cities.push(city);
                 cities_count += 1;
             }
         }
 
         // Choose sensible cities
-        territory.cities = City::select_evenly_spaced_cities(app_state, territory.cities, 25);
+        territory.lock().unwrap().cities = City::select_evenly_spaced_cities(app_state, territory.clone(), 25);
 
         territories.insert(territory_name_unwrapped, territory);
     }

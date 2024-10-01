@@ -1,4 +1,4 @@
-use crate::app_state::AppState;
+use crate::app_state::{AppState, NOISE_MIX};
 use rand::Rng;
 use skia_safe::gpu::direct_contexts::make_gl;
 use skia_safe::gpu::gl::{FramebufferInfo, Interface};
@@ -20,6 +20,8 @@ pub struct Skia {
     noise_shader: Result<RuntimeEffect, String>,
     pub surface: Surface,
     pub colour_background: Color,
+    pub colour_popup: Color,
+    pub colour_outline: Color,
 }
 
 impl Skia {
@@ -72,8 +74,8 @@ impl Skia {
         let blur = blur((1.0, 1.0), TileMode::default(), None, None);
         let drop_shadow = drop_shadow_only(
             Vector::new(1.5, 1.5),
-            (1.5, 1.5),
-            Color::from_argb(128, 0, 0, 0),
+            (0.5, 0.5),
+            Color::from_argb(64, 0, 0, 0),
             None,
             None,
             None);
@@ -89,6 +91,8 @@ impl Skia {
             blur,
             noise_shader,
             colour_background: Color::from_argb(255, 63, 63, 63),
+            colour_popup: Color::from_argb(255, 73, 73, 73),
+            colour_outline: Color::from_argb(255, 209, 185, 120),
         }
     }
 
@@ -116,7 +120,7 @@ impl Skia {
         self.get_canvas().clear(skia_safe::Color::TRANSPARENT);
         let mut paint_background = Paint::default();
         paint_background.set_style(PaintStyle::Fill);
-        paint_background.set_shader(self.create_noise_shader(self.colour_background, 0.05));
+        paint_background.set_shader(self.create_noise_shader(self.colour_background, NOISE_MIX));
         self.get_canvas().draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }
 

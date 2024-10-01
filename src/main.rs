@@ -5,6 +5,7 @@ mod lib {
 }
 mod input;
 mod render;
+mod render_cityselection;
 
 mod model {
     pub mod city;
@@ -86,7 +87,6 @@ fn main() {
 
     // Store the time of the previous frame and the last time we measured FPS
     let mut frame_count = 0;
-    let mut last_frame_time = Instant::now();
     let mut last_fps_check = Instant::now();
     let fps_check_interval = Duration::from_secs(1); // Check FPS every second
 
@@ -95,7 +95,6 @@ fn main() {
 
         // Measure the time it took to render the previous frame
         let current_time = Instant::now();
-        last_frame_time = current_time;
 
         // Increment the frame count
         frame_count += 1;
