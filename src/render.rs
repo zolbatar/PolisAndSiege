@@ -1,126 +1,9 @@
-use skia_safe::{BlurStyle, Color, MaskFilter, Paint, PaintStyle, Point, RRect, Rect, Vector};
-use skia_safe::paint::Style;
 use crate::app_state::{AppState, GameMode, NOISE_MIX};
-use crate::lib::skia::{Skia};
-use crate::model::city::Owner;
+use crate::lib::skia::Skia;
 use crate::render_cityselection::render_cityselection;
-
-fn render_region_summary(skia: &mut Skia, app_state: &mut AppState) {
-    skia.set_matrix(app_state);
-
-    // Territory paint
-    let mut paint_territories = Paint::default();
-    paint_territories.set_anti_alias(true);
-    paint_territories.set_style(Style::Fill);
-    //    paint_territories.set_color(skia.colour_background);
-    paint_territories.set_shader(skia.create_noise_shader(skia.colour_background, NOISE_MIX));
-    let blur = MaskFilter::blur(BlurStyle::Normal, 1.0, None).expect("Blur mask filter failed");
-    paint_territories.set_mask_filter(blur);
-
-    let territory_l = 525.0f32;
-    let territory_r = app_state.width as f32 - territory_l - 1.0;
-    let territory_t = app_state.height as f32 - 200.0 - 32.0;
-
-    // Outer shape
-    skia.get_canvas().draw_round_rect(Rect::from_xywh(territory_l - 8.0, territory_t - 8.0,
-                                                      territory_r - territory_l + 16.0, 200.0 + 16.0), 32.0, 32.0, &paint_territories);
-
-    // Sides
-    {
-        let canvas = skia.get_canvas();
-        canvas.save();
-
-        canvas.reset_matrix();
-        canvas.translate(Vector::new(territory_l * app_state.dpi, territory_t * app_state.dpi));
-        canvas.scale((1.0, 1.13));
-        app_state.side_path.render(canvas);
-
-        canvas.reset_matrix();
-        canvas.translate(Vector::new(territory_r * app_state.dpi, territory_t * app_state.dpi));
-        canvas.scale((-1.0, 1.13));
-        app_state.side_path.render(canvas);
-
-        canvas.restore();
-    }
-
-    // Paints
-    let mut paint_white = Paint::default();
-    paint_white.set_anti_alias(true);
-    paint_white.set_style(Style::StrokeAndFill);
-    paint_white.set_color(Color::WHITE);
-    let mut paint_line = Paint::default();
-    paint_line.set_anti_alias(true);
-    paint_line.set_style(Style::Fill);
-    paint_line.set_argb(255, 80, 80, 80);
-    let mut paint_player = Paint::default();
-    paint_player.set_anti_alias(true);
-    paint_player.set_style(Style::Stroke);
-    paint_player.set_stroke_width(5.0);
-    paint_player.set_color(Color::BLUE);
-    let mut paint_enemy = Paint::default();
-    paint_enemy.set_anti_alias(true);
-    paint_enemy.set_style(Style::Stroke);
-    paint_enemy.set_stroke_width(5.0);
-    paint_enemy.set_color(Color::RED);
-    let mut paint_none = Paint::default();
-    paint_none.set_anti_alias(true);
-    paint_none.set_style(Style::Stroke);
-    paint_none.set_stroke_width(5.0);
-    paint_none.set_argb(255, 90, 90, 90);
-
-    for (index, (fst, snd)) in app_state.territories.iter().enumerate() {
-        let y = territory_t + 25.0 * index as f32;
-
-        let mut paint_territory = Paint::default();
-        paint_territory.set_color(snd.lock().unwrap().colour);
-        paint_territory.set_anti_alias(true);
-        paint_territory.set_style(Style::Fill);
-        skia.get_canvas().draw_circle(Point::new(territory_l + 52.0, y + 13.0), 10.0, &paint_territory);
-
-        // Name
-        skia.write_text(20.0, &paint_white, fst, Point::new(territory_l + 64.0, y), 0.0);
-        if index % 2 == 0 {
-            skia.get_canvas().draw_rrect(RRect::new_rect_xy(skia_safe::Rect::from_xywh(territory_l + 40.0, y + 26.0, territory_r - territory_l - 80.0, 24.0), 5.0, 5.0), &paint_line);
-        }
-
-        // Bonus?
-        skia.write_text(20.0, &paint_white, "No bonus", Point::new(territory_r - 128.0, y), 0.0);
-
-        let mut player = 0;
-        let mut enemy = 0;
-        let mut none = 0;
-
-        for city in &snd.lock().unwrap().cities {
-            match city.lock().unwrap().owner {
-                Owner::None => {
-                    none += 1;
-                }
-                Owner::Player => {
-                    player += 1;
-                }
-                Owner::Enemy1 | Owner::Enemy2 | Owner::Enemy3 | Owner::Enemy4 => {
-                    enemy += 1;
-                }
-            }
-        }
-
-        let total = player as f32 + enemy as f32 + none as f32;
-        let player_segment = player as f32 / total * 64.0;
-        let enemy_segment = enemy as f32 / total * 64.0;
-        let none_segment = none as f32 / total * 64.0;
-
-        // Now draw bars for ownership
-        let bar_start = 335.0;
-        let bar_y_offer = 14.0;
-        let xx = territory_l + bar_start;
-        let yy = y + bar_y_offer;
-        skia.get_canvas().draw_line(Point::new(xx, yy), Point::new(xx + player_segment, yy), &paint_player);
-        skia.get_canvas().draw_line(Point::new(xx + player_segment, yy), Point::new(xx + player_segment + enemy_segment, yy), &paint_enemy);
-        skia.get_canvas().draw_line(Point::new(xx + player_segment + enemy_segment, yy), Point::new(xx + player_segment + enemy_segment + none_segment, yy), &paint_none);
-    }
-
-    skia.get_canvas().restore();
-}
+use crate::render_game::render_region_summary;
+use skia_safe::{BlurStyle, MaskFilter, Paint, PaintStyle, Point, RRect, Rect, Vector};
+use skia_safe::paint::Style;
 
 pub fn render(skia: &mut Skia, app_state: &mut AppState) {
     skia.reset_context();
@@ -207,12 +90,50 @@ pub fn render(skia: &mut Skia, app_state: &mut AppState) {
         canvas.restore();
     }
 
-    render_region_summary(skia, app_state);
+    // Bottom section for drawing stuff
+    let l = 525.0f32;
+    let r = app_state.width as f32 - l - 1.0;
+    let t = app_state.height as f32 - 200.0 - 32.0;
+    let b = t + 200.0;
+    let rr = Rect::new(l, t, r, b);
+
+    // Outer shape
+    skia.set_matrix(app_state);
+    let mut paint_background = Paint::default();
+    paint_background.set_anti_alias(true);
+    paint_background.set_style(Style::Fill);
+    paint_background.set_shader(skia.create_noise_shader(skia.colour_background, NOISE_MIX));
+//    let blur = MaskFilter::blur(BlurStyle::Normal, 1.0, None).expect("Blur mask filter failed");
+//    paint_background.set_mask_filter(blur);
+    skia.get_canvas().draw_round_rect(Rect::from_xywh(rr.left - 8.0, rr.top - 8.0,
+                                                      rr.right - rr.left + 16.0, rr.bottom - rr.top + 16.0), 32.0, 32.0, &paint_background);
+    skia.get_canvas().restore();
+
+    // Sides
+    {
+        let canvas = skia.get_canvas();
+        canvas.save();
+
+        canvas.reset_matrix();
+        canvas.translate(Vector::new(rr.left * app_state.dpi, rr.top * app_state.dpi));
+        canvas.scale((1.0, 1.13));
+        app_state.side_path.render(canvas);
+
+        canvas.reset_matrix();
+        canvas.translate(Vector::new(rr.right * app_state.dpi, rr.top * app_state.dpi));
+        canvas.scale((-1.0, 1.13));
+        app_state.side_path.render(canvas);
+
+        canvas.restore();
+    }
 
     // Now, render based on mode
     match app_state.mode {
         GameMode::CitySelection => {
-            render_cityselection(skia, app_state);
+            render_cityselection(skia, app_state, rr);
+        }
+        GameMode::Game => {
+            render_region_summary(skia, app_state, rr);
         }
     }
 

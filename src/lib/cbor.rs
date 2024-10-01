@@ -94,6 +94,13 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Arc<Mutex<Territory>>
     // Now build connections
     app_state.connections = build_connections(&territories);
 
+    // And a list of all cities
+    for territory in territories.values() {
+        for city in territory.lock().unwrap().cities.iter() {
+            app_state.cities.push(city.clone());
+        }
+    }
+
     println!("CBOR: Total territories: {}", territories.len());
     println!("CBOR: Total polygons: {}", polygon_count);
     println!("CBOR: Total points: {}", point_count_total);

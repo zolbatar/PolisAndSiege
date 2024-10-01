@@ -6,6 +6,7 @@ mod lib {
 mod input;
 mod render;
 mod render_cityselection;
+mod render_game;
 
 mod model {
     pub mod city;

@@ -6,14 +6,16 @@ use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 use skia_safe::svg::Dom;
+use crate::model::city::City;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
 pub const NOISE_MIX: f32 = 0.075;
-pub(crate) const MIN_ZOOM: f32 = 5.0;
+pub(crate) const MIN_ZOOM: f32 = 4.2;
 
 pub enum GameMode {
     CitySelection,
+    Game,
 }
 
 pub struct AppState {
@@ -29,6 +31,7 @@ pub struct AppState {
     pub panning: bool,
     pub territories: HashMap<String, Arc<Mutex<Territory>>>,
     pub existing_cities: Vec<Location>,
+    pub cities: Vec<Arc<Mutex<City>>>,
     pub connections: Vec<Connection>,
     pub side_path: Dom,
     pub corner_path: Dom,
@@ -64,6 +67,7 @@ impl AppState {
             panning: false,
             existing_cities: Vec::new(),
             connections: Vec::new(),
+            cities: Vec::new(),
             show_labels: true,
             show_shadows: true,
             zoom: MIN_ZOOM,

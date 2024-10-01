@@ -61,7 +61,7 @@ impl Skia {
                 .new_from_data(EBGARAMOND_TTF, None)
                 .expect("Failed to load font");
             typeface_font_provider.register_typeface(typeface, "EB Garamond");
-            
+
             typeface_font_provider
         };
 
@@ -94,7 +94,7 @@ impl Skia {
             blur,
             noise_shader,
             colour_background: Color::from_argb(255, 63, 63, 63),
-            colour_popup: Color::from_argb(255, 73, 73, 73),
+            colour_popup: Color::from_argb(255, 80, 80, 80),
             colour_outline: Color::from_argb(255, 209, 185, 120),
         }
     }
@@ -167,7 +167,7 @@ impl Skia {
         let mut builder = ParagraphBuilder::new(&paragraph_style, &self.font_collection);
 
         let font_style = FontStyle::new(Weight::NORMAL, Width::NORMAL, Slant::Upright);
-        
+
         // Text style
         let mut text_style = TextStyle::new();
         text_style.set_font_size(font_size);
