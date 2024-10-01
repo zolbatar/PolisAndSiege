@@ -15,6 +15,7 @@ mod model {
     pub mod connection;
 }
 
+use std::time::{Duration, Instant};
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
@@ -83,8 +84,31 @@ fn main() {
     // Event pump for SDL2 events
     let mut event_pump = sdl.event_pump().unwrap();
 
+    // Store the time of the previous frame and the last time we measured FPS
+    let mut frame_count = 0;
+    let mut last_frame_time = Instant::now();
+    let mut last_fps_check = Instant::now();
+    let fps_check_interval = Duration::from_secs(1); // Check FPS every second
+
     // Loop
     'running: loop {
+
+        // Measure the time it took to render the previous frame
+        let current_time = Instant::now();
+        last_frame_time = current_time;
+
+        // Increment the frame count
+        frame_count += 1;
+
+        // Calculate FPS every second
+        if current_time - last_fps_check >= fps_check_interval {
+            app_state.fps = frame_count as f64 / (fps_check_interval.as_secs_f64());
+
+            // Reset frame count and last FPS check time
+            frame_count = 0;
+            last_fps_check = current_time;
+        }
+        
         for event in event_pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. }

@@ -12,6 +12,7 @@ const SVG_SIDE: &str = include_str!("../assets/Side.svg");
 pub(crate) const MIN_ZOOM: f32 = 5.0;
 
 pub struct AppState {
+    pub fps: f64,
     pub width: i32,
     pub height: i32,
     pub half_width: i32,
@@ -44,6 +45,7 @@ impl AppState {
         side_path.set_container_size(Size::new(40.0, 200.0));
 
         AppState {
+            fps: 0.0,
             width,
             height,
             half_width,
