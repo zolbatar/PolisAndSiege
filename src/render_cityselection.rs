@@ -4,6 +4,9 @@ use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 
 pub fn render_cityselection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.set_matrix(app_state);
+    
+    // City
+    let city = app_state.cities.first().unwrap();
 
     let mut paint_shadow = Paint::default();
     paint_shadow.set_anti_alias(true);
@@ -37,7 +40,7 @@ pub fn render_cityselection(skia: &mut Skia, app_state: &mut AppState, rr: Rect)
     paint_right.set_style(PaintStyle::StrokeAndFill);
     paint_right.set_color(Color::WHITE);
     skia.write_text_right(20.0, &paint_left, "Name:  ", Point::new(app_state.half_width as f32, rr.top + 60.0), w);
-    skia.write_text(20.0, &paint_right, "City", Point::new(app_state.half_width as f32, rr.top() + 60.0), w);
+    skia.write_text(20.0, &paint_right, &city.lock().unwrap().name, Point::new(app_state.half_width as f32, rr.top() + 60.0), w);
     skia.write_text_right(20.0, &paint_left, "Territory:  ", Point::new(app_state.half_width as f32, rr.top + 85.0), w);
     skia.write_text(20.0, &paint_right, "Asia", Point::new(app_state.half_width as f32, rr.top + 85.0), w);
 
