@@ -121,7 +121,8 @@ impl City {
         territory.lock().unwrap().cities.sort_by(|a, b| b.lock().unwrap().population.cmp(&a.lock().unwrap().population)); // Sort largest first
 
         // Loop through all cities
-        for city in &territory.lock().unwrap().cities {
+        let cities = &territory.lock().unwrap().cities;
+        for city in cities {
             let mut want = true;
 
             // Check distance to already selected cities

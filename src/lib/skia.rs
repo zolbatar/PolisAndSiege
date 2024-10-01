@@ -6,9 +6,10 @@ use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::image_filters::{blur, drop_shadow_only};
 use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{gpu, Canvas, Color, Color4f, Data, FontMgr, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect, Shader, Surface, TileMode, Vector};
+use skia_safe::{gpu, Canvas, Color, Color4f, Data, FontMgr, FontStyle, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect, Shader, Surface, TileMode, Vector};
+use skia_safe::font_style::{Slant, Weight, Width};
 
-static EBGARAMOND_REGULAR_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-Regular.ttf");
+static EBGARAMOND_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-VariableFont_wght.ttf");
 const NOISE_SKSL: &str = include_str!("../../assets/noise.sksl");
 pub const ELLIPSIS: &str = "\u{2026}";
 
@@ -55,10 +56,12 @@ impl Skia {
         let typeface_font_provider = {
             let mut typeface_font_provider = TypefaceFontProvider::new();
             let font_mgr = FontMgr::new();
+
             let typeface = font_mgr
-                .new_from_data(EBGARAMOND_REGULAR_TTF, None)
+                .new_from_data(EBGARAMOND_TTF, None)
                 .expect("Failed to load font");
             typeface_font_provider.register_typeface(typeface, "EB Garamond");
+            
             typeface_font_provider
         };
 
@@ -163,9 +166,12 @@ impl Skia {
         // Use the Make method to create a ParagraphBuilder
         let mut builder = ParagraphBuilder::new(&paragraph_style, &self.font_collection);
 
+        let font_style = FontStyle::new(Weight::NORMAL, Width::NORMAL, Slant::Upright);
+        
         // Text style
         let mut text_style = TextStyle::new();
         text_style.set_font_size(font_size);
+        text_style.set_font_style(font_style);
         text_style.set_foreground_paint(paint);
         text_style.add_font_feature("kern", 1);
         text_style.add_font_feature("liga", 1);
@@ -198,6 +204,14 @@ impl Skia {
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 { self.get_canvas().base_layer_size().width as f32 } else { width });
         paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions / 2.0, xy.y));
+    }
+
+    pub fn write_text_right(&mut self, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
+        let dimensions = self.text_dimensions(font_size, paint, text);
+        let mut builder = self.create_paragraph_builder(font_size, paint, text);
+        let mut paragraph = builder.build();
+        paragraph.layout(if width == 0.0 { self.get_canvas().base_layer_size().width as f32 } else { width });
+        paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions, xy.y));
     }
 
     pub fn reset_context(&mut self) {
