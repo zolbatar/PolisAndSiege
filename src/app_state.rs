@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 use sdl2::video::Window;
 use skia_safe::{FontMgr, Path, Point, Size};
 use crate::model::connection::Connection;
@@ -19,26 +20,40 @@ pub enum GameMode {
     Game,
 }
 
-pub struct AppState {
-    pub mode: GameMode,
-    pub fps: f64,
+pub struct GFXState {
     pub width: i32,
     pub height: i32,
     pub half_width: i32,
     pub half_height: i32,
     pub dpi: f32,
-    pub zoom: f32,
-    pub target: Point,
-    pub panning: bool,
+}
+
+pub struct Resource {
+    pub side_path: Dom,
+    pub corner_path: Dom,
+}
+
+pub struct Items {
     pub territories: HashMap<String, Arc<Mutex<Territory>>>,
     pub existing_cities: Vec<Location>,
     pub cities: Vec<Arc<Mutex<City>>>,
+    pub cities_remaining_to_assign: Vec<Arc<Mutex<City>>>,
     pub connections: Vec<Connection>,
-    pub side_path: Dom,
-    pub corner_path: Dom,
+}
 
+pub struct AppState {
+    pub gfx: GFXState,
+    pub res: Resource,
+    pub items: Items,
+    pub mode: GameMode,
+    pub num_of_players: u8,
+    pub fps: f64,
+    pub zoom: f32,
+    pub target: Point,
+    pub panning: bool,
     pub show_labels: bool,
     pub show_shadows: bool,
+    pub last_selection: Instant,
 }
 
 impl AppState {
@@ -56,25 +71,40 @@ impl AppState {
         let mut side_path = Dom::from_str(SVG_SIDE, FontMgr::new()).expect("Error loading SVG");
         side_path.set_container_size(Size::new(40.0, 200.0));
 
-        AppState {
-            mode: GameMode::Randomising,
-            fps: 0.0,
+        let gfx = GFXState {
             width,
             height,
             half_width,
             half_height,
             dpi,
+        };
+
+        let res = Resource {
+            corner_path,
+            side_path,
+        };
+
+        let items = Items {
             territories: HashMap::new(),
-            panning: false,
             existing_cities: Vec::new(),
             connections: Vec::new(),
             cities: Vec::new(),
+            cities_remaining_to_assign: Vec::new(),
+        };
+
+        AppState {
+            mode: GameMode::Randomising,
+            gfx,
+            res,
+            items,
+            num_of_players: 2,
+            fps: 0.0,
+            panning: false,
             show_labels: true,
             show_shadows: true,
             zoom: MIN_ZOOM,
             target: Point::new(25.0, -10.0),
-            corner_path,
-            side_path,
+            last_selection: Instant::now(),
         }
     }
 

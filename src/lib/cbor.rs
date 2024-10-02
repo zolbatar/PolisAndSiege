@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use ciborium::de::from_reader;
 use ciborium::Value;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use crate::app_state::AppState;
 use crate::model::city::City;
 use crate::model::connection::build_connections;
@@ -92,14 +94,19 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Arc<Mutex<Territory>>
     }
 
     // Now build connections
-    app_state.connections = build_connections(&territories);
+    app_state.items.connections = build_connections(&territories);
 
     // And a list of all cities
     for territory in territories.values() {
         for city in territory.lock().unwrap().cities.iter() {
-            app_state.cities.push(city.clone());
+            app_state.items.cities.push(city.clone());
+            app_state.items.cities_remaining_to_assign.push(city.clone());
         }
     }
+    
+    // Shuffle remaining ones randomly
+    let mut rng = thread_rng(); // Create a random number generator
+    app_state.items.cities_remaining_to_assign.shuffle(&mut rng); // Shuffle the vector in place
 
     println!("CBOR: Total territories: {}", territories.len());
     println!("CBOR: Total polygons: {}", polygon_count);

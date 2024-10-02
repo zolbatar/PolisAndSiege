@@ -5,7 +5,7 @@ use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
 
 pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
-    skia.set_matrix(app_state);
+    skia.set_matrix(&app_state.gfx);
 
     // Paints
     let mut paint_white = Paint::default();
@@ -32,7 +32,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_none.set_stroke_width(5.0);
     paint_none.set_argb(255, 90, 90, 90);
 
-    for (index, (fst, snd)) in app_state.territories.iter().enumerate() {
+    for (index, (fst, snd)) in app_state.items.territories.iter().enumerate() {
         let y = rr.top + 25.0 * index as f32;
 
         let mut paint_territory = Paint::default();

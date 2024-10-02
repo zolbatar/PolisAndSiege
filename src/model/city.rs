@@ -133,7 +133,7 @@ impl City {
             let mut want = true;
 
             // Check distance to already selected cities
-            for existing in app_state.existing_cities.iter() {
+            for existing in app_state.items.existing_cities.iter() {
                 if existing.p != city.lock().unwrap().location.p {
                     let dist = Location::calculate_distance(&city.lock().unwrap().location, existing);
                     if dist <= MINIMUM_ALLOWED_DISTANCE {
@@ -145,7 +145,7 @@ impl City {
 
             // If the city is far enough, select it
             if want {
-                app_state.existing_cities.push(city.lock().unwrap().location.clone());
+                app_state.items.existing_cities.push(city.lock().unwrap().location.clone());
                 selected_cities.push(city.clone());
 
                 // Stop if we have selected enough cities

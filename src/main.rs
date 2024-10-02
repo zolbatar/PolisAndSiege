@@ -79,7 +79,7 @@ fn main() {
 
     // Load CBOR data
     let territories = cbor::import(&mut app_state);
-    app_state.territories = territories;
+    app_state.items.territories = territories;
 
     // Skia and surfaces
     let mut skia = Skia::new(&app_state);

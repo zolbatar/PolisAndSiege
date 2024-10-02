@@ -1,4 +1,4 @@
-use crate::app_state::{AppState, NOISE_MIX};
+use crate::app_state::{AppState, GFXState, NOISE_MIX};
 use rand::Rng;
 use skia_safe::gpu::direct_contexts::make_gl;
 use skia_safe::gpu::gl::{FramebufferInfo, Interface};
@@ -84,7 +84,7 @@ impl Skia {
             None);
 
         // Surface
-        let surface = Skia::make_surface(&mut context, app_state.width * app_state.dpi as i32, app_state.height * app_state.dpi as i32);
+        let surface = Skia::make_surface(&mut context, app_state.gfx.width * app_state.gfx.dpi as i32, app_state.gfx.height * app_state.gfx.dpi as i32);
 
         Skia {
             context,
@@ -127,27 +127,26 @@ impl Skia {
         self.get_canvas().draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }
 
-    pub fn set_matrix(&mut self, app_state: &AppState) {
         let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
-        canvas.scale((app_state.dpi, app_state.dpi));
+        canvas.scale((gfx.dpi, gfx.dpi));
     }
 
-    pub fn _set_matrix_centre(&mut self, app_state: &AppState) {
+    pub fn _set_matrix_centre(&mut self, gfx: &GFXState) {
         let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
-        canvas.scale((app_state.dpi, app_state.dpi));
-        canvas.translate((app_state.half_width, app_state.half_height));
+        canvas.scale((gfx.dpi, gfx.dpi));
+        canvas.translate((gfx.half_width, gfx.half_height));
     }
 
     pub fn _set_matrix_camera(&mut self, app_state: &AppState) {
         let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
-        canvas.scale((app_state.dpi, app_state.dpi));
-        canvas.translate((app_state.half_width, app_state.half_height));
+        canvas.scale((app_state.gfx.dpi, app_state.gfx.dpi));
+        canvas.translate((app_state.gfx.half_width, app_state.gfx.half_height));
         canvas.scale((app_state.zoom, app_state.zoom));
         canvas.translate((-app_state.target.x, -app_state.target.y));
     }
