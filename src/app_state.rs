@@ -41,7 +41,13 @@ pub struct Items {
     pub connections: Vec<Connection>,
 }
 
+pub struct CitySelection {
+    pub last_selection: Instant,
+    pub last_city_selection: Option<Arc<Mutex<City>>>,
+}
+
 pub struct AppState {
+    pub selection: CitySelection,
     pub gfx: GFXState,
     pub res: Resource,
     pub items: Items,
@@ -53,7 +59,6 @@ pub struct AppState {
     pub panning: bool,
     pub show_labels: bool,
     pub show_shadows: bool,
-    pub last_selection: Instant,
 }
 
 impl AppState {
@@ -94,6 +99,10 @@ impl AppState {
 
         AppState {
             mode: GameMode::Randomising,
+            selection: CitySelection {
+                last_selection: Instant::now(),
+                last_city_selection: None,
+            },
             gfx,
             res,
             items,
@@ -104,7 +113,6 @@ impl AppState {
             show_shadows: true,
             zoom: MIN_ZOOM,
             target: Point::new(25.0, -10.0),
-            last_selection: Instant::now(),
         }
     }
 
