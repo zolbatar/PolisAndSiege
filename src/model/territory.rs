@@ -4,7 +4,7 @@ use crate::model::city::City;
 use crate::model::territory_polygon::TerritoryPolygon;
 
 pub struct Territory {
-    name: String,
+    pub  name: String,
     pub colour: Color,
     pub polygons: Vec<TerritoryPolygon>,
     pub cities: Vec<Arc<Mutex<City>>>,

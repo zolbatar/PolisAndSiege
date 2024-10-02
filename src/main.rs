@@ -4,9 +4,6 @@ mod lib {
     pub mod cbor;
 }
 mod input;
-mod render;
-mod render_cityselection;
-mod render_game;
 
 mod model {
     pub mod city;
@@ -16,12 +13,17 @@ mod model {
     pub mod math;
     pub mod connection;
 }
+mod render {
+    pub mod render;
+    pub mod city_selection;
+    pub mod randomising;
+    pub mod region_summary;
+}
 
 use std::time::{Duration, Instant};
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
-use crate::render::render;
 use app_state::AppState;
 use sdl2::video::GLProfile;
 
@@ -108,7 +110,7 @@ fn main() {
             frame_count = 0;
             last_fps_check = current_time;
         }
-        
+
         for event in event_pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. }
@@ -150,7 +152,7 @@ fn main() {
             }
         }
 
-        render(&mut skia, &mut app_state);
+        render::render::main(&mut skia, &mut app_state);
         window.gl_swap_window();
     }
 }

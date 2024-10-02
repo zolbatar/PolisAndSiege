@@ -4,7 +4,7 @@ use crate::model::city::Owner;
 use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
 
-pub fn render_region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
+pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.set_matrix(app_state);
 
     // Paints

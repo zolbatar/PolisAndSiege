@@ -2,11 +2,19 @@ use crate::app_state::AppState;
 use crate::lib::skia::Skia;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 
-pub fn render_cityselection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
+pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.set_matrix(app_state);
-    
+
     // City
-    let city = app_state.cities.first().unwrap();
+    let city = app_state.cities.first().unwrap().lock().unwrap();
+    let city_name = &city.name;
+    let territory_name = &city.territory.lock().unwrap().name;
+
+    // Positions
+    let offset_text = 125.0f32;
+    let text_x = app_state.half_width as f32 - offset_text;
+    let w = rr.right - rr.left;
+    let text_w = w - offset_text;
 
     let mut paint_shadow = Paint::default();
     paint_shadow.set_anti_alias(true);
@@ -27,7 +35,6 @@ pub fn render_cityselection(skia: &mut Skia, app_state: &mut AppState, rr: Rect)
     paint_title.set_anti_alias(true);
     paint_title.set_style(PaintStyle::StrokeAndFill);
     paint_title.set_color(Color::YELLOW);
-    let w = rr.right - rr.left;
     skia.write_text_centre(30.0, &paint_title, "City Selection", Point::new(app_state.half_width as f32, rr.top), w);
 
     // Name and territory
@@ -39,10 +46,10 @@ pub fn render_cityselection(skia: &mut Skia, app_state: &mut AppState, rr: Rect)
     paint_right.set_anti_alias(true);
     paint_right.set_style(PaintStyle::StrokeAndFill);
     paint_right.set_color(Color::WHITE);
-    skia.write_text_right(20.0, &paint_left, "Name:  ", Point::new(app_state.half_width as f32, rr.top + 60.0), w);
-    skia.write_text(20.0, &paint_right, &city.lock().unwrap().name, Point::new(app_state.half_width as f32, rr.top() + 60.0), w);
-    skia.write_text_right(20.0, &paint_left, "Territory:  ", Point::new(app_state.half_width as f32, rr.top + 85.0), w);
-    skia.write_text(20.0, &paint_right, "Asia", Point::new(app_state.half_width as f32, rr.top + 85.0), w);
+    skia.write_text_right(20.0, &paint_left, "Name:  ", Point::new(text_x, rr.top + 60.0), text_w);
+    skia.write_text(20.0, &paint_right, city_name, Point::new(text_x, rr.top() + 60.0), text_w);
+    skia.write_text_right(20.0, &paint_left, "Territory:  ", Point::new(text_x, rr.top + 85.0), text_w);
+    skia.write_text(20.0, &paint_right, territory_name, Point::new(text_x, rr.top + 85.0), text_w);
 
     // Sections
     skia.get_canvas().restore();

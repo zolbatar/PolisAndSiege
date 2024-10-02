@@ -1,11 +1,12 @@
 use crate::app_state::{AppState, GameMode, NOISE_MIX};
 use crate::lib::skia::Skia;
-use crate::render_cityselection::render_cityselection;
-use crate::render_game::render_region_summary;
+use crate::render::city_selection::city_selection;
+use crate::render::region_summary::region_summary;
+use crate::render::randomising::randomising;
 use skia_safe::{BlurStyle, MaskFilter, Paint, PaintStyle, Point, RRect, Rect, Vector};
 use skia_safe::paint::Style;
 
-pub fn render(skia: &mut Skia, app_state: &mut AppState) {
+pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     skia.reset_context();
 
     let clip_rect = RRect::new_rect_xy(Rect::from_xywh(32.0, 32.0, app_state.width as f32 - 64.0, app_state.height as f32 - 64.0), 128.0, 128.0);
@@ -129,11 +130,14 @@ pub fn render(skia: &mut Skia, app_state: &mut AppState) {
 
     // Now, render based on mode
     match app_state.mode {
+        GameMode::Randomising => {
+            randomising(skia, app_state, rr);
+        }
         GameMode::CitySelection => {
-            render_cityselection(skia, app_state, rr);
+            city_selection(skia, app_state, rr);
         }
         GameMode::Game => {
-            render_region_summary(skia, app_state, rr);
+            region_summary(skia, app_state, rr);
         }
     }
 

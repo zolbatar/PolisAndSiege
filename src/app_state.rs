@@ -14,6 +14,7 @@ pub const NOISE_MIX: f32 = 0.075;
 pub(crate) const MIN_ZOOM: f32 = 4.2;
 
 pub enum GameMode {
+    Randomising,
     CitySelection,
     Game,
 }
@@ -56,7 +57,7 @@ impl AppState {
         side_path.set_container_size(Size::new(40.0, 200.0));
 
         AppState {
-            mode: GameMode::CitySelection,
+            mode: GameMode::Randomising,
             fps: 0.0,
             width,
             height,
