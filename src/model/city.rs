@@ -10,7 +10,7 @@ use crate::model::territory::Territory;
 pub enum CityType {
     Metropolis,
     Fortopolis,
-    Agropolis
+    Agropolis,
 }
 
 pub enum Owner {
@@ -49,13 +49,20 @@ impl City {
             2500000..5000000 => 6,
             5000000..10000000 => 7,
             _ => 8
+            /*
+                        0..150000 => 1,
+            250000..500000 => 2,
+            1000000..2500000 => 3,
+            _ => 4
+
+             */
         };
         City {
             territory: territory.clone(),
             name,
             location: Location::new(longitude, latitude),
             population,
-            paint_territory : territory.lock().unwrap().colour,
+            paint_territory: territory.lock().unwrap().colour,
             size,
             typ: CityType::Metropolis,
             node: NodeIndex::new(0),
