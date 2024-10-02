@@ -127,6 +127,7 @@ impl Skia {
         self.get_canvas().draw_rect(Rect::from_xywh(0.0, 0.0, w as f32, h as f32), &paint_background);
     }
 
+    pub fn set_matrix(&mut self, gfx: &GFXState) {
         let canvas = self.get_canvas();
         canvas.save();
         canvas.reset_matrix();
