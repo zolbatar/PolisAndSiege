@@ -23,7 +23,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
     // Do we need to assign a new one?
     let diff = Instant::now() - app_state.selection.last_selection;
-    if diff.as_millis() > 1000 {
+    if diff.as_millis() > 100 {
         app_state.selection.last_selection = Instant::now();
 
         // Take top item
@@ -32,7 +32,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         } else {
             let next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
             let mut rng = thread_rng();
-            let random_player = rng.gen_range(0..app_state.num_of_players - 1);
+            let random_player = rng.gen_range(0..app_state.num_of_players);
             match random_player {
                 0 => next_city.lock().unwrap().owner = Owner::Player,
                 1 => next_city.lock().unwrap().owner = Owner::Enemy1,
@@ -56,10 +56,19 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         paint_right.set_anti_alias(true);
         paint_right.set_style(PaintStyle::StrokeAndFill);
         paint_right.set_color(Color::WHITE);
+
+        // Name
         skia.write_text_right(20.0, &paint_left, "Name:  ", Point::new(text_x, rr.top + 60.0), text_w);
         skia.write_text(20.0, &paint_right, &last_city.lock().unwrap().name, Point::new(text_x, rr.top() + 60.0), text_w);
+
+        // Territory
         skia.write_text_right(20.0, &paint_left, "Territory:  ", Point::new(text_x, rr.top + 85.0), text_w);
         skia.write_text(20.0, &paint_right, &last_city.lock().unwrap().territory.lock().unwrap().name, Point::new(text_x, rr.top + 85.0), text_w);
+
+        // Owner
+        skia.write_text_right(20.0, &paint_left, "Owner:  ", Point::new(text_x, rr.top + 110.0), text_w);
+        let owner_string = app_state.res.player_name.get(&last_city.lock().unwrap().owner).unwrap(); 
+        skia.write_text(20.0, &paint_right, &owner_string, Point::new(text_x, rr.top + 110.0), text_w);
     }
 
     skia.get_canvas().restore();

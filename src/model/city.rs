@@ -13,6 +13,8 @@ pub enum CityType {
     Agropolis,
 }
 
+
+#[derive(Eq, Hash, PartialEq)]
 pub enum Owner {
     None,
     Player,
@@ -83,12 +85,20 @@ impl City {
         paint_shadow.set_image_filter(skia.drop_shadow.clone());
         let mut paint_fill = Paint::default();
         paint_fill.set_style(PaintStyle::Fill);
-        paint_fill.set_color(skia::mix_colors(self.paint_territory, Color::WHITE, 0.7));
+        paint_fill.set_color(skia::mix_colors(self.paint_territory, Color::WHITE, 0.5));
+        let mut paint_fill_circle = Paint::default();
+        paint_fill_circle.set_style(PaintStyle::Fill);
+        let colours = app_state.res.player_colours.get(&self.owner).unwrap();
+        paint_fill_circle.set_color(colours[0]);
+        let mut paint_number = Paint::default();
+        paint_number.set_anti_alias(true);
+        paint_number.set_style(PaintStyle::Fill);
+        paint_number.set_color(colours[1]);
         let mut paint_outline = Paint::default();
         paint_outline.set_anti_alias(true);
         paint_outline.set_style(PaintStyle::Stroke);
         paint_outline.set_color(Color::BLACK);
-        paint_outline.set_stroke_width(SIZE / 8.0);
+        paint_outline.set_stroke_width(SIZE / 6.0);
 
         // Name background
         if app_state.show_all_info() {
@@ -104,9 +114,9 @@ impl City {
         if app_state.show_shadows {
             skia.get_canvas().draw_circle(centre, SIZE, &paint_shadow);
         }
-        skia.get_canvas().draw_circle(centre, SIZE, &paint_fill);
+        skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        skia.write_text_centre(3.0, &paint_name, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);
+        skia.write_text_centre(3.0, &paint_number, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);
         if app_state.show_all_info() {
             skia.write_text(font_size, &paint_name, &self.name, Point::new(centre.x + SIZE + 0.5, centre.y - font_size / 1.5), MAXIMUM_LABEL_WIDTH);
         }

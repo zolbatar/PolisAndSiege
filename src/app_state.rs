@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use sdl2::video::Window;
-use skia_safe::{FontMgr, Path, Point, Size};
+use skia_safe::{Color, FontMgr, Path, Point, Size};
 use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 use skia_safe::svg::Dom;
-use crate::model::city::City;
+use crate::model::city::{City, Owner};
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
@@ -31,6 +31,8 @@ pub struct GFXState {
 pub struct Resource {
     pub side_path: Dom,
     pub corner_path: Dom,
+    pub player_colours: HashMap<Owner, Vec<Color>>,
+    pub player_name: HashMap<Owner, String>,
 }
 
 pub struct Items {
@@ -84,11 +86,27 @@ impl AppState {
             dpi,
         };
 
-        let res = Resource {
+        let mut res = Resource {
             corner_path,
             side_path,
+            player_colours: HashMap::new(),
+            player_name: HashMap::new(),
         };
 
+        // Colours for each player
+        res.player_colours.insert(Owner::None, vec!(Color::from_rgb(128, 128, 128), Color::BLACK));
+        res.player_colours.insert(Owner::Player, vec!(Color::from_rgb(0, 0, 255), Color::WHITE));
+        res.player_colours.insert(Owner::Enemy1, vec!(Color::from_rgb(255, 0, 0), Color::WHITE));
+        res.player_colours.insert(Owner::Enemy2, vec!(Color::from_rgb(0, 255, 0), Color::BLACK));
+        res.player_colours.insert(Owner::Enemy3, vec!(Color::from_rgb(255, 255, 0), Color::BLACK));
+        res.player_colours.insert(Owner::Enemy4, vec!(Color::from_rgb(0, 255, 255), Color::BLACK));
+        res.player_name.insert(Owner::None, "No control".parse().unwrap());
+        res.player_name.insert(Owner::Player, "The Britannian Dominion".parse().unwrap());
+        res.player_name.insert(Owner::Enemy1, "The Red Tsardom".parse().unwrap());
+        res.player_name.insert(Owner::Enemy2, "The Rising Shogunate".parse().unwrap());
+        res.player_name.insert(Owner::Enemy3, "The Gaulish Syndicate".parse().unwrap());
+        res.player_name.insert(Owner::Enemy4, "The Yankee Federation".parse().unwrap());
+        
         let items = Items {
             territories: HashMap::new(),
             existing_cities: Vec::new(),
@@ -106,7 +124,7 @@ impl AppState {
             gfx,
             res,
             items,
-            num_of_players: 2,
+            num_of_players: 5,
             fps: 0.0,
             panning: false,
             show_labels: true,
