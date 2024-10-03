@@ -14,7 +14,7 @@ pub enum CityType {
 }
 
 
-#[derive(Eq, Hash, PartialEq, Clone)]
+#[derive(Eq, Hash, PartialEq, Clone, Ord, PartialOrd)]
 pub enum Owner {
     None,
     Player,

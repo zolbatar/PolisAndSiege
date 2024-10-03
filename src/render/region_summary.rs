@@ -1,6 +1,6 @@
+use std::collections::{BTreeMap, HashMap};
 use crate::app_state::AppState;
 use crate::lib::skia::Skia;
-use crate::model::city::Owner;
 use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
 
@@ -16,21 +16,6 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_line.set_anti_alias(true);
     paint_line.set_style(Style::Fill);
     paint_line.set_argb(255, 80, 80, 80);
-    let mut paint_player = Paint::default();
-    paint_player.set_anti_alias(true);
-    paint_player.set_style(Style::Stroke);
-    paint_player.set_stroke_width(5.0);
-    paint_player.set_color(Color::BLUE);
-    let mut paint_enemy = Paint::default();
-    paint_enemy.set_anti_alias(true);
-    paint_enemy.set_style(Style::Stroke);
-    paint_enemy.set_stroke_width(5.0);
-    paint_enemy.set_color(Color::RED);
-    let mut paint_none = Paint::default();
-    paint_none.set_anti_alias(true);
-    paint_none.set_style(Style::Stroke);
-    paint_none.set_stroke_width(5.0);
-    paint_none.set_argb(255, 90, 90, 90);
 
     for (index, (fst, snd)) in app_state.items.territories.iter().enumerate() {
         let y = rr.top + 25.0 * index as f32;
@@ -50,37 +35,39 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         // Bonus?
         skia.write_text(20.0, &paint_white, "No bonus", Point::new(rr.right - 128.0, y), 0.0);
 
-        let mut player = 0;
-        let mut enemy = 0;
-        let mut none = 0;
-
+        // Work out proportions of ownership
+        let mut map = HashMap::new();
         for city in &snd.lock().unwrap().cities {
-            match city.lock().unwrap().owner {
-                Owner::None => {
-                    none += 1;
-                }
-                Owner::Player => {
-                    player += 1;
-                }
-                Owner::Enemy1 | Owner::Enemy2 | Owner::Enemy3 | Owner::Enemy4 => {
-                    enemy += 1;
-                }
-            }
+            let owner = &city.lock().unwrap().owner;
+            map.entry(owner.clone()).and_modify(|v| *v += 1).or_insert(1);
         }
-
-        let total = player as f32 + enemy as f32 + none as f32;
-        let player_segment = player as f32 / total * 64.0;
-        let enemy_segment = enemy as f32 / total * 64.0;
-        let none_segment = none as f32 / total * 64.0;
+        let mut prop = BTreeMap::new();
+        let total = snd.lock().unwrap().cities.len() as f32;
+        for entry in map {
+            prop.insert(entry.0, entry.1 as f32 / total * 64.0);
+        }
 
         // Now draw bars for ownership
         let bar_start = 335.0;
         let bar_y_offer = 14.0;
-        let xx = rr.left + bar_start;
+        let mut xx = rr.left + bar_start;
         let yy = y + bar_y_offer;
-        skia.get_canvas().draw_line(Point::new(xx, yy), Point::new(xx + player_segment, yy), &paint_player);
-        skia.get_canvas().draw_line(Point::new(xx + player_segment, yy), Point::new(xx + player_segment + enemy_segment, yy), &paint_enemy);
-        skia.get_canvas().draw_line(Point::new(xx + player_segment + enemy_segment, yy), Point::new(xx + player_segment + enemy_segment + none_segment, yy), &paint_none);
+        for entry in prop {
+            let mut paint_player = Paint::default();
+            paint_player.set_anti_alias(true);
+            paint_player.set_style(Style::Stroke);
+            paint_player.set_stroke_width(5.0);
+            paint_player.set_color(app_state.res.player_colours.get(&entry.0).unwrap()[0]);
+            paint_player.set_alpha(160);
+            skia.get_canvas().draw_line(Point::new(xx, yy), Point::new(xx + entry.1, yy), &paint_player);
+            xx += entry.1;
+        }
+        let mut paint_border = Paint::default();
+        paint_border.set_anti_alias(true);
+        paint_border.set_style(Style::Stroke);
+        paint_border.set_stroke_width(1.0);
+        paint_border.set_argb(255, 180, 180, 180);
+        skia.get_canvas().draw_rrect(skia_safe::rrect::RRect::new_rect_xy(skia_safe::Rect::from_xywh(rr.left + bar_start, yy - 2.5, 64.0, 5.0), 2.0, 2.0), &paint_border);
     }
 
     skia.get_canvas().restore();

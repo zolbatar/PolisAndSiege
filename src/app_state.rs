@@ -33,6 +33,7 @@ pub struct GFXState {
 pub struct Resource {
     pub side_path: Dom,
     pub corner_path: Dom,
+    pub owners: Vec<Owner>,
     pub player_lookup: HashMap<u8, Owner>,
     pub player_colours: HashMap<Owner, Vec<Color>>,
     pub player_name: HashMap<Owner, String>,
@@ -95,6 +96,7 @@ impl AppState {
         let mut res = Resource {
             corner_path,
             side_path,
+            owners: vec!(Owner::None, Owner::Player, Owner::Enemy1, Owner::Enemy2, Owner::Enemy3, Owner::Enemy4),
             player_lookup: HashMap::new(),
             player_colours: HashMap::new(),
             player_name: HashMap::new(),
