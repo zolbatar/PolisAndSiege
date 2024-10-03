@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap};
 use std::sync::{Arc, Mutex};
 use ciborium::de::from_reader;
 use ciborium::Value;
@@ -13,7 +13,7 @@ use crate::model::territory_polygon::TerritoryPolygon;
 
 const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
 
-pub fn import(app_state: &mut AppState) -> HashMap<String, Arc<Mutex<Territory>>> {
+pub fn import(app_state: &mut AppState) -> BTreeMap<String, Arc<Mutex<Territory>>> {
 
     // Open file
     let reader = from_reader::<Value, _>(REGIONS_CBOR).expect("Can't load CBOR file");
@@ -22,7 +22,7 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Arc<Mutex<Territory>>
     let mut cities_count = 0;
 
     // Top level is a map of territories
-    let mut territories = HashMap::new();
+    let mut territories = BTreeMap::new();
     for (territory_name, territory_polygons_cities) in reader.as_map().expect("CBOR: Expecting map of territories") {
         let mut territory_name_unwrapped = territory_name.as_text().unwrap().to_string();
 
@@ -102,7 +102,7 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Arc<Mutex<Territory>>
             app_state.items.cities_remaining_to_assign.push(city.clone());
         }
     }
-    
+
     // Shuffle remaining ones randomly
     let mut rng = thread_rng(); // Create a random number generator
     app_state.items.cities_remaining_to_assign.shuffle(&mut rng); // Shuffle the vector in place

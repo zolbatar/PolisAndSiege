@@ -21,7 +21,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
     // Do we need to assign a new one?
     let diff = Instant::now() - app_state.selection.last_selection;
-    if diff.as_millis() > 100 {
+    if diff.as_millis() > app_state.selection.assign_speed {
         app_state.selection.last_selection = Instant::now();
 
         // Take top item

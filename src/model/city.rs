@@ -36,8 +36,8 @@ pub struct City {
     pub owner: Owner,
 }
 
-const SIZE: f32 = 2.0;
-const MAXIMUM_LABEL_WIDTH: f32 = 12.0;
+const SIZE: f32 = 3.0;
+const MAXIMUM_LABEL_WIDTH: f32 = 32.0;
 
 impl City {
     pub fn new(name: String, longitude: f32, latitude: f32, population: i64, territory: Arc<Mutex<Territory>>) -> Self {
@@ -73,7 +73,7 @@ impl City {
 
     pub fn render(&self, skia: &mut Skia, app_state: &AppState) {
         let centre = self.location.p;
-        let font_size: f32 = 2.0;
+        let font_size: f32 = 2.4;
 
         let mut paint_name = Paint::default();
         paint_name.set_anti_alias(true);
@@ -84,7 +84,7 @@ impl City {
         paint_shadow.set_image_filter(skia.drop_shadow.clone());
         let mut paint_fill = Paint::default();
         paint_fill.set_style(PaintStyle::Fill);
-        paint_fill.set_color(skia::mix_colors(self.paint_territory, Color::WHITE, 0.5));
+        paint_fill.set_color(skia::mix_colors(self.paint_territory, Color::WHITE, 0.6));
         let mut paint_fill_circle = Paint::default();
         paint_fill_circle.set_style(PaintStyle::Fill);
         let colours = app_state.res.player_colours.get(&self.owner).unwrap();
@@ -97,16 +97,16 @@ impl City {
         paint_outline.set_anti_alias(true);
         paint_outline.set_style(PaintStyle::Stroke);
         paint_outline.set_color(Color::BLACK);
-        paint_outline.set_stroke_width(SIZE / 6.0);
+        paint_outline.set_stroke_width(SIZE / 8.0);
 
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia.text_dimensions(font_size, &paint_name, &self.name).clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
-                skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_shadow);
+                skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_shadow);
             }
-            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
-            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - SIZE / 2.0 - 0.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
+            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
+            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
         }
 
         // Draw
@@ -115,9 +115,9 @@ impl City {
         }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        skia.write_text_centre(3.0, &paint_number, &self.size.to_string(), Point::new(centre.x, centre.y - SIZE - 0.1), 0.0);
+        skia.write_text_centre(4.0, &paint_number, &self.size.to_string(), Point::new(centre.x, centre.y - 3.0), 0.0);
         if app_state.show_all_info() {
-            skia.write_text(font_size, &paint_name, &self.name, Point::new(centre.x + SIZE + 0.5, centre.y - font_size / 1.5), MAXIMUM_LABEL_WIDTH);
+            skia.write_text(font_size, &paint_name, &self.name, Point::new(centre.x + SIZE + 0.5, centre.y - 1.2), MAXIMUM_LABEL_WIDTH);
         }
     }
 

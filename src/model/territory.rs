@@ -23,8 +23,8 @@ impl Territory {
 
     pub fn prerender_polygons(&mut self) -> Color {
         let colour = match self.name.as_str() {
-            "Europe" => Color::from_argb(255, 0, 51, 204),
-            "Eastern Europe" => Color::from_argb(255, 255, 59, 48),
+            "Europe" => Color::from_argb(255, 46, 92, 229),
+            "Eastern Europe" => Color::from_argb(255, 255, 78, 69),
             "Asia" => Color::from_argb(255, 50, 205, 50),
             "Sub-Saharan Africa" => Color::from_argb(255, 255, 204, 0),
             "Middle East and North Africa" => Color::from_argb(255, 0, 139, 139),

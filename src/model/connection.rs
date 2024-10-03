@@ -60,7 +60,7 @@ fn build_territory_connections(connections: &mut Vec<Connection>, territory1: Ar
     }
 }
 
-pub fn build_connections(territories: &HashMap<String, Arc<Mutex<Territory>>>) -> Vec<Connection> {
+pub fn build_connections(territories: &BTreeMap<String, Arc<Mutex<Territory>>>) -> Vec<Connection> {
     let mut connections = Vec::new();
     for territory in territories {
         let mut graph = UnGraph::new_undirected();
@@ -100,7 +100,7 @@ pub fn build_connections(territories: &HashMap<String, Arc<Mutex<Territory>>>) -
     build_territory_connections(&mut connections, territories.get("Sub-Saharan Africa").unwrap().clone(), territories.get("Middle East and North Africa").unwrap().clone(), 2);
     build_territory_connections(&mut connections, territories.get("Sub-Saharan Africa").unwrap().clone(), territories.get("Latin America and the Caribbean").unwrap().clone(), 1);
     build_territory_connections(&mut connections, territories.get("Asia").unwrap().clone(), territories.get("Middle East and North Africa").unwrap().clone(), 2);
-    build_territory_connections(&mut connections, territories.get("Asia").unwrap().clone(), territories.get("Middle East and North Africa").unwrap().clone(), 1);
+    build_territory_connections(&mut connections, territories.get("Asia").unwrap().clone(), territories.get("Australia and New Zealand").unwrap().clone(), 1);
     build_territory_connections(&mut connections, territories.get("Asia").unwrap().clone(), territories.get("Eastern Europe").unwrap().clone(), 2);
 
     connections

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use rand::prelude::SliceRandom;
@@ -40,7 +40,7 @@ pub struct Resource {
 }
 
 pub struct Items {
-    pub territories: HashMap<String, Arc<Mutex<Territory>>>,
+    pub territories: BTreeMap<String, Arc<Mutex<Territory>>>,
     pub existing_cities: Vec<Location>,
     pub cities: Vec<Arc<Mutex<City>>>,
     pub cities_remaining_to_assign: Vec<Arc<Mutex<City>>>,
@@ -52,6 +52,7 @@ pub struct CitySelection {
     pub last_city_selection: Option<Arc<Mutex<City>>>,
     pub last_player: u8,
     pub minimum_allowed_distance: f32,
+    pub assign_speed: u128,
 }
 
 pub struct AppState {
@@ -131,7 +132,7 @@ impl AppState {
         res.player_name.insert(Owner::Enemy4, possible_names[4].parse().unwrap());
 
         let items = Items {
-            territories: HashMap::new(),
+            territories: BTreeMap::new(),
             existing_cities: Vec::new(),
             connections: Vec::new(),
             cities: Vec::new(),
@@ -144,7 +145,8 @@ impl AppState {
                 last_selection: Instant::now(),
                 last_city_selection: None,
                 last_player: 1,
-                minimum_allowed_distance: 24.0, //12.0,
+                minimum_allowed_distance: 18.0, //12.0,
+                assign_speed: 10,
             },
             gfx,
             res,

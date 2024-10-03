@@ -146,7 +146,7 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     let mut paint = Paint::default();
     paint.set_style(PaintStyle::Fill);
     paint.set_color(skia_safe::Color::WHITE);
-    skia.write_text(20.0 * app_state.gfx.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
+    //skia.write_text(20.0 * app_state.gfx.dpi, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0);
 
     // Flush all Skia ops
     unsafe { skia.flush(); }
