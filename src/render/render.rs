@@ -31,7 +31,7 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
 
     // Connections
     for connection in app_state.items.connections.iter_mut() {
-        connection.render(skia.get_canvas());
+        connection.render(app_state.phase, skia.get_canvas());
     }
 
     // Cities
@@ -104,8 +104,8 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     paint_background.set_anti_alias(true);
     paint_background.set_style(Style::Fill);
     paint_background.set_shader(skia.create_noise_shader(skia.colour_background, NOISE_MIX));
-//    let blur = MaskFilter::blur(BlurStyle::Normal, 1.0, None).expect("Blur mask filter failed");
-//    paint_background.set_mask_filter(blur);
+    //    let blur = MaskFilter::blur(BlurStyle::Normal, 1.0, None).expect("Blur mask filter failed");
+    //    paint_background.set_mask_filter(blur);
     skia.get_canvas().draw_round_rect(Rect::from_xywh(rr.left - 8.0, rr.top - 8.0,
                                                       rr.right - rr.left + 16.0, rr.bottom - rr.top + 16.0), 32.0, 32.0, &paint_background);
     skia.get_canvas().restore();

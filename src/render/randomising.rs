@@ -1,9 +1,7 @@
-use std::time::Instant;
-use rand::{thread_rng, Rng};
-use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia::Skia;
-use crate::model::city::Owner;
+use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
+use std::time::Instant;
 
 pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.set_matrix(&app_state.gfx);
@@ -31,15 +29,11 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             app_state.mode = GameMode::Game;
         } else {
             let next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
-            let mut rng = thread_rng();
-            let random_player = rng.gen_range(0..app_state.num_of_players);
-            match random_player {
-                0 => next_city.lock().unwrap().owner = Owner::Player,
-                1 => next_city.lock().unwrap().owner = Owner::Enemy1,
-                2 => next_city.lock().unwrap().owner = Owner::Enemy2,
-                3 => next_city.lock().unwrap().owner = Owner::Enemy3,
-                4 => next_city.lock().unwrap().owner = Owner::Enemy4,
-                _ => next_city.lock().unwrap().owner = Owner::None,
+            let next_player = app_state.res.player_lookup.get(&app_state.selection.last_player).unwrap().clone();
+            next_city.lock().unwrap().owner = next_player;
+            app_state.selection.last_player += 1;
+            if app_state.selection.last_player > app_state.num_of_players {
+                app_state.selection.last_player = 1;
             }
             app_state.selection.last_city_selection = Some(next_city.clone());
         }
@@ -67,7 +61,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
         // Owner
         skia.write_text_right(20.0, &paint_left, "Owner:  ", Point::new(text_x, rr.top + 110.0), text_w);
-        let owner_string = app_state.res.player_name.get(&last_city.lock().unwrap().owner).unwrap(); 
+        let owner_string = app_state.res.player_name.get(&last_city.lock().unwrap().owner).unwrap();
         skia.write_text(20.0, &paint_right, &owner_string, Point::new(text_x, rr.top + 110.0), text_w);
     }
 

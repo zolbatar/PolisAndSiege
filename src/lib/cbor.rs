@@ -87,10 +87,9 @@ pub fn import(app_state: &mut AppState) -> HashMap<String, Arc<Mutex<Territory>>
         }
 
         // Choose sensible cities
-        let t_clone = territory.clone();
-        territory.lock().unwrap().cities = City::select_evenly_spaced_cities(app_state, t_clone, 25);
+        City::select_evenly_spaced_cities(app_state, territory.clone(), 25);
 
-        territories.insert(territory_name_unwrapped, territory);
+        territories.insert(territory_name_unwrapped, territory.clone());
     }
 
     // Now build connections

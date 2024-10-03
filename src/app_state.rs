@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
 use sdl2::video::Window;
 use skia_safe::{Color, FontMgr, Path, Point, Size};
 use crate::model::connection::Connection;
@@ -31,6 +33,7 @@ pub struct GFXState {
 pub struct Resource {
     pub side_path: Dom,
     pub corner_path: Dom,
+    pub player_lookup: HashMap<u8, Owner>,
     pub player_colours: HashMap<Owner, Vec<Color>>,
     pub player_name: HashMap<Owner, String>,
 }
@@ -46,6 +49,8 @@ pub struct Items {
 pub struct CitySelection {
     pub last_selection: Instant,
     pub last_city_selection: Option<Arc<Mutex<City>>>,
+    pub last_player: u8,
+    pub minimum_allowed_distance: f32,
 }
 
 pub struct AppState {
@@ -61,6 +66,7 @@ pub struct AppState {
     pub panning: bool,
     pub show_labels: bool,
     pub show_shadows: bool,
+    pub phase: f32,
 }
 
 impl AppState {
@@ -89,11 +95,26 @@ impl AppState {
         let mut res = Resource {
             corner_path,
             side_path,
+            player_lookup: HashMap::new(),
             player_colours: HashMap::new(),
             player_name: HashMap::new(),
         };
 
+        let mut possible_names = vec!("The Britannian Dominion", "The Red Tsardom", "The Iron Kaisers", "The Rising Shogunate",
+                                      "The Gaulish Syndicate", "The Yankee Federation", "The Ottoman Remnants", "The Austro Imperium", "The Persian Ascendants",
+                                      "The Italian Legions", "The Dragon Empire", " The Iberian Dominion", "The Nordic Coalition", "The Balkan Confederacy",
+                                      "The Egyptian Dynasts", "The Prussian Order", "The Celtic Union", "The Maharaja Confederation",
+                                      "The Andean Empire", "The Hellenic Guardians");
+        let mut rng = thread_rng(); // Create a random number generator
+        possible_names.shuffle(&mut rng);
+
         // Colours for each player
+        res.player_lookup.insert(0, Owner::None);
+        res.player_lookup.insert(1, Owner::Player);
+        res.player_lookup.insert(2, Owner::Enemy1);
+        res.player_lookup.insert(3, Owner::Enemy2);
+        res.player_lookup.insert(4, Owner::Enemy3);
+        res.player_lookup.insert(5, Owner::Enemy4);
         res.player_colours.insert(Owner::None, vec!(Color::from_rgb(128, 128, 128), Color::BLACK));
         res.player_colours.insert(Owner::Player, vec!(Color::from_rgb(0, 0, 255), Color::WHITE));
         res.player_colours.insert(Owner::Enemy1, vec!(Color::from_rgb(255, 0, 0), Color::WHITE));
@@ -101,12 +122,12 @@ impl AppState {
         res.player_colours.insert(Owner::Enemy3, vec!(Color::from_rgb(255, 255, 0), Color::BLACK));
         res.player_colours.insert(Owner::Enemy4, vec!(Color::from_rgb(0, 255, 255), Color::BLACK));
         res.player_name.insert(Owner::None, "No control".parse().unwrap());
-        res.player_name.insert(Owner::Player, "The Britannian Dominion".parse().unwrap());
-        res.player_name.insert(Owner::Enemy1, "The Red Tsardom".parse().unwrap());
-        res.player_name.insert(Owner::Enemy2, "The Rising Shogunate".parse().unwrap());
-        res.player_name.insert(Owner::Enemy3, "The Gaulish Syndicate".parse().unwrap());
-        res.player_name.insert(Owner::Enemy4, "The Yankee Federation".parse().unwrap());
-        
+        res.player_name.insert(Owner::Player, possible_names[0].parse().unwrap());
+        res.player_name.insert(Owner::Enemy1, possible_names[1].parse().unwrap());
+        res.player_name.insert(Owner::Enemy2, possible_names[2].parse().unwrap());
+        res.player_name.insert(Owner::Enemy3, possible_names[3].parse().unwrap());
+        res.player_name.insert(Owner::Enemy4, possible_names[4].parse().unwrap());
+
         let items = Items {
             territories: HashMap::new(),
             existing_cities: Vec::new(),
@@ -120,6 +141,8 @@ impl AppState {
             selection: CitySelection {
                 last_selection: Instant::now(),
                 last_city_selection: None,
+                last_player: 1,
+                minimum_allowed_distance: 24.0, //12.0,
             },
             gfx,
             res,
@@ -131,6 +154,7 @@ impl AppState {
             show_shadows: true,
             zoom: MIN_ZOOM,
             target: Point::new(25.0, -10.0),
+            phase: 0.0,
         }
     }
 

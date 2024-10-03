@@ -14,7 +14,7 @@ pub enum CityType {
 }
 
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Eq, Hash, PartialEq, Clone)]
 pub enum Owner {
     None,
     Player,
@@ -37,7 +37,6 @@ pub struct City {
 }
 
 const SIZE: f32 = 2.0;
-const MINIMUM_ALLOWED_DISTANCE: f32 = 12.0;
 const MAXIMUM_LABEL_WIDTH: f32 = 12.0;
 
 impl City {
@@ -131,14 +130,14 @@ impl City {
         app_state: &mut AppState,
         territory: Arc<Mutex<Territory>>,
         num_cities_to_select: usize,
-    ) -> Vec<Arc<Mutex<City>>> {
+    ) {
         let mut selected_cities: Vec<Arc<Mutex<City>>> = Vec::new();
 
         // Sort the cities by population (largest first)
-        territory.lock().unwrap().cities.sort_by(|a, b| b.lock().unwrap().population.cmp(&a.lock().unwrap().population)); // Sort largest first
+        let mut cities = territory.lock().unwrap().cities.clone();
+        cities.sort_by(|a, b| b.lock().unwrap().population.cmp(&a.lock().unwrap().population)); // Sort largest first
 
         // Loop through all cities
-        let cities = &territory.lock().unwrap().cities;
         for city in cities {
             let mut want = true;
 
@@ -146,7 +145,7 @@ impl City {
             for existing in app_state.items.existing_cities.iter() {
                 if existing.p != city.lock().unwrap().location.p {
                     let dist = Location::calculate_distance(&city.lock().unwrap().location, existing);
-                    if dist <= MINIMUM_ALLOWED_DISTANCE {
+                    if dist <= app_state.selection.minimum_allowed_distance {
                         want = false;
                         break;
                     }
@@ -160,11 +159,12 @@ impl City {
 
                 // Stop if we have selected enough cities
                 if selected_cities.len() >= num_cities_to_select {
-                    return selected_cities;
+                    territory.lock().unwrap().cities = selected_cities;
+                    return;
                 }
             }
         }
 
-        selected_cities
+        territory.lock().unwrap().cities = selected_cities;
     }
 }

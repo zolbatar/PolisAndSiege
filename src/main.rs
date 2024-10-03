@@ -28,6 +28,7 @@ use app_state::AppState;
 use sdl2::video::GLProfile;
 
 fn main() {
+
     // Initialize SDL2
     let sdl = sdl2::init().unwrap();
     let video_subsystem = sdl.video().unwrap();
@@ -94,10 +95,12 @@ fn main() {
     let fps_check_interval = Duration::from_secs(1); // Check FPS every second
 
     // Loop
+    let start = Instant::now();
     'running: loop {
 
         // Measure the time it took to render the previous frame
         let current_time = Instant::now();
+        app_state.phase = (current_time.duration_since(start).as_millis() as f32 / 500.0) % 2.0;
 
         // Increment the frame count
         frame_count += 1;
