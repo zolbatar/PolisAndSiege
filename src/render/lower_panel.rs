@@ -3,13 +3,13 @@ use crate::lib::skia::Skia;
 use skia_safe::paint::Style;
 use skia_safe::{Paint, Rect, Vector};
 
-const LOWER_LEFT: f32 = 525.0;
+const WIDTH: f32 = 275.0;
 const HEIGHT: f32 = 200.0;
 
 pub fn render_lower_panel(skia: &mut Skia, app_state: &mut AppState) -> Rect {
     // Bottom section for drawing stuff
-    let l = LOWER_LEFT;
-    let r = app_state.gfx.width as f32 - l - 1.0;
+    let l = app_state.gfx.half_width as f32 - WIDTH;
+    let r = app_state.gfx.half_width as f32 + WIDTH;
     let t = app_state.gfx.height as f32 - HEIGHT - 32.0;
     let b = t + HEIGHT;
     let rr = Rect::new(l, t, r, b);

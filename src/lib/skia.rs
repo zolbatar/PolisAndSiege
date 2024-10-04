@@ -100,7 +100,7 @@ impl Skia {
             drop_shadow,
             blur,
             noise_shader,
-            colour_background: Color::from_argb(255, 63, 63, 63),
+            colour_background: Color::from_argb(255, 53, 53, 53),
             colour_popup: Color::from_argb(255, 80, 80, 80),
             colour_outline: Color::from_argb(255, 209, 185, 120),
         }

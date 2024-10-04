@@ -9,6 +9,8 @@ use skia_safe::{dash_path_effect, Color, Paint, PaintStyle};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
+const LINE_WIDTH: f32 = 0.2;
+
 #[derive(Clone)]
 pub struct Connection {
     paint: Paint,
@@ -22,12 +24,12 @@ impl Connection {
         let mut paint = Paint::default();
         paint.set_anti_alias(true);
         paint.set_color(Color::WHITE);
-        paint.set_stroke_width(0.25);
+        paint.set_stroke_width(LINE_WIDTH);
         paint.set_style(PaintStyle::Stroke);
         let mut paint_alt = Paint::default();
         paint_alt.set_anti_alias(true);
         paint_alt.set_color(Color::BLACK);
-        paint_alt.set_stroke_width(0.25);
+        paint_alt.set_stroke_width(LINE_WIDTH);
         paint_alt.set_style(PaintStyle::Stroke);
         Connection {
             paint,

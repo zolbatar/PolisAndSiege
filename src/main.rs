@@ -40,7 +40,7 @@ fn main() {
     gl_attr.set_context_version(3, 3); // OpenGL 3.3
 
     // Create an SDL2 window
-    let window = video_subsystem.window("Simulation", 1600, 900).opengl().resizable().allow_highdpi().build().unwrap();
+    let window = video_subsystem.window("Simulation", 1500, 900).opengl().allow_highdpi().build().unwrap();
 
     // Create an OpenGL context
     let _gl_context = window.gl_create_context().unwrap();
@@ -127,6 +127,9 @@ fn main() {
                         }
                         sdl2::keyboard::Keycode::M => {
                             app_state.show_labels = false;
+                        }
+                        sdl2::keyboard::Keycode::R => {
+                            app_state.reset();
                         }
 
                         // Default case for other keys

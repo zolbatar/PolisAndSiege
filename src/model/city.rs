@@ -7,12 +7,6 @@ use petgraph::graph::NodeIndex;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use std::sync::{Arc, Mutex};
 
-pub enum CityType {
-    Metropolis,
-    Fortopolis,
-    Agropolis,
-}
-
 #[derive(Eq, Hash, PartialEq, Clone, Ord, PartialOrd)]
 pub enum Owner {
     None,
@@ -30,7 +24,6 @@ pub struct City {
     population: i64,
     paint_territory: Color,
     size: i8,
-    typ: CityType,
     pub node: NodeIndex,
     pub owner: Owner,
 }
@@ -63,7 +56,6 @@ impl City {
             population,
             paint_territory: territory.lock().unwrap().colour,
             size,
-            typ: CityType::Metropolis,
             node: NodeIndex::new(0),
             owner: Owner::None,
         }
@@ -128,7 +120,7 @@ impl City {
         }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        skia.write_text_centre(4.0, &paint_number, &self.size.to_string(), Point::new(centre.x, centre.y - 3.0), 0.0);
+        skia.write_text_centre(5.0, &paint_number, &self.size.to_string(), Point::new(centre.x, centre.y - 3.5), 0.0);
         if app_state.show_all_info() {
             skia.write_text(
                 font_size,
