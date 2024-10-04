@@ -1,15 +1,15 @@
-use std::collections::{BTreeMap, HashMap};
-use std::sync::{Arc, Mutex};
-use std::time::Instant;
-use rand::prelude::SliceRandom;
-use rand::thread_rng;
-use sdl2::video::Window;
-use skia_safe::{Color, FontMgr, Path, Point, Size};
+use crate::model::city::{City, Owner};
 use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
+use sdl2::video::Window;
 use skia_safe::svg::Dom;
-use crate::model::city::{City, Owner};
+use skia_safe::{Color, FontMgr, Path, Point, Size};
+use std::collections::{BTreeMap, HashMap};
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
@@ -97,17 +97,34 @@ impl AppState {
         let mut res = Resource {
             corner_path,
             side_path,
-            owners: vec!(Owner::None, Owner::Player, Owner::Enemy1, Owner::Enemy2, Owner::Enemy3, Owner::Enemy4),
+            owners: vec![Owner::None, Owner::Player, Owner::Enemy1, Owner::Enemy2, Owner::Enemy3, Owner::Enemy4],
             player_lookup: HashMap::new(),
             player_colours: HashMap::new(),
             player_name: HashMap::new(),
         };
 
-        let mut possible_names = vec!("The Britannian Dominion", "The Red Tsardom", "The Iron Kaisers", "The Rising Shogunate",
-                                      "The Gaulish Syndicate", "The Yankee Federation", "The Ottoman Remnants", "The Austro Imperium", "The Persian Ascendants",
-                                      "The Italian Legions", "The Dragon Empire", " The Iberian Dominion", "The Nordic Coalition", "The Balkan Confederacy",
-                                      "The Egyptian Dynasts", "The Prussian Order", "The Celtic Union", "The Maharaja Confederation",
-                                      "The Andean Empire", "The Hellenic Guardians");
+        let mut possible_names = vec![
+            "The Britannian Dominion",
+            "The Red Tsardom",
+            "The Iron Kaisers",
+            "The Rising Shogunate",
+            "The Gaulish Syndicate",
+            "The Yankee Federation",
+            "The Ottoman Remnants",
+            "The Austro Imperium",
+            "The Persian Ascendants",
+            "The Italian Legions",
+            "The Dragon Empire",
+            " The Iberian Dominion",
+            "The Nordic Coalition",
+            "The Balkan Confederacy",
+            "The Egyptian Dynasts",
+            "The Prussian Order",
+            "The Celtic Union",
+            "The Maharaja Confederation",
+            "The Andean Empire",
+            "The Hellenic Guardians",
+        ];
         let mut rng = thread_rng(); // Create a random number generator
         possible_names.shuffle(&mut rng);
 
@@ -118,12 +135,12 @@ impl AppState {
         res.player_lookup.insert(3, Owner::Enemy2);
         res.player_lookup.insert(4, Owner::Enemy3);
         res.player_lookup.insert(5, Owner::Enemy4);
-        res.player_colours.insert(Owner::None, vec!(Color::from_rgb(128, 128, 128), Color::BLACK));
-        res.player_colours.insert(Owner::Player, vec!(Color::from_rgb(0, 0, 255), Color::WHITE));
-        res.player_colours.insert(Owner::Enemy1, vec!(Color::from_rgb(255, 0, 0), Color::WHITE));
-        res.player_colours.insert(Owner::Enemy2, vec!(Color::from_rgb(0, 255, 0), Color::BLACK));
-        res.player_colours.insert(Owner::Enemy3, vec!(Color::from_rgb(255, 255, 0), Color::BLACK));
-        res.player_colours.insert(Owner::Enemy4, vec!(Color::from_rgb(0, 255, 255), Color::BLACK));
+        res.player_colours.insert(Owner::None, vec![Color::from_rgb(128, 128, 128), Color::BLACK]);
+        res.player_colours.insert(Owner::Player, vec![Color::from_rgb(0, 0, 255), Color::WHITE]);
+        res.player_colours.insert(Owner::Enemy1, vec![Color::from_rgb(255, 0, 0), Color::WHITE]);
+        res.player_colours.insert(Owner::Enemy2, vec![Color::from_rgb(0, 255, 0), Color::BLACK]);
+        res.player_colours.insert(Owner::Enemy3, vec![Color::from_rgb(255, 255, 0), Color::BLACK]);
+        res.player_colours.insert(Owner::Enemy4, vec![Color::from_rgb(0, 255, 255), Color::BLACK]);
         res.player_name.insert(Owner::None, "No control".parse().unwrap());
         res.player_name.insert(Owner::Player, possible_names[0].parse().unwrap());
         res.player_name.insert(Owner::Enemy1, possible_names[1].parse().unwrap());

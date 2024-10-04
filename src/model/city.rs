@@ -2,17 +2,16 @@ use crate::app_state::AppState;
 use crate::lib::skia;
 use crate::lib::skia::Skia;
 use crate::model::location::Location;
+use crate::model::territory::Territory;
 use petgraph::graph::NodeIndex;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use std::sync::{Arc, Mutex};
-use crate::model::territory::Territory;
 
 pub enum CityType {
     Metropolis,
     Fortopolis,
     Agropolis,
 }
-
 
 #[derive(Eq, Hash, PartialEq, Clone, Ord, PartialOrd)]
 pub enum Owner {
@@ -49,14 +48,13 @@ impl City {
             1000000..2500000 => 5,
             2500000..5000000 => 6,
             5000000..10000000 => 7,
-            _ => 8
-            /*
-                        0..150000 => 1,
-            250000..500000 => 2,
-            1000000..2500000 => 3,
-            _ => 4
+            _ => 8, /*
+                                0..150000 => 1,
+                    250000..500000 => 2,
+                    1000000..2500000 => 3,
+                    _ => 4
 
-             */
+                     */
         };
         City {
             territory: territory.clone(),
@@ -103,10 +101,25 @@ impl City {
         if app_state.show_all_info() {
             let dimensions = skia.text_dimensions(font_size, &paint_name, &self.name).clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
-                skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_shadow);
+                skia.get_canvas().draw_round_rect(
+                    Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
+                    0.5,
+                    0.5,
+                    &paint_shadow,
+                );
             }
-            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_fill);
-            skia.get_canvas().draw_round_rect(Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0), 0.5, 0.5, &paint_outline);
+            skia.get_canvas().draw_round_rect(
+                Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
+                0.5,
+                0.5,
+                &paint_fill,
+            );
+            skia.get_canvas().draw_round_rect(
+                Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
+                0.5,
+                0.5,
+                &paint_outline,
+            );
         }
 
         // Draw
@@ -117,7 +130,13 @@ impl City {
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
         skia.write_text_centre(4.0, &paint_number, &self.size.to_string(), Point::new(centre.x, centre.y - 3.0), 0.0);
         if app_state.show_all_info() {
-            skia.write_text(font_size, &paint_name, &self.name, Point::new(centre.x + SIZE + 0.5, centre.y - 1.2), MAXIMUM_LABEL_WIDTH);
+            skia.write_text(
+                font_size,
+                &paint_name,
+                &self.name,
+                Point::new(centre.x + SIZE + 0.5, centre.y - 1.2),
+                MAXIMUM_LABEL_WIDTH,
+            );
         }
     }
 

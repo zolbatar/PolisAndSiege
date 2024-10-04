@@ -35,7 +35,13 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_title.set_anti_alias(true);
     paint_title.set_style(PaintStyle::StrokeAndFill);
     paint_title.set_color(Color::YELLOW);
-    skia.write_text_centre(30.0, &paint_title, "City Selection", Point::new(app_state.gfx.half_width as f32, rr.top), w);
+    skia.write_text_centre(
+        30.0,
+        &paint_title,
+        "City Selection",
+        Point::new(app_state.gfx.half_width as f32, rr.top),
+        w,
+    );
 
     // Name and territory
     let mut paint_left = Paint::default();
@@ -54,4 +60,3 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     // Sections
     skia.get_canvas().restore();
 }
-

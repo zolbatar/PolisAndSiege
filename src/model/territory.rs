@@ -1,10 +1,10 @@
-use std::sync::{Arc, Mutex};
-use skia_safe::{Canvas, Color};
 use crate::model::city::City;
 use crate::model::territory_polygon::TerritoryPolygon;
+use skia_safe::{Canvas, Color};
+use std::sync::{Arc, Mutex};
 
 pub struct Territory {
-    pub  name: String,
+    pub name: String,
     pub colour: Color,
     pub polygons: Vec<TerritoryPolygon>,
     pub cities: Vec<Arc<Mutex<City>>>,

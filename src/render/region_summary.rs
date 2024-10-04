@@ -1,8 +1,8 @@
-use std::collections::{BTreeMap, HashMap};
 use crate::app_state::AppState;
 use crate::lib::skia::Skia;
 use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
+use std::collections::{BTreeMap, HashMap};
 
 pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.set_matrix(&app_state.gfx);
@@ -35,7 +35,14 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         // Name
         skia.write_text(20.0, &paint_white, fst, Point::new(rr.left() + 66.0, y), 0.0);
         if index % 2 == 0 {
-            skia.get_canvas().draw_rrect(RRect::new_rect_xy(skia_safe::Rect::from_xywh(rr.left + 40.0, y + 26.0, rr.right - rr.left - 80.0, 24.0), 5.0, 5.0), &paint_line);
+            skia.get_canvas().draw_rrect(
+                RRect::new_rect_xy(
+                    skia_safe::Rect::from_xywh(rr.left + 40.0, y + 26.0, rr.right - rr.left - 80.0, 24.0),
+                    5.0,
+                    5.0,
+                ),
+                &paint_line,
+            );
         }
 
         // Bonus?
@@ -68,9 +75,15 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             skia.get_canvas().draw_line(Point::new(xx, yy), Point::new(xx + entry.1, yy), &paint_player);
             xx += entry.1;
         }
-        skia.get_canvas().draw_rrect(skia_safe::rrect::RRect::new_rect_xy(skia_safe::Rect::from_xywh(rr.left + bar_start - 2.0, yy - 2.5 - 2.0, 64.0 + 4.0, 5.0 + 4.0), 3.0, 3.0), &paint_border);
+        skia.get_canvas().draw_rrect(
+            skia_safe::rrect::RRect::new_rect_xy(
+                skia_safe::Rect::from_xywh(rr.left + bar_start - 2.0, yy - 2.5 - 2.0, 64.0 + 4.0, 5.0 + 4.0),
+                3.0,
+                3.0,
+            ),
+            &paint_border,
+        );
     }
 
     skia.get_canvas().restore();
 }
-

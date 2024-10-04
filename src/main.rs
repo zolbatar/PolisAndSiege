@@ -1,34 +1,35 @@
 mod app_state;
 mod lib {
-    pub mod skia;
     pub mod cbor;
+    pub mod skia;
 }
 mod input;
 
 mod model {
     pub mod city;
+    pub mod connection;
     pub mod location;
+    pub mod math;
     pub mod territory;
     pub mod territory_polygon;
-    pub mod math;
-    pub mod connection;
 }
 mod render {
-    pub mod render;
     pub mod city_selection;
+    pub mod entry;
+    pub mod lower_panel;
     pub mod randomising;
     pub mod region_summary;
+    pub mod surround;
 }
 
-use std::time::{Duration, Instant};
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
 use app_state::AppState;
 use sdl2::video::GLProfile;
+use std::time::{Duration, Instant};
 
 fn main() {
-
     // Initialize SDL2
     let sdl = sdl2::init().unwrap();
     let video_subsystem = sdl.video().unwrap();
@@ -39,13 +40,7 @@ fn main() {
     gl_attr.set_context_version(3, 3); // OpenGL 3.3
 
     // Create an SDL2 window
-    let window = video_subsystem
-        .window("Simulation", 1600, 900)
-        .opengl()
-        .resizable()
-        .allow_highdpi()
-        .build()
-        .unwrap();
+    let window = video_subsystem.window("Simulation", 1600, 900).opengl().resizable().allow_highdpi().build().unwrap();
 
     // Create an OpenGL context
     let _gl_context = window.gl_create_context().unwrap();
@@ -84,7 +79,9 @@ fn main() {
 
     // Skia and surfaces
     let mut skia = Skia::new(&app_state);
-    unsafe { skia.flush(); }
+    unsafe {
+        skia.flush();
+    }
 
     // Event pump for SDL2 events
     let mut event_pump = sdl.event_pump().unwrap();
@@ -97,7 +94,6 @@ fn main() {
     // Loop
     let start = Instant::now();
     'running: loop {
-
         // Measure the time it took to render the previous frame
         let current_time = Instant::now();
         app_state.phase = (current_time.duration_since(start).as_millis() as f32 / 500.0) % 2.0;
@@ -155,8 +151,7 @@ fn main() {
             }
         }
 
-        render::render::main(&mut skia, &mut app_state);
+        render::entry::main(&mut skia, &mut app_state);
         window.gl_swap_window();
     }
 }
-

@@ -1,13 +1,18 @@
 use crate::app_state::{AppState, GFXState, NOISE_MIX};
 use rand::Rng;
+use skia_safe::font_style::{Slant, Weight, Width};
 use skia_safe::gpu::direct_contexts::make_gl;
 use skia_safe::gpu::gl::{FramebufferInfo, Interface};
 use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::image_filters::{blur, drop_shadow_only};
-use skia_safe::textlayout::{FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider};
-use skia_safe::{gpu, Canvas, Color, Color4f, Data, FontMgr, FontStyle, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect, Shader, Surface, TileMode, Vector};
-use skia_safe::font_style::{Slant, Weight, Width};
+use skia_safe::textlayout::{
+    FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider,
+};
+use skia_safe::{
+    gpu, Canvas, Color, Color4f, Data, FontMgr, FontStyle, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect,
+    Shader, Surface, TileMode, Vector,
+};
 
 static EBGARAMOND_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-VariableFont_wght.ttf");
 const NOISE_SKSL: &str = include_str!("../../assets/noise.sksl");
@@ -28,11 +33,15 @@ pub struct Skia {
 impl Skia {
     fn make_surface(context: &mut DirectContext, width: i32, height: i32) -> Surface {
         // Get window size and create a Skia surface from the OpenGL framebuffer
-        let fb_info = FramebufferInfo { fboid: 0, format: gl::RGBA8, ..Default::default() };
+        let fb_info = FramebufferInfo {
+            fboid: 0,
+            format: gl::RGBA8,
+            ..Default::default()
+        };
         let backend_render_target = gpu::backend_render_targets::make_gl(
             (width, height),
-            0,  // Sample count
-            8,  // Stencil bits
+            0, // Sample count
+            8, // Stencil bits
             fb_info,
         );
 
@@ -44,7 +53,8 @@ impl Skia {
             skia_safe::ColorType::RGBA8888,
             None,
             None,
-        ).expect("Could not create Skia surface")
+        )
+        .expect("Could not create Skia surface")
     }
 
     pub fn new(app_state: &AppState) -> Self {
@@ -57,9 +67,7 @@ impl Skia {
             let mut typeface_font_provider = TypefaceFontProvider::new();
             let font_mgr = FontMgr::new();
 
-            let typeface = font_mgr
-                .new_from_data(EBGARAMOND_TTF, None)
-                .expect("Failed to load font");
+            let typeface = font_mgr.new_from_data(EBGARAMOND_TTF, None).expect("Failed to load font");
             typeface_font_provider.register_typeface(typeface, "EB Garamond");
 
             typeface_font_provider
@@ -75,16 +83,15 @@ impl Skia {
 
         // Filters
         let blur = blur((1.0, 1.0), TileMode::default(), None, None);
-        let drop_shadow = drop_shadow_only(
-            Vector::new(1.5, 1.5),
-            (0.5, 0.5),
-            Color::from_argb(64, 0, 0, 0),
-            None,
-            None,
-            None);
+        let drop_shadow =
+            drop_shadow_only(Vector::new(1.5, 1.5), (0.5, 0.5), Color::from_argb(64, 0, 0, 0), None, None, None);
 
         // Surface
-        let surface = Skia::make_surface(&mut context, app_state.gfx.width * app_state.gfx.dpi as i32, app_state.gfx.height * app_state.gfx.dpi as i32);
+        let surface = Skia::make_surface(
+            &mut context,
+            app_state.gfx.width * app_state.gfx.dpi as i32,
+            app_state.gfx.height * app_state.gfx.dpi as i32,
+        );
 
         Skia {
             context,
@@ -105,7 +112,17 @@ impl Skia {
         paint.set_anti_alias(true);
         paint.set_style(PaintStyle::Stroke);
         for _ in 1..=10000 {
-            canvas.draw_line(Point { x: rng.gen_range(0..=width) as f32, y: rng.gen_range(0..=height) as f32 }, Point { x: rng.gen_range(0..=width) as f32, y: rng.gen_range(0..=height) as f32 }, &paint);
+            canvas.draw_line(
+                Point {
+                    x: rng.gen_range(0..=width) as f32,
+                    y: rng.gen_range(0..=height) as f32,
+                },
+                Point {
+                    x: rng.gen_range(0..=width) as f32,
+                    y: rng.gen_range(0..=height) as f32,
+                },
+                &paint,
+            );
         }
     }
 
@@ -194,7 +211,11 @@ impl Skia {
     pub fn write_text(&mut self, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
-        paragraph.layout(if width == 0.0 { self.get_canvas().base_layer_size().width as f32 } else { width });
+        paragraph.layout(if width == 0.0 {
+            self.get_canvas().base_layer_size().width as f32
+        } else {
+            width
+        });
         paragraph.paint(self.get_canvas(), xy);
     }
 
@@ -202,7 +223,11 @@ impl Skia {
         let dimensions = self.text_dimensions(font_size, paint, text);
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
-        paragraph.layout(if width == 0.0 { self.get_canvas().base_layer_size().width as f32 } else { width });
+        paragraph.layout(if width == 0.0 {
+            self.get_canvas().base_layer_size().width as f32
+        } else {
+            width
+        });
         paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions / 2.0, xy.y));
     }
 
@@ -210,7 +235,11 @@ impl Skia {
         let dimensions = self.text_dimensions(font_size, paint, text);
         let mut builder = self.create_paragraph_builder(font_size, paint, text);
         let mut paragraph = builder.build();
-        paragraph.layout(if width == 0.0 { self.get_canvas().base_layer_size().width as f32 } else { width });
+        paragraph.layout(if width == 0.0 {
+            self.get_canvas().base_layer_size().width as f32
+        } else {
+            width
+        });
         paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions, xy.y));
     }
 

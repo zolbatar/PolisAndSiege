@@ -1,5 +1,5 @@
-use skia_safe::{Canvas, Color, Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
 use crate::model::location::Location;
+use skia_safe::{Canvas, Color, Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
 
 pub struct TerritoryPolygon {
     pub locations: Vec<Location>,

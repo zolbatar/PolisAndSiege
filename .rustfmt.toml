@@ -1,0 +1,2 @@
+max_width = 120              # Sets maximum line length
+use_small_heuristics = "Off" # Ensures that short code lines are not treated differently
