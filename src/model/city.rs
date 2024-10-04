@@ -38,7 +38,7 @@ pub struct City {
     pub owner: Owner,
 }
 
-const SIZE: f32 = 3.0;
+pub const SIZE: f32 = 3.0;
 const MAXIMUM_LABEL_WIDTH: f32 = 32.0;
 
 impl City {
