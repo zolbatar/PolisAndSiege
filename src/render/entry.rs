@@ -6,6 +6,7 @@ use crate::render::lower_panel::render_lower_panel;
 use crate::render::randomising::randomising;
 use crate::render::region_summary::region_summary;
 use crate::render::surround::render_surround;
+use crate::render::title_bar::render_title_bar;
 use skia_safe::{Paint, PaintStyle, RRect, Rect};
 
 pub fn main(skia: &mut Skia, app_state: &mut AppState) {
@@ -48,8 +49,10 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     }
     skia.clear_matrix();
 
+    // Elements
     render_surround(skia, app_state, clip_rect);
     let rr = render_lower_panel(skia, app_state);
+    render_title_bar(skia, app_state);
 
     // Now, render based on mode
     match app_state.mode {

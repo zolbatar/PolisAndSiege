@@ -69,6 +69,7 @@ pub struct AppState {
     pub show_labels: bool,
     pub show_shadows: bool,
     pub phase: f32,
+    pub armies_to_assign: i32,
 }
 
 impl AppState {
@@ -162,7 +163,7 @@ impl AppState {
                 last_city_selection: None,
                 last_player: 1,
                 minimum_allowed_distance: 18.0, //12.0,
-                assign_speed: 10,
+                assign_speed: 1,
             },
             gfx,
             res,
@@ -175,6 +176,7 @@ impl AppState {
             zoom: MIN_ZOOM,
             target: Point::new(25.0, -10.0),
             phase: 0.0,
+            armies_to_assign: 10,
         }
     }
 

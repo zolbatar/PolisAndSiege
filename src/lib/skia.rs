@@ -15,8 +15,14 @@ use skia_safe::{
 };
 
 static EBGARAMOND_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-VariableFont_wght.ttf");
+static NOTO_SANS_SYMBOLS_TTF: &[u8] = include_bytes!("../../assets/NotoSansSymbols-VariableFont_wght.ttf");
 const NOISE_SKSL: &str = include_str!("../../assets/noise.sksl");
 pub const ELLIPSIS: &str = "\u{2026}";
+
+pub enum FontFamily {
+    EbGaramond,
+    NotoSansSymbols,
+}
 
 pub struct Skia {
     context: DirectContext,
@@ -69,6 +75,9 @@ impl Skia {
 
             let typeface = font_mgr.new_from_data(EBGARAMOND_TTF, None).expect("Failed to load font");
             typeface_font_provider.register_typeface(typeface, "EB Garamond");
+
+            let typeface = font_mgr.new_from_data(NOTO_SANS_SYMBOLS_TTF, None).expect("Failed to load font");
+            typeface_font_provider.register_typeface(typeface, "Noto Sans Symbols");
 
             typeface_font_provider
         };
@@ -174,10 +183,17 @@ impl Skia {
         canvas.restore();
     }
 
-    fn create_paragraph_builder(&self, font_size: f32, paint: &Paint, text: &str) -> ParagraphBuilder {
+    fn create_paragraph_builder(
+        &self,
+        font_size: f32,
+        paint: &Paint,
+        text: &str,
+        family: &FontFamily,
+        align: TextAlign,
+    ) -> ParagraphBuilder {
         let mut paragraph_style = ParagraphStyle::new();
-        paragraph_style.set_text_align(TextAlign::Left);
-        paragraph_style.set_max_lines(1);
+        paragraph_style.set_text_align(align);
+        paragraph_style.set_max_lines(5);
         paragraph_style.set_ellipsis(ELLIPSIS);
 
         // Use the Make method to create a ParagraphBuilder
@@ -188,6 +204,10 @@ impl Skia {
         // Text style
         let mut text_style = TextStyle::new();
         text_style.set_font_size(font_size);
+        match family {
+            FontFamily::EbGaramond => text_style.set_font_families(&["EB Garamond"]),
+            FontFamily::NotoSansSymbols => text_style.set_font_families(&["Noto Sans Symbols"]),
+        };
         text_style.set_font_style(font_style);
         text_style.set_foreground_paint(paint);
         text_style.add_font_feature("kern", 1);
@@ -203,15 +223,30 @@ impl Skia {
         builder
     }
 
-    pub fn text_dimensions(&self, font_size: f32, paint: &Paint, text: &str) -> f32 {
-        let mut builder = self.create_paragraph_builder(font_size, paint, text);
+    pub fn text_dimensions(
+        &self,
+        font_size: f32,
+        paint: &Paint,
+        text: &str,
+        family: &FontFamily,
+        align: TextAlign,
+    ) -> f32 {
+        let mut builder = self.create_paragraph_builder(font_size, paint, text, family, align);
         let mut paragraph = builder.build();
         paragraph.layout(10000.0);
         paragraph.max_intrinsic_width()
     }
 
-    pub fn write_text(&mut self, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
-        let mut builder = self.create_paragraph_builder(font_size, paint, text);
+    pub fn write_text(
+        &mut self,
+        font_size: f32,
+        paint: &Paint,
+        text: &str,
+        xy: Point,
+        width: f32,
+        family: &FontFamily,
+    ) {
+        let mut builder = self.create_paragraph_builder(font_size, paint, text, family, TextAlign::Left);
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 {
             self.get_canvas().base_layer_size().width as f32
@@ -221,28 +256,43 @@ impl Skia {
         paragraph.paint(self.get_canvas(), xy);
     }
 
-    pub fn write_text_centre(&mut self, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
-        let dimensions = self.text_dimensions(font_size, paint, text);
-        let mut builder = self.create_paragraph_builder(font_size, paint, text);
+    pub fn write_text_centre(
+        &mut self,
+        font_size: f32,
+        paint: &Paint,
+        text: &str,
+        xy: Point,
+        width: f32,
+        family: &FontFamily,
+    ) {
+        let mut builder = self.create_paragraph_builder(font_size, paint, text, family, TextAlign::Center);
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 {
             self.get_canvas().base_layer_size().width as f32
         } else {
             width
         });
-        paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions / 2.0, xy.y));
+        //        let aa = paragraph.get_
+        paragraph.paint(self.get_canvas(), xy);
     }
 
-    pub fn write_text_right(&mut self, font_size: f32, paint: &Paint, text: &str, xy: Point, width: f32) {
-        let dimensions = self.text_dimensions(font_size, paint, text);
-        let mut builder = self.create_paragraph_builder(font_size, paint, text);
+    pub fn write_text_right(
+        &mut self,
+        font_size: f32,
+        paint: &Paint,
+        text: &str,
+        xy: Point,
+        width: f32,
+        family: &FontFamily,
+    ) {
+        let mut builder = self.create_paragraph_builder(font_size, paint, text, family, TextAlign::Right);
         let mut paragraph = builder.build();
         paragraph.layout(if width == 0.0 {
             self.get_canvas().base_layer_size().width as f32
         } else {
             width
         });
-        paragraph.paint(self.get_canvas(), Point::new(xy.x - dimensions, xy.y));
+        paragraph.paint(self.get_canvas(), xy);
     }
 
     pub fn reset_context(&mut self) {

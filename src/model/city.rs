@@ -1,11 +1,18 @@
 use crate::app_state::AppState;
 use crate::lib::skia;
-use crate::lib::skia::Skia;
+use crate::lib::skia::{FontFamily, Skia};
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 use petgraph::graph::NodeIndex;
+use skia_safe::textlayout::TextAlign;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use std::sync::{Arc, Mutex};
+
+pub enum CityType {
+    City,
+    Metropolis,
+    Fortopolis,
+}
 
 #[derive(Eq, Hash, PartialEq, Clone, Ord, PartialOrd)]
 pub enum Owner {
@@ -23,6 +30,7 @@ pub struct City {
     pub location: Location,
     population: i64,
     paint_territory: Color,
+    typ: CityType,
     size: u8,
     fractional_size: f32,
     armies: u8,
@@ -57,6 +65,7 @@ impl City {
             location: Location::new(longitude, latitude),
             population,
             paint_territory: territory.lock().unwrap().colour,
+            typ: CityType::City,
             size,
             fractional_size: size as f32,
             armies: 0,
@@ -95,7 +104,9 @@ impl City {
 
         // Name background
         if app_state.show_all_info() {
-            let dimensions = skia.text_dimensions(font_size, &paint_name, &self.name).clamp(1.0, MAXIMUM_LABEL_WIDTH);
+            let dimensions = skia
+                .text_dimensions(font_size, &paint_name, &self.name, &FontFamily::EbGaramond, TextAlign::Left)
+                .clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
                 skia.get_canvas().draw_round_rect(
                     Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
@@ -125,7 +136,14 @@ impl City {
         skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
         let strength = format!("{}/{}", self.armies, self.size);
-        skia.write_text_centre(5.0, &paint_number, &strength, Point::new(centre.x, centre.y - 3.5), 0.0);
+        skia.write_text_centre(
+            5.0,
+            &paint_number,
+            &strength,
+            Point::new(centre.x - SIZE, centre.y - 3.5),
+            SIZE * 2.0,
+            &FontFamily::EbGaramond,
+        );
         if app_state.show_all_info() {
             skia.write_text(
                 font_size,
@@ -133,6 +151,7 @@ impl City {
                 &self.name,
                 Point::new(centre.x + SIZE + 0.5, centre.y - 1.2),
                 MAXIMUM_LABEL_WIDTH,
+                &FontFamily::EbGaramond,
             );
         }
     }

@@ -21,6 +21,7 @@ mod render {
     pub mod randomising;
     pub mod region_summary;
     pub mod surround;
+    pub mod title_bar;
 }
 
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};

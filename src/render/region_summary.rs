@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::lib::skia::Skia;
+use crate::lib::skia::{FontFamily, Skia};
 use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
 use std::collections::{BTreeMap, HashMap};
@@ -33,7 +33,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         skia.get_canvas().draw_circle(Point::new(rr.left + 52.0, y + 13.0), 9.0, &paint_border);
 
         // Name
-        skia.write_text(20.0, &paint_white, fst, Point::new(rr.left() + 66.0, y), 0.0);
+        skia.write_text(20.0, &paint_white, fst, Point::new(rr.left() + 66.0, y), 0.0, &FontFamily::EbGaramond);
         if index % 2 == 0 {
             skia.get_canvas().draw_rrect(
                 RRect::new_rect_xy(
@@ -47,7 +47,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
         // Bonus?
         let msg = "No bonus".to_owned();
-        skia.write_text(20.0, &paint_white, &msg, Point::new(rr.right - 128.0, y), 0.0);
+        skia.write_text(20.0, &paint_white, &msg, Point::new(rr.right - 128.0, y), 0.0, &FontFamily::EbGaramond);
 
         // Work out proportions of ownership
         let mut map = HashMap::new();
