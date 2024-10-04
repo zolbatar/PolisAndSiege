@@ -18,6 +18,7 @@ pub(crate) const MIN_ZOOM: f32 = 4.2;
 
 pub enum GameMode {
     Randomising,
+    ArmyPlacement,
     CitySelection,
     Game,
 }

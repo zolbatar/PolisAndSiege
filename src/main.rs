@@ -14,6 +14,7 @@ mod model {
     pub mod territory_polygon;
 }
 mod render {
+    pub mod army_placement;
     pub mod city_selection;
     pub mod entry;
     pub mod lower_panel;

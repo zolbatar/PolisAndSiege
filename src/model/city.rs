@@ -23,7 +23,9 @@ pub struct City {
     pub location: Location,
     population: i64,
     paint_territory: Color,
-    size: i8,
+    size: u8,
+    fractional_size: f32,
+    armies: u8,
     pub node: NodeIndex,
     pub owner: Owner,
 }
@@ -56,6 +58,8 @@ impl City {
             population,
             paint_territory: territory.lock().unwrap().colour,
             size,
+            fractional_size: size as f32,
+            armies: 0,
             node: NodeIndex::new(0),
             owner: Owner::None,
         }
@@ -120,7 +124,8 @@ impl City {
         }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        skia.write_text_centre(5.0, &paint_number, &self.size.to_string(), Point::new(centre.x, centre.y - 3.5), 0.0);
+        let strength = format!("{}/{}", self.armies, self.size);
+        skia.write_text_centre(5.0, &paint_number, &strength, Point::new(centre.x, centre.y - 3.5), 0.0);
         if app_state.show_all_info() {
             skia.write_text(
                 font_size,

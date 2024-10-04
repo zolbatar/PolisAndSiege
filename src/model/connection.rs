@@ -9,7 +9,7 @@ use skia_safe::{dash_path_effect, Color, Paint, PaintStyle};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
-const LINE_WIDTH: f32 = 0.2;
+const LINE_WIDTH: f32 = 0.25;
 
 #[derive(Clone)]
 pub struct Connection {
@@ -23,7 +23,7 @@ impl Connection {
     pub fn new(city1: Arc<Mutex<City>>, city2: Arc<Mutex<City>>) -> Connection {
         let mut paint = Paint::default();
         paint.set_anti_alias(true);
-        paint.set_color(Color::WHITE);
+        paint.set_color(Color::YELLOW);
         paint.set_stroke_width(LINE_WIDTH);
         paint.set_style(PaintStyle::Stroke);
         let mut paint_alt = Paint::default();
@@ -39,7 +39,8 @@ impl Connection {
         }
     }
 
-    pub fn render(&mut self, skia: &mut Skia, phase: f32) {
+    pub fn render(&mut self, skia: &mut Skia, mut phase: f32) {
+        phase = 0.0;
         self.paint.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase).unwrap());
         self.paint_alt.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase + 1.0).unwrap());
         skia.get_canvas().draw_line(

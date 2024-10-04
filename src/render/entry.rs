@@ -1,5 +1,6 @@
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia::Skia;
+use crate::render::army_placement::army_placement;
 use crate::render::city_selection::city_selection;
 use crate::render::lower_panel::render_lower_panel;
 use crate::render::randomising::randomising;
@@ -54,6 +55,9 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     match app_state.mode {
         GameMode::Randomising => {
             randomising(skia, app_state, rr);
+        }
+        GameMode::ArmyPlacement => {
+            army_placement(skia, app_state, rr);
         }
         GameMode::CitySelection => {
             city_selection(skia, app_state, rr);

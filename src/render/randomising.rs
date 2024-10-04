@@ -32,7 +32,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
         // Take top item
         if app_state.items.cities_remaining_to_assign.is_empty() {
-            app_state.mode = GameMode::Game;
+            app_state.mode = GameMode::ArmyPlacement;
         } else {
             let next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
             let next_player = app_state.res.player_lookup.get(&app_state.selection.last_player).unwrap().clone();

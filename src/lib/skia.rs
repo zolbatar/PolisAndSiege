@@ -193,7 +193,9 @@ impl Skia {
         text_style.add_font_feature("kern", 1);
         text_style.add_font_feature("liga", 1);
         text_style.add_font_feature("dlig", 1);
-        //text_style.add_font_feature("frac", 1);
+        if text.contains('/') {
+            text_style.add_font_feature("frac", 1);
+        }
 
         // Add text style and text
         builder.push_style(&text_style);
