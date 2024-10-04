@@ -68,7 +68,7 @@ impl City {
             typ: CityType::City,
             size,
             fractional_size: size as f32,
-            armies: 0,
+            armies: 1,
             node: NodeIndex::new(0),
             owner: Owner::None,
         }
