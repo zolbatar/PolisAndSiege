@@ -34,7 +34,7 @@ pub struct City {
     typ: CityType,
     size: u8,
     fractional_size: f32,
-    armies: u8,
+    pub armies: u8,
     pub node: NodeIndex,
     pub owner: Owner,
 }
