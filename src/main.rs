@@ -98,7 +98,7 @@ fn main() {
     'running: loop {
         // Measure the time it took to render the previous frame
         let current_time = Instant::now();
-        app_state.phase = (current_time.duration_since(start).as_millis() as f32 / 500.0) % 2.0;
+        app_state.phase = (current_time.duration_since(start).as_millis() as f32 / 100.0) % 2.0;
 
         // Increment the frame count
         frame_count += 1;

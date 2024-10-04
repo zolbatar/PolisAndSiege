@@ -163,7 +163,7 @@ impl AppState {
                 last_city_selection: None,
                 last_player: 1,
                 minimum_allowed_distance: 18.0, //12.0,
-                assign_speed: 1,
+                assign_speed: 0,
             },
             gfx,
             res,

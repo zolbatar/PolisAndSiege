@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia::Skia;
 use crate::render::army_placement::army_placement;
@@ -44,7 +45,12 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     // Cities
     for territory in &app_state.items.territories {
         for city in &territory.1.lock().unwrap().cities {
-            city.lock().unwrap().render(skia, app_state);
+            if let Some(selected_city) = app_state.selection.last_city_selection.clone() {
+                let selected = Arc::ptr_eq(&selected_city, &city.clone());
+                city.lock().unwrap().render(skia, app_state, selected);
+            } else {
+                city.lock().unwrap().render(skia, app_state, false);
+            }
         }
     }
     skia.clear_matrix();
