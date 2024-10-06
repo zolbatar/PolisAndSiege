@@ -1,5 +1,5 @@
 use crate::app_state::{AppState, GameMode};
-use crate::model::city::SIZE;
+use crate::model::city::{Owner, SIZE};
 use sdl2::mouse::{MouseButton, MouseWheelDirection};
 use skia_safe::Point;
 
@@ -51,10 +51,12 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
         match app_state.mode {
             GameMode::ArmyPlacement => {
                 if let Some(city) = &app_state.selection.last_city_selection {
-                    city.lock().unwrap().armies += 1;
-                    app_state.armies_to_assign -= 1;
-                    if app_state.armies_to_assign == 0 {
-                        app_state.mode = GameMode::Game;
+                    if city.lock().unwrap().owner == Owner::Player {
+                        city.lock().unwrap().armies += 1;
+                        app_state.armies_to_assign -= 1;
+                        if app_state.armies_to_assign == 0 {
+                            app_state.mode = GameMode::Game;
+                        }
                     }
                 }
             }

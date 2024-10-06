@@ -60,7 +60,7 @@ impl Skia {
             None,
             None,
         )
-        .expect("Could not create Skia surface")
+            .expect("Could not create Skia surface")
     }
 
     pub fn new(app_state: &AppState) -> Self {

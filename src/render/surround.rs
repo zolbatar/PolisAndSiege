@@ -32,6 +32,7 @@ pub fn render_surround(skia: &mut Skia, app_state: &mut AppState, clip_rect: RRe
 
         // Bottom-left
         canvas.save();
+        canvas.reset_matrix();
         canvas.translate(Vector::new(16.0, height_dpi - 16.0));
         canvas.scale((1.0, -1.0));
         app_state.res.corner_path.render(canvas);
@@ -39,6 +40,7 @@ pub fn render_surround(skia: &mut Skia, app_state: &mut AppState, clip_rect: RRe
 
         // Top-right
         canvas.save();
+        canvas.reset_matrix();
         canvas.translate(Vector::new(width_dpi - 16.0 - 1.0, 16.0));
         canvas.scale((-1.0, 1.0));
         app_state.res.corner_path.render(canvas);
@@ -46,6 +48,7 @@ pub fn render_surround(skia: &mut Skia, app_state: &mut AppState, clip_rect: RRe
 
         // Bottom-right
         canvas.save();
+        canvas.reset_matrix();
         canvas.translate(Vector::new(width_dpi - 16.0 - 1.0, height_dpi - 16.0 - 1.0));
         canvas.scale((-1.0, -1.0));
         app_state.res.corner_path.render(canvas);

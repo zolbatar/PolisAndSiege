@@ -70,6 +70,7 @@ pub struct AppState {
     pub show_shadows: bool,
     pub phase: f32,
     pub armies_to_assign: i32,
+    pub current_turn: Owner,
 }
 
 impl AppState {
@@ -177,6 +178,7 @@ impl AppState {
             target: Point::new(25.0, -10.0),
             phase: 0.0,
             armies_to_assign: 10,
+            current_turn: Owner::Player,
         }
     }
 
