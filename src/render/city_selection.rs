@@ -18,7 +18,7 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     // Positions
     let offset_text = 125.0f32;
     let text_x = app_state.gfx.half_width as f32 - offset_text;
-    let text_w = w - offset_text;
+    let text_w = 80.0;
 
     let mut paint_shadow = Paint::default();
     paint_shadow.set_anti_alias(true);
@@ -39,14 +39,8 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_title.set_anti_alias(true);
     paint_title.set_style(PaintStyle::StrokeAndFill);
     paint_title.set_color(Color::YELLOW);
-    skia.write_text_centre(
-        30.0,
-        &paint_title,
-        "City Selection",
-        Point::new(app_state.gfx.half_width as f32, rr.top),
-        w,
-        &FontFamily::EbGaramond,
-    );
+    skia.write_text_centre(30.0, &paint_title, "City Selected", Point::new(l, rr.top), w,
+                           &FontFamily::EbGaramond);
 
     // Name and territory
     let mut paint_left = Paint::default();
@@ -57,7 +51,8 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_right.set_anti_alias(true);
     paint_right.set_style(PaintStyle::StrokeAndFill);
     paint_right.set_color(Color::WHITE);
-    skia.write_text_right(20.0, &paint_left, "Name:  ", Point::new(l, rr.top), text_w, &FontFamily::EbGaramond);
+    skia.write_text_right(20.0, &paint_left, "Name:  ", Point::new(l, rr.top + 60.0), text_w,
+                          &FontFamily::EbGaramond);
     skia.write_text(
         20.0,
         &paint_right,
@@ -70,7 +65,7 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         20.0,
         &paint_left,
         "Territory:  ",
-        Point::new(text_x, rr.top + 85.0),
+        Point::new(l, rr.top + 85.0),
         text_w,
         &FontFamily::EbGaramond,
     );

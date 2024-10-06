@@ -24,7 +24,6 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
                 _ => "Enemy Turn"
             }
         }
-        GameMode::CitySelection => "City Selected",
     };
     skia.write_text_centre(
         30.0,

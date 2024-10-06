@@ -68,11 +68,12 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
         GameMode::ArmyPlacement => {
             army_placement(skia, app_state, rr);
         }
-        GameMode::CitySelection => {
-            city_selection(skia, app_state, rr);
-        }
         GameMode::Game => {
-            region_summary(skia, app_state, rr);
+            if app_state.selection.last_city_selection.is_some() {
+                city_selection(skia, app_state, rr);
+            } else {
+                region_summary(skia, app_state, rr);
+            }
         }
     }
 
