@@ -29,6 +29,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
             // Take top item
             if app_state.items.cities_remaining_to_assign.is_empty() {
+                app_state.selection.last_city_selection = None;
                 app_state.mode = GameMode::ArmyPlacement;
                 return;
             } else {

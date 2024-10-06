@@ -45,12 +45,15 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     // Cities
     for territory in &app_state.items.territories {
         for city in &territory.1.lock().unwrap().cities {
-            if let Some(selected_city) = app_state.selection.last_city_selection.clone() {
-                let selected = Arc::ptr_eq(&selected_city, &city.clone());
-                city.lock().unwrap().render(skia, app_state, selected);
-            } else {
-                city.lock().unwrap().render(skia, app_state, false);
+            let mut selected = false;
+            let mut hover = false;
+            if let Some(selected_city) = app_state.selection.last_city_hover.clone() {
+                hover = Arc::ptr_eq(&selected_city, &city.clone());
             }
+            if let Some(selected_city) = app_state.selection.last_city_selection.clone() {
+                selected = Arc::ptr_eq(&selected_city, &city.clone());
+            }
+            city.lock().unwrap().render(skia, app_state, hover, selected);
         }
     }
     skia.clear_matrix();

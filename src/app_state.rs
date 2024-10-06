@@ -48,6 +48,7 @@ pub struct Items {
 
 pub struct CitySelection {
     pub last_selection: Instant,
+    pub last_city_hover: Option<Arc<Mutex<City>>>,
     pub last_city_selection: Option<Arc<Mutex<City>>>,
     pub last_player: u8,
     pub minimum_allowed_distance: f32,
@@ -161,6 +162,7 @@ impl AppState {
             selection: CitySelection {
                 last_selection: Instant::now(),
                 last_city_selection: None,
+                last_city_hover: None,
                 last_player: 1,
                 minimum_allowed_distance: 18.0, //12.0,
                 assign_speed: 0,
