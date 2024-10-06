@@ -16,6 +16,7 @@ const SVG_SIDE: &str = include_str!("../assets/Side.svg");
 pub const NOISE_MIX: f32 = 0.075;
 pub(crate) const MIN_ZOOM: f32 = 4.2;
 
+#[derive(PartialEq)]
 pub enum GameMode {
     Randomising,
     ArmyPlacement,

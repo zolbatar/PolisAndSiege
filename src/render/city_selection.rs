@@ -11,9 +11,9 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     let w = r - l;
 
     // City
-    let city = app_state.items.cities.first().unwrap().lock().unwrap();
-    let city_name = &city.name;
-    let territory_name = &city.territory.lock().unwrap().name;
+    let city = app_state.selection.last_city_selection.clone();
+    let city_name = city.clone().unwrap().lock().unwrap().name.clone();
+    let territory_name = city.unwrap().lock().unwrap().territory.lock().unwrap().name.clone();
 
     // Positions
     let offset_text = 125.0f32;
@@ -56,7 +56,7 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.write_text(
         20.0,
         &paint_right,
-        city_name,
+        &city_name,
         Point::new(text_x, rr.top() + 60.0),
         text_w,
         &FontFamily::EbGaramond,
@@ -72,7 +72,7 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.write_text(
         20.0,
         &paint_right,
-        territory_name,
+        &territory_name,
         Point::new(text_x, rr.top + 85.0),
         text_w,
         &FontFamily::EbGaramond,
