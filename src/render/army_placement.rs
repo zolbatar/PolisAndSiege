@@ -29,7 +29,7 @@ pub fn army_placement(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.write_text_centre(
         25.0,
         &paint_left,
-        "Click on a city to assign a regiment to defend the city, or attack enemy cities.",
+        "Click on a city to assign a regiment to defend the city, or to later attack enemy cities.",
         Point::new(l, rr.top + 60.0),
         w,
         &FontFamily::EbGaramond,
@@ -39,7 +39,7 @@ pub fn army_placement(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         ss += "⚔";
     }
     //    &*app_state.armies_to_assign.to_string(),
-    skia.write_text_centre(40.0, &paint_right, &ss, Point::new(l, rr.top + 140.0), w, &FontFamily::NotoSansSymbols);
+    skia.write_text_centre(30.0, &paint_right, &ss, Point::new(l, rr.top + 125.0), w, &FontFamily::NotoSansSymbols);
 
     skia.get_canvas().restore();
 }

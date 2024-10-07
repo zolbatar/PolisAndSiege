@@ -13,6 +13,7 @@ use std::time::Instant;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
+const SVG_BUTTON: &str = include_str!("../assets/Button.svg");
 pub const NOISE_MIX: f32 = 0.075;
 pub(crate) const MIN_ZOOM: f32 = 4.2;
 
@@ -34,6 +35,7 @@ pub struct GFXState {
 pub struct Resource {
     pub side_path: Dom,
     pub corner_path: Dom,
+    pub button_path: Dom,
     pub player_lookup: HashMap<u8, Owner>,
     pub player_colours: HashMap<Owner, Vec<Color>>,
     pub player_name: HashMap<Owner, String>,
@@ -88,6 +90,7 @@ impl AppState {
         corner_path.set_container_size(Size::new(160.0, 160.0));
         let mut side_path = Dom::from_str(SVG_SIDE, FontMgr::new()).expect("Error loading SVG");
         side_path.set_container_size(Size::new(40.0, 200.0));
+        let button_path = Dom::from_str(SVG_BUTTON, FontMgr::new()).expect("Error loading SVG");
 
         let gfx = GFXState {
             width,
@@ -100,6 +103,7 @@ impl AppState {
         let mut res = Resource {
             corner_path,
             side_path,
+            button_path,
             player_lookup: HashMap::new(),
             player_colours: HashMap::new(),
             player_name: HashMap::new(),

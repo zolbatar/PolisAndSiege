@@ -70,7 +70,6 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
             }
             GameMode::Game => {
                 app_state.selection.last_city_selection = app_state.selection.last_city_hover.clone();
-                app_state.selection.last_city_hover = None;
             }
             _ => {}
         }

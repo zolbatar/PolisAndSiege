@@ -1,4 +1,3 @@
-use std::cmp::PartialEq;
 use crate::app_state::AppState;
 use crate::lib::skia;
 use crate::lib::skia::{FontFamily, Skia};
@@ -7,6 +6,7 @@ use crate::model::territory::Territory;
 use petgraph::graph::NodeIndex;
 use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, Rect};
+use std::cmp::PartialEq;
 use std::sync::{Arc, Mutex};
 
 pub enum CityType {
@@ -136,6 +136,10 @@ impl City {
             skia.get_canvas().draw_circle(centre, SIZE, &paint_shadow);
         }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
+        if hover {
+            paint_outline.set_color(colours[1]);
+            paint_outline.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase).unwrap());
+        }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
         let strength = format!("{}/{}", self.armies, self.size);
         skia.write_text_centre(
@@ -156,24 +160,13 @@ impl City {
                 &FontFamily::EbGaramond,
             );
         }
-        if hover {
-            let mut paint_selected = Paint::default();
-            paint_selected.set_anti_alias(true);
-            paint_selected.set_style(PaintStyle::Stroke);
-            paint_selected.set_color(Color::WHITE);
-            paint_selected.set_stroke_width(SIZE / 8.0);
-            paint_selected.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase)
-                .unwrap());
-            skia.get_canvas().draw_circle(centre, SIZE_SELECTED, &paint_selected);
-        }
         if selected {
             let mut paint_selected = Paint::default();
             paint_selected.set_anti_alias(true);
             paint_selected.set_style(PaintStyle::Stroke);
             paint_selected.set_color(Color::WHITE);
             paint_selected.set_stroke_width(SIZE / 4.0);
-            paint_selected.set_path_effect(dash_path_effect::new(&[5.0, 5.0], app_state.phase * 5.0)
-                .unwrap());
+            paint_selected.set_path_effect(dash_path_effect::new(&[5.0, 5.0], app_state.phase * 5.0).unwrap());
             skia.get_canvas().draw_circle(centre, SIZE_SELECTED, &paint_selected);
         }
     }

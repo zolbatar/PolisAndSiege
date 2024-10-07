@@ -60,7 +60,7 @@ impl Skia {
             None,
             None,
         )
-            .expect("Could not create Skia surface")
+        .expect("Could not create Skia surface")
     }
 
     pub fn new(app_state: &AppState) -> Self {
@@ -308,6 +308,18 @@ impl Skia {
             Data::new_copy(&data)
         };
         self.noise_shader.clone().unwrap().make_shader(uniforms, &[], None).expect("Make shader failed")
+    }
+
+    pub fn button(&mut self, text: &str, app_state: &AppState, xy: Vector) {
+        let canvas = self.get_canvas();
+        canvas.save();
+        canvas.reset_matrix();
+        canvas.scale((app_state.gfx.dpi, app_state.gfx.dpi));
+        let width = 0.0; //328.0 * 0.75 / 2.0 / app_state.gfx.dpi;
+        canvas.translate(Vector::new(xy.x - width, xy.y));
+        canvas.scale((0.4, 0.4));
+        app_state.res.button_path.render(canvas);
+        canvas.restore();
     }
 }
 
