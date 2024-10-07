@@ -6,6 +6,7 @@ use skia_safe::gpu::gl::{FramebufferInfo, Interface};
 use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::{ContextOptions, DirectContext};
 use skia_safe::image_filters::{blur, drop_shadow_only};
+use skia_safe::paint::Style;
 use skia_safe::textlayout::{
     FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider,
 };
@@ -322,15 +323,28 @@ impl Skia {
     }
 
     pub fn button(&mut self, text: &str, app_state: &AppState, xy: Vector) {
-        let canvas = self.get_canvas();
-        canvas.save();
-        canvas.reset_matrix();
-        canvas.scale((app_state.gfx.dpi, app_state.gfx.dpi));
         let width = 328.0 * 0.4 / 2.0;
-        canvas.translate(Vector::new(xy.x - width, xy.y));
-        canvas.scale((0.4, 0.4));
-        app_state.res.button_path.render(canvas);
-        canvas.restore();
+        let height = 196.0 * 0.4 / 2.0;
+
+        {
+            let canvas = self.get_canvas();
+            canvas.save();
+            canvas.reset_matrix();
+            canvas.scale((app_state.gfx.dpi, app_state.gfx.dpi));
+            canvas.translate(Vector::new(xy.x - width, xy.y));
+            canvas.scale((0.4, 0.4));
+            app_state.res.button_path.render(canvas);
+            canvas.restore();
+        }
+
+        // Background Colour
+        let mut paint_click = Paint::default();
+        paint_click.set_style(Style::Fill);
+        paint_click.set_color(Color::DARK_GRAY);
+        self.get_canvas().draw_rect(
+            skia_safe::Rect::from_xywh(xy.x - width + 1.0, xy.y + 21.4, width * 2.0 - 1.0, height - 3.0),
+            &paint_click,
+        );
 
         // Label
         let mut paint = Paint::default();
@@ -351,7 +365,7 @@ impl Skia {
             30.0,
             &paint,
             text,
-            Point::new(xy.x - width, xy.y + (196.0 * 0.4 / 2.0 / 2.0)),
+            Point::new(xy.x - width, xy.y + (height / 2.0)),
             width * 2.0,
             &FontFamily::EbGaramondBold,
         );
