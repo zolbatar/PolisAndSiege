@@ -11,8 +11,8 @@ use skia_safe::textlayout::{
     FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider,
 };
 use skia_safe::{
-    gpu, Canvas, Color, Color4f, Data, FontMgr, FontStyle, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect,
-    Shader, Surface, TileMode, Vector,
+    gpu, Canvas, Color, Color4f, Contains, Data, FontMgr, FontStyle, ImageFilter, Paint, PaintStyle, Point, Rect,
+    RuntimeEffect, Shader, Surface, TileMode, Vector,
 };
 
 static EBGARAMOND_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-VariableFont_wght.ttf");
@@ -37,6 +37,8 @@ pub struct Skia {
     pub colour_background: Color,
     pub colour_popup: Color,
     pub colour_outline: Color,
+    pub button: Color,
+    pub button_hover: Color,
 }
 
 impl Skia {
@@ -118,6 +120,8 @@ impl Skia {
             colour_background: Color::from_argb(255, 53, 53, 53),
             colour_popup: Color::from_argb(255, 80, 80, 80),
             colour_outline: Color::from_argb(255, 209, 185, 120),
+            button: Color::from_argb(255, 80, 80, 80),
+            button_hover: Color::from_argb(255, 100, 100, 100),
         }
     }
 
@@ -340,11 +344,13 @@ impl Skia {
         // Background Colour
         let mut paint_click = Paint::default();
         paint_click.set_style(Style::Fill);
-        paint_click.set_color(Color::DARK_GRAY);
-        self.get_canvas().draw_rect(
-            skia_safe::Rect::from_xywh(xy.x - width + 1.0, xy.y + 21.4, width * 2.0 - 1.0, height - 3.0),
-            &paint_click,
-        );
+        let rect = skia_safe::Rect::from_xywh(xy.x - width + 1.0, xy.y + 21.4, width * 2.0 - 1.0, height - 3.0);
+        if rect.contains(app_state.hover) {
+            paint_click.set_color(self.button_hover);
+        } else {
+            paint_click.set_color(self.button);
+        }
+        self.get_canvas().draw_rect(rect, &paint_click);
 
         // Label
         let mut paint = Paint::default();

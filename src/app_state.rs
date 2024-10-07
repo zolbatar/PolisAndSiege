@@ -74,6 +74,7 @@ pub struct AppState {
     pub phase: f32,
     pub armies_to_assign: i32,
     pub current_turn: Owner,
+    pub hover: Point,
 }
 
 impl AppState {
@@ -185,6 +186,7 @@ impl AppState {
             phase: 0.0,
             armies_to_assign: 10,
             current_turn: Owner::Player,
+            hover: Point::new(-1.0, -1.0),
         }
     }
 

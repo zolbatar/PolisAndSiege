@@ -12,6 +12,7 @@ pub fn handle_mouse_wheel(app_state: &mut AppState, _direction: MouseWheelDirect
 }
 
 pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32, y_rel: i32) {
+    app_state.hover = Point::new(x as f32, y as f32);
     if app_state.panning {
         // Calculate mouse movement delta
         if x_rel.abs() < THRESHOLD && y_rel.abs() < THRESHOLD {
