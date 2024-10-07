@@ -56,7 +56,7 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.write_text(20.0, &paint_right, &territory_name, Point::new(text_x, t + 85.0), 0.0, &FontFamily::EbGaramond);
 
     // Combat
-    skia.button("Attack", app_state, Vector::new(l, t));
+    skia.button("Attack!", app_state, Vector::new(app_state.gfx.half_width as f32, t + 120.0));
 
     // Sections
     skia.get_canvas().restore();

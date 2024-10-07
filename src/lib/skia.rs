@@ -21,6 +21,7 @@ pub const ELLIPSIS: &str = "\u{2026}";
 
 pub enum FontFamily {
     EbGaramond,
+    EbGaramondBold,
     NotoSansSymbols,
 }
 
@@ -29,6 +30,7 @@ pub struct Skia {
     font_collection: FontCollection,
     pub blur: Option<ImageFilter>,
     pub drop_shadow: Option<ImageFilter>,
+    pub drop_shadow_white: Option<ImageFilter>,
     noise_shader: Result<RuntimeEffect, String>,
     pub surface: Surface,
     pub colour_background: Color,
@@ -94,6 +96,8 @@ impl Skia {
         let blur = blur((1.0, 1.0), TileMode::default(), None, None);
         let drop_shadow =
             drop_shadow_only(Vector::new(1.5, 1.5), (0.5, 0.5), Color::from_argb(64, 0, 0, 0), None, None, None);
+        let drop_shadow_white =
+            drop_shadow_only(Vector::new(1.5, 1.5), (2.0, 2.0), Color::from_argb(64, 255, 255, 255), None, None, None);
 
         // Surface
         let surface = Skia::make_surface(
@@ -107,6 +111,7 @@ impl Skia {
             surface,
             font_collection,
             drop_shadow,
+            drop_shadow_white,
             blur,
             noise_shader,
             colour_background: Color::from_argb(255, 53, 53, 53),
@@ -199,13 +204,19 @@ impl Skia {
         // Use the Make method to create a ParagraphBuilder
         let mut builder = ParagraphBuilder::new(&paragraph_style, &self.font_collection);
 
-        let font_style = FontStyle::new(Weight::NORMAL, Width::NORMAL, Slant::Upright);
+        let weight = match family {
+            FontFamily::EbGaramond => Weight::NORMAL,
+            FontFamily::EbGaramondBold => Weight::MEDIUM,
+            FontFamily::NotoSansSymbols => Weight::NORMAL,
+        };
+        let font_style = FontStyle::new(weight, Width::NORMAL, Slant::Upright);
 
         // Text style
         let mut text_style = TextStyle::new();
         text_style.set_font_size(font_size);
         match family {
             FontFamily::EbGaramond => text_style.set_font_families(&["EB Garamond"]),
+            FontFamily::EbGaramondBold => text_style.set_font_families(&["EB Garamond"]),
             FontFamily::NotoSansSymbols => text_style.set_font_families(&["Noto Sans Symbols"]),
         };
         text_style.set_font_style(font_style);
@@ -315,11 +326,35 @@ impl Skia {
         canvas.save();
         canvas.reset_matrix();
         canvas.scale((app_state.gfx.dpi, app_state.gfx.dpi));
-        let width = 0.0; //328.0 * 0.75 / 2.0 / app_state.gfx.dpi;
+        let width = 328.0 * 0.4 / 2.0;
         canvas.translate(Vector::new(xy.x - width, xy.y));
         canvas.scale((0.4, 0.4));
         app_state.res.button_path.render(canvas);
         canvas.restore();
+
+        // Label
+        let mut paint = Paint::default();
+        paint.set_anti_alias(true);
+        paint.set_style(PaintStyle::StrokeAndFill);
+        paint.set_color(Color::WHITE);
+        paint.set_image_filter(self.drop_shadow_white.clone());
+        self.write_text_centre(
+            30.0,
+            &paint,
+            text,
+            Point::new(xy.x - width, xy.y + (196.0 * 0.4 / 2.0 / 2.0)),
+            width * 2.0,
+            &FontFamily::EbGaramondBold,
+        );
+        paint.set_image_filter(None);
+        self.write_text_centre(
+            30.0,
+            &paint,
+            text,
+            Point::new(xy.x - width, xy.y + (196.0 * 0.4 / 2.0 / 2.0)),
+            width * 2.0,
+            &FontFamily::EbGaramondBold,
+        );
     }
 }
 
