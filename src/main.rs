@@ -13,6 +13,7 @@ mod model {
     pub mod math;
     pub mod territory;
     pub mod territory_polygon;
+    pub mod scoring;
 }
 mod render {
     pub mod army_placement;
@@ -101,7 +102,7 @@ fn main() {
     let fps_check_interval = Duration::from_secs(1); // Check FPS every second
 
     computer_turn(AIModel::TreeSearch, AIStrength::Normal, &app_state);
-    
+
     // Loop
     let start = Instant::now();
     'running: loop {

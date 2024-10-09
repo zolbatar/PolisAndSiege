@@ -37,6 +37,7 @@ pub struct Resource {
     pub corner_path: Dom,
     pub button_path: Dom,
     pub player_lookup: HashMap<u8, Owner>,
+    pub players: Vec<Owner>,
     pub player_colours: HashMap<Owner, Vec<Color>>,
     pub player_name: HashMap<Owner, String>,
 }
@@ -107,8 +108,11 @@ impl AppState {
             button_path,
             player_lookup: HashMap::new(),
             player_colours: HashMap::new(),
+            players: Vec::new(),
             player_name: HashMap::new(),
         };
+
+        let num_of_players = 5;
 
         let mut possible_names = vec![
             "The Britannian Dominion",
@@ -139,9 +143,18 @@ impl AppState {
         res.player_lookup.insert(0, Owner::None);
         res.player_lookup.insert(1, Owner::Player);
         res.player_lookup.insert(2, Owner::Enemy1);
-        res.player_lookup.insert(3, Owner::Enemy2);
-        res.player_lookup.insert(4, Owner::Enemy3);
-        res.player_lookup.insert(5, Owner::Enemy4);
+        if num_of_players >= 3 {
+            res.player_lookup.insert(3, Owner::Enemy2);
+            res.players.push(Owner::Enemy2);
+        }
+        if num_of_players >= 4 {
+            res.player_lookup.insert(4, Owner::Enemy3);
+            res.players.push(Owner::Enemy3);
+        }
+        if num_of_players >= 5 {
+            res.player_lookup.insert(5, Owner::Enemy4);
+            res.players.push(Owner::Enemy4);
+        }
         res.player_colours.insert(Owner::None, vec![Color::from_rgb(128, 128, 128), Color::BLACK]);
         res.player_colours.insert(Owner::Player, vec![Color::from_rgb(0, 0, 255), Color::WHITE]);
         res.player_colours.insert(Owner::Enemy1, vec![Color::from_rgb(255, 0, 0), Color::WHITE]);
@@ -176,7 +189,7 @@ impl AppState {
             gfx,
             res,
             items,
-            num_of_players: 5,
+            num_of_players,
             fps: 0.0,
             panning: false,
             show_labels: true,

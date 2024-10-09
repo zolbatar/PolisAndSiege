@@ -29,7 +29,6 @@ pub enum FontFamily {
 pub struct Skia {
     context: DirectContext,
     font_collection: FontCollection,
-    pub blur: Option<ImageFilter>,
     pub drop_shadow: Option<ImageFilter>,
     pub drop_shadow_white: Option<ImageFilter>,
     noise_shader: Result<RuntimeEffect, String>,
@@ -96,7 +95,6 @@ impl Skia {
         //        println!("{}", &noise_shader.clone().unwrap_err());
 
         // Filters
-        let blur = blur((1.0, 1.0), TileMode::default(), None, None);
         let drop_shadow =
             drop_shadow_only(Vector::new(1.5, 1.5), (0.5, 0.5), Color::from_argb(64, 0, 0, 0), None, None, None);
         let drop_shadow_white =
@@ -115,7 +113,6 @@ impl Skia {
             font_collection,
             drop_shadow,
             drop_shadow_white,
-            blur,
             noise_shader,
             colour_background: Color::from_argb(255, 53, 53, 53),
             colour_popup: Color::from_argb(255, 80, 80, 80),
