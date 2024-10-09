@@ -1,14 +1,14 @@
-use std::thread;
 use crate::ai::tree_search::TreeSearchAI;
 use crate::app_state::AppState;
 use crate::game_state::GameState;
+use std::thread;
 
 pub trait AI {
     fn new(strength: AIStrength, game_state: GameState) -> Self
     where
         Self: Sized;
     fn start(&self) {}
-    
+
     fn next_move(&self) {
         println!("Next move");
     }
@@ -33,6 +33,7 @@ pub fn computer_turn(model: AIModel, strength: AIStrength, app_state: &AppState)
         player: app_state.current_turn.clone(),
         num_of_players: 0,
         territories: app_state.items.territories.clone(),
+        connections: app_state.items.connections.clone(),
     };
 
     // Create AI model

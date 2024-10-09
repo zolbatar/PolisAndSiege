@@ -15,8 +15,8 @@ const LINE_WIDTH: f32 = 0.25;
 pub struct Connection {
     paint: Paint,
     paint_alt: Paint,
-    city1: Arc<Mutex<City>>,
-    city2: Arc<Mutex<City>>,
+    pub city1: Arc<Mutex<City>>,
+    pub city2: Arc<Mutex<City>>,
 }
 
 impl Connection {
@@ -57,7 +57,7 @@ impl Connection {
 }
 
 fn build_territory_connections(
-    connections: &mut Vec<Connection>,
+    connections: &mut Vec<Arc<Mutex<Connection>>>,
     territory1: Arc<Mutex<Territory>>,
     territory2: Arc<Mutex<Territory>>,
     num_connections: usize,
@@ -70,7 +70,7 @@ fn build_territory_connections(
         for city2 in cities2.iter() {
             let distance =
                 Location::calculate_distance(&city1.lock().unwrap().location, &city2.lock().unwrap().location) * 1000.0;
-            m.insert(distance as usize, Connection::new(city1.clone(), city2.clone()));
+            m.insert(distance as usize, Arc::new(Mutex::new(Connection::new(city1.clone(), city2.clone()))));
         }
     }
 

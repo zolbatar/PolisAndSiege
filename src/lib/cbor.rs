@@ -1,4 +1,4 @@
-use crate::app_state::{AppState, Items};
+use crate::app_state::AppState;
 use crate::model::city::City;
 use crate::model::connection::build_connections;
 use crate::model::location::Location;
@@ -101,9 +101,11 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Arc<Mutex<Territory>
     }
 
     // Now build connections
-    app_state.items.connections = build_connections(&territories); 
+    app_state.items.connections = build_connections(&territories);
     for connection in app_state.items.connections.iter() {
-//        connection   
+        let conn = connection.lock().unwrap();
+        conn.city1.lock().unwrap().connections.push(connection.clone());
+        conn.city2.lock().unwrap().connections.push(connection.clone());
     }
 
     // And a list of all cities

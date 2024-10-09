@@ -38,9 +38,9 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     }
 
     // Connections
-/*    for connection in app_state.items.connections.iter_mut() {
+    for connection in app_state.items.connections.iter_mut() {
         connection.lock().unwrap().render(skia);
-    }*/
+    }
 
     // Cities
     for territory in &app_state.items.territories {
