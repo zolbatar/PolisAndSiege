@@ -26,6 +26,7 @@ pub enum Owner {
     Enemy4,
 }
 
+#[derive(Copy)]
 pub struct City {
     pub territory: Arc<Mutex<Territory>>,
     pub connections: Vec<Arc<Mutex<Connection>>>,
