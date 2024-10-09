@@ -1,10 +1,10 @@
 use crate::ai::base::{AIStrength, AI};
 use crate::game_state::GameState;
 
-pub struct RulesAI;
+pub struct TreeSearchAI;
 
-impl AI for RulesAI {
-    fn new(aistrength: AIStrength, game_state: GameState) -> Self {
+impl AI for TreeSearchAI {
+    fn new(strength: AIStrength, game_state: GameState) -> Self {
         todo!()
     }
 

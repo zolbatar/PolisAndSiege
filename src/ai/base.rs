@@ -1,4 +1,4 @@
-use crate::ai::rules::RulesAI;
+use crate::ai::tree_search::TreeSearchAI;
 use crate::game_state::GameState;
 use crate::model::city::Owner;
 
@@ -22,5 +22,7 @@ pub fn computer_turn(model: AIModel, strength: AIStrength) {
         player: Owner::None,
         num_of_players: 0,
     };
-    let ai = RulesAI::new(strength, game_state);
+    let ai = match model {
+        AIModel::Rules => TreeSearchAI::new(strength, game_state),
+    };
 }

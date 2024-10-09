@@ -27,7 +27,7 @@ mod render {
 
 mod ai {
     pub mod base;
-    pub mod rules;
+    pub mod tree_search;
 }
 
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
