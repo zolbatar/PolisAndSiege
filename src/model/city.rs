@@ -16,7 +16,7 @@ pub enum CityType {
     Fortopolis,
 }
 
-#[derive(Eq, Hash, PartialEq, Clone, Ord, PartialOrd)]
+#[derive(Eq, Hash, PartialEq, Clone, Ord, PartialOrd, Debug)]
 pub enum Owner {
     None,
     Player,
