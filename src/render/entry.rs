@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia::Skia;
 use crate::render::army_placement::army_placement;
@@ -9,6 +8,7 @@ use crate::render::region_summary::region_summary;
 use crate::render::surround::render_surround;
 use crate::render::title_bar::render_title_bar;
 use skia_safe::{Paint, PaintStyle, RRect, Rect};
+use std::sync::Arc;
 
 pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     skia.reset_context();
@@ -39,7 +39,7 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
 
     // Connections
     for connection in app_state.items.connections.iter_mut() {
-        connection.render(skia, app_state.phase);
+        connection.render(skia);
     }
 
     // Cities

@@ -3,6 +3,7 @@ mod lib {
     pub mod cbor;
     pub mod skia;
 }
+mod game_state;
 mod input;
 
 mod model {
@@ -22,6 +23,11 @@ mod render {
     pub mod region_summary;
     pub mod surround;
     pub mod title_bar;
+}
+
+mod ai {
+    pub mod base;
+    pub mod rules;
 }
 
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};

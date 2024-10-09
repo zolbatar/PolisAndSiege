@@ -39,8 +39,8 @@ impl Connection {
         }
     }
 
-    pub fn render(&mut self, skia: &mut Skia, mut phase: f32) {
-        phase = 0.0;
+    pub fn render(&mut self, skia: &mut Skia) {
+        let phase = 0.0;
         self.paint.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase).unwrap());
         self.paint_alt.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase + 1.0).unwrap());
         skia.get_canvas().draw_line(
