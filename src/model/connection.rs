@@ -86,7 +86,7 @@ fn build_territory_connections(
     }
 }
 
-pub fn build_connections(territories: &BTreeMap<String, Arc<Mutex<Territory>>>) -> Vec<Connection> {
+pub fn build_connections(territories: &BTreeMap<String, Arc<Mutex<Territory>>>) -> Vec<Arc<Mutex<Connection>>> {
     let mut connections = Vec::new();
     for territory in territories {
         let mut graph = UnGraph::new_undirected();
@@ -114,7 +114,7 @@ pub fn build_connections(territories: &BTreeMap<String, Arc<Mutex<Territory>>>) 
             let _weight = edge.weight;
             let source = graph[edge.source()].clone();
             let target = graph[edge.target()].clone();
-            connections.push(Connection::new(source.clone(), target.clone()));
+            connections.push(Arc::new(Mutex::new(Connection::new(source.clone(), target.clone()))));
         }
     }
 

@@ -8,6 +8,7 @@ use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, Rect};
 use std::cmp::PartialEq;
 use std::sync::{Arc, Mutex};
+use crate::model::connection::Connection;
 
 pub enum CityType {
     City,
@@ -27,6 +28,7 @@ pub enum Owner {
 
 pub struct City {
     pub territory: Arc<Mutex<Territory>>,
+    pub connections: Vec<Arc<Mutex<Connection>>>,
     pub name: String,
     pub location: Location,
     population: i64,
@@ -63,6 +65,7 @@ impl City {
         };
         City {
             territory: territory.clone(),
+            connections: Vec::new(),
             name,
             location: Location::new(longitude, latitude),
             population,

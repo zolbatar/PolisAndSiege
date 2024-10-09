@@ -43,10 +43,10 @@ pub struct Resource {
 
 pub struct Items {
     pub territories: BTreeMap<String, Arc<Mutex<Territory>>>,
-    pub existing_cities: Vec<Location>,
+    pub existing_cities: Vec<Location>, // Only used during initial city placement
     pub cities: Vec<Arc<Mutex<City>>>,
     pub cities_remaining_to_assign: Vec<Arc<Mutex<City>>>,
-    pub connections: Vec<Connection>,
+    pub connections: Vec<Arc<Mutex<Connection>>>,
 }
 
 pub struct CitySelection {

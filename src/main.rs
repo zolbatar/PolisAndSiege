@@ -36,6 +36,7 @@ use crate::lib::skia::Skia;
 use app_state::AppState;
 use sdl2::video::GLProfile;
 use std::time::{Duration, Instant};
+use crate::ai::base::{computer_turn, AIModel, AIStrength};
 
 fn main() {
     // Initialize SDL2
@@ -99,6 +100,8 @@ fn main() {
     let mut last_fps_check = Instant::now();
     let fps_check_interval = Duration::from_secs(1); // Check FPS every second
 
+    computer_turn(AIModel::TreeSearch, AIStrength::Normal, &app_state);
+    
     // Loop
     let start = Instant::now();
     'running: loop {
