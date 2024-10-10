@@ -5,14 +5,14 @@ use skia_safe::gpu::direct_contexts::make_gl;
 use skia_safe::gpu::gl::{FramebufferInfo, Interface};
 use skia_safe::gpu::surfaces::wrap_backend_render_target;
 use skia_safe::gpu::{ContextOptions, DirectContext};
-use skia_safe::image_filters::{drop_shadow_only};
+use skia_safe::image_filters::drop_shadow_only;
 use skia_safe::paint::Style;
 use skia_safe::textlayout::{
     FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider,
 };
 use skia_safe::{
     gpu, Canvas, Color, Color4f, Contains, Data, FontMgr, FontStyle, ImageFilter, Paint, PaintStyle, Point, Rect,
-    RuntimeEffect, Shader, Surface, TileMode, Vector,
+    RuntimeEffect, Shader, Surface, Vector,
 };
 
 static EBGARAMOND_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-VariableFont_wght.ttf");

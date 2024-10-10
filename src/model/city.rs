@@ -1,6 +1,7 @@
 use crate::app_state::AppState;
 use crate::lib::skia;
 use crate::lib::skia::{FontFamily, Skia};
+use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 use petgraph::graph::NodeIndex;
@@ -8,7 +9,6 @@ use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, Rect};
 use std::cmp::PartialEq;
 use std::sync::{Arc, Mutex};
-use crate::model::connection::Connection;
 
 pub enum CityType {
     City,
@@ -26,7 +26,6 @@ pub enum Owner {
     Enemy4,
 }
 
-#[derive(Copy)]
 pub struct City {
     pub territory: Arc<Mutex<Territory>>,
     pub connections: Vec<Arc<Mutex<Connection>>>,

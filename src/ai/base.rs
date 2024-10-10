@@ -35,7 +35,7 @@ pub fn computer_turn(model: AIModel, strength: AIStrength, app_state: &AppState)
         territories: app_state.items.territories.clone(),
         connections: app_state.items.connections.clone(),
     };
-    the above wont work as the cities need copying in each phase
+    //    the above wont work as the cities need copying in each phase
     // probbably needs as custom structure
 
     // Create AI model
