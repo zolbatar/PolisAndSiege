@@ -22,6 +22,7 @@ pub fn computer_turn(app_state: &mut AppState) {
         current_turn: Some(app_state.current_turn),
         players: app_state.players.clone(),
         territories: app_state.items.territories.clone(),
+        mode: app_state.mode.clone(),
     };
     app_state.world.insert(game_state);
 

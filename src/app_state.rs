@@ -1,5 +1,5 @@
 use crate::model::location::Location;
-use crate::model::player::{CPlayer, PlayerType};
+use crate::model::player::CPlayer;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use sdl2::video::Window;
@@ -15,10 +15,11 @@ const SVG_BUTTON: &str = include_str!("../assets/Button.svg");
 pub const NOISE_MIX: f32 = 0.075;
 pub(crate) const MIN_ZOOM: f32 = 4.2;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Default)]
 pub enum GameMode {
     Randomising,
     ArmyPlacement,
+    #[default]
     Game,
 }
 
@@ -159,7 +160,6 @@ impl AppState {
             world
                 .create_entity()
                 .with(CPlayer {
-                    player_type: PlayerType::Human,
                     name: possible_names[0].parse().unwrap(),
                     colours: player_colours[0].clone(),
                     ..Default::default()

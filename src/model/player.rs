@@ -3,17 +3,9 @@ use skia_safe::Color;
 use specs::prelude::*;
 use specs_derive::Component;
 
-#[derive(Debug, Default)]
-pub enum PlayerType {
-    Human,
-    #[default]
-    Computer,
-}
-
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
 pub struct CPlayer {
-    pub player_type: PlayerType,
     pub name: String,
     pub score: i32,
     pub colours: Vec<Color>,
