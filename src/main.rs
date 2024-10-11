@@ -190,3 +190,13 @@ fn main() {
         window.gl_swap_window();
     }
 }
+
+pub fn next_turn(app_state: &mut AppState) {
+    let players = app_state.world.read_storage::<CPlayer>();
+    let mut current_player = players.get(app_state.current_turn).unwrap().index;
+    current_player += 1;
+    if current_player == app_state.num_of_players {
+        current_player = 0;
+    }
+    app_state.current_turn = app_state.players[current_player];
+}

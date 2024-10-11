@@ -81,7 +81,6 @@ pub struct AppState {
     pub show_labels: bool,
     pub show_shadows: bool,
     pub phase: f32,
-    pub armies_to_assign: i32,
     pub current_turn: Entity,
     pub actual_human: Entity,
     pub hover: Point,
@@ -147,32 +146,24 @@ impl AppState {
 
         // Player colours
         let player_colours = [
-            vec![Color::from_rgb(0, 0, 255), Color::WHITE],
-            vec![Color::from_rgb(255, 0, 0), Color::WHITE],
-            vec![Color::from_rgb(0, 255, 0), Color::BLACK],
-            vec![Color::from_rgb(255, 255, 0), Color::BLACK],
-            vec![Color::from_rgb(0, 255, 255), Color::BLACK],
+            vec![Color::from_rgb(128, 128, 255), Color::BLACK],
+            vec![Color::from_rgb(255, 128, 128), Color::BLACK],
+            vec![Color::from_rgb(128, 255, 128), Color::BLACK],
+            vec![Color::from_rgb(255, 255, 128), Color::BLACK],
+            vec![Color::from_rgb(128, 255, 255), Color::BLACK],
         ];
 
         // Create player(s)
         let mut _players = Vec::new();
-        _players.push(
-            world
-                .create_entity()
-                .with(CPlayer {
-                    name: possible_names[0].parse().unwrap(),
-                    colours: player_colours[0].clone(),
-                    ..Default::default()
-                })
-                .build(),
-        );
-        for i in 1..num_of_players {
+        for i in 0..num_of_players {
             _players.push(
                 world
                     .create_entity()
                     .with(CPlayer {
-                        name: possible_names[0].parse().unwrap(),
+                        index: i,
+                        name: possible_names[i].parse().unwrap(),
                         colours: player_colours[i].clone(),
+                        armies_to_assign: 10,
                         ..Default::default()
                     })
                     .build(),
@@ -204,7 +195,7 @@ impl AppState {
                 last_army_city_selection: None,
                 last_player: 0,
                 minimum_allowed_distance: 18.0, //12.0,
-                assign_speed: 10,
+                assign_speed: 100,
             },
             gfx,
             res,
@@ -220,7 +211,6 @@ impl AppState {
             zoom: MIN_ZOOM,
             target: Point::new(25.0, -10.0),
             phase: 0.0,
-            armies_to_assign: 10,
             hover: Point::new(-1.0, -1.0),
         }
     }

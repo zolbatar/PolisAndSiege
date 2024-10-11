@@ -6,7 +6,7 @@ use specs::WorldExt;
 
 pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
     let players = app_state.world.read_storage::<CPlayer>();
-    let player = players.get(app_state.actual_human).unwrap();
+    let player = players.get(app_state.current_turn).unwrap();
     skia.set_matrix(&app_state.gfx);
 
     // Show faction name
@@ -37,7 +37,7 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
         app_state.gfx.width as f32,
         &FontFamily::EbGaramond,
     );
-    paint_title.set_color(Color::LIGHT_GRAY);
+    paint_title.set_color(player.colours[0]);
     skia.write_text(
         20.0,
         &paint_title,

@@ -6,10 +6,12 @@ use specs_derive::Component;
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
 pub struct CPlayer {
+    pub index: usize,
     pub name: String,
     pub score: i32,
     pub colours: Vec<Color>,
     pub cities: Vec<Entity>,
+    pub armies_to_assign: i32,
 }
 
 pub struct SUpdateScores;

@@ -4,7 +4,9 @@ use crate::model::location::CLocation;
 use crate::model::territory::CTerritory;
 use sdl2::mouse::{MouseButton, MouseWheelDirection};
 use skia_safe::Point;
-use specs::WorldExt;
+use specs::{WorldExt};
+use crate::model::player::{CPlayer};
+use crate::next_turn;
 
 const THRESHOLD: i32 = 64;
 
@@ -50,7 +52,7 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
                 let city_location = locations.get(city.location).unwrap();
                 let delta = city_location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
-                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 {
+                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 && city.owner.unwrap() == app_state.current_turn {
                     if app_state.mode == GameMode::ArmyPlacement {
                         app_state.selection.last_city_selection = Some(*city_entity);
                     } else {
@@ -70,17 +72,20 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
             GameMode::ArmyPlacement => {
                 if let Some(city_entity) = &app_state.selection.last_city_selection {
                     let mut cities = app_state.world.write_storage::<CCity>();
+                    let mut players = app_state.world.write_storage::<CPlayer>();
                     let city = cities.get_mut(*city_entity).unwrap();
-                    if city.owner.unwrap() == app_state.actual_human {
+                    let player = players.get_mut(app_state.current_turn).unwrap();
+                    if city.owner.unwrap() == app_state.current_turn {
                         city.armies += 1;
-                        app_state.armies_to_assign -= 1;
-                        if app_state.armies_to_assign == 0 {
+                        player.armies_to_assign -= 1;
+                        if player.armies_to_assign == 0 {
                             app_state.mode = GameMode::Game;
                             app_state.selection.last_city_hover = app_state.selection.last_city_selection;
                             app_state.selection.last_city_selection = None;
                         }
                     }
                 }
+                next_turn(app_state);
             }
             GameMode::Game => {
                 app_state.selection.last_city_selection = app_state.selection.last_city_hover;
