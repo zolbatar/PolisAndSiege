@@ -1,6 +1,6 @@
 use crate::app_state::AppState;
 use crate::model::city::CCity;
-use crate::model::location::{calculate_distance_new, CLocation};
+use crate::model::location::{calculate_distance, CLocation};
 use crate::model::territory::CTerritory;
 use petgraph::algo::min_spanning_tree;
 use petgraph::data::FromElements;
@@ -40,9 +40,7 @@ fn build_territory_connections(
             let city1 = cities.get(*city1_entity).unwrap();
             let city2 = cities.get(*city2_entity).unwrap();
             if city1 != city2 {
-                let city1_location = locations.get(city1.location).unwrap();
-                let city2_location = locations.get(city2.location).unwrap();
-                let distance = calculate_distance_new(city1_location, city2_location);
+                let distance = calculate_distance(&city1.location, &city2.location);
                 m1.insert(
                     distance as usize,
                     CConnection {
@@ -96,9 +94,7 @@ pub fn build_connections(app_state: &mut AppState) {
                 let city1 = cities.get(*city1_entity).unwrap();
                 let city2 = cities.get(*city2_entity).unwrap();
                 if city1 != city2 {
-                    let city1_location = locations.get(city1.location).unwrap();
-                    let city2_location = locations.get(city2.location).unwrap();
-                    let distance = calculate_distance_new(city1_location, city2_location);
+                    let distance = calculate_distance(&city1.location, &city2.location);
                     graph.add_edge(city1.node, city2.node, distance);
                 }
             }
@@ -108,8 +104,8 @@ pub fn build_connections(app_state: &mut AppState) {
         let mst = UnGraph::<_, _>::from_elements(min_spanning_tree(&graph));
         for edge in mst.raw_edges() {
             let _weight = edge.weight;
-            let source = graph[edge.source()].clone();
-            let target = graph[edge.target()].clone();
+            let source = *graph[edge.source()];
+            let target = *graph[edge.target()];
 
             // Create connections, but only render one
             connections.push(CConnection {

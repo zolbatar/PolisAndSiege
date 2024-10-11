@@ -1,7 +1,7 @@
 use crate::app_state::AppState;
 use crate::model::city::{CCity, City};
 use crate::model::connection::build_connections;
-use crate::model::location::{CLocation, SConvertXYToLatLong};
+use crate::model::location::{CLocation};
 use crate::model::territory::{get_colour_for_territory_name, CTerritory};
 use crate::model::territory_polygon::{CTerritoryPolygon, SCreatePictureForPolygon};
 use ciborium::de::from_reader;
@@ -9,7 +9,6 @@ use ciborium::Value;
 use petgraph::prelude::NodeIndex;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use skia_safe::Point;
 use specs::{Builder, DispatcherBuilder, Entity, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 
@@ -23,7 +22,6 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
     let mut cities_count = 0;
 
     // Create the dispatcher and add the system
-    let mut dispatcher_to_xy = DispatcherBuilder::new().with(SConvertXYToLatLong, "convert_xy_to_latlong", &[]).build();
     let mut dispatcher_create_pic =
         DispatcherBuilder::new().with(SCreatePictureForPolygon, "create_picture", &[]).build();
 
@@ -69,28 +67,16 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                         adjust_russia = true;
                     }
 
-                    _locations.push(
-                        app_state
-                            .world
-                            .create_entity()
-                            .with(CLocation {
-                                latitude,
-                                longitude,
-                                p: Point::default(),
-                            })
-                            .build(),
-                    );
-
+                    _locations.push(CLocation::new(longitude, latitude));
                     point_count_total += 1;
                 }
             }
 
             // Adjust part of russia
             if adjust_russia {
-                let mut locations = app_state.world.write_storage::<CLocation>();
-                for location in &_locations {
-                    let l = locations.get_mut(*location).unwrap();
-                    l.longitude += 360.0;
+                for location in &mut _locations {
+                    location.longitude += 360.0;
+                    location.p.x += 360.0;
                 }
             }
 
@@ -137,9 +123,6 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
             }
         }
 
-        // Create x, y co-ordinates
-        dispatcher_to_xy.dispatch_par(&app_state.world);
-
         // Pre-render polygons
         dispatcher_create_pic.dispatch_par(&app_state.world);
 
@@ -156,23 +139,13 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                     2500000..5000000 => 4,
                     _ => 5,
                 };
-
-                let _location = app_state
-                    .world
-                    .create_entity()
-                    .with(CLocation {
-                        latitude: city.location.latitude,
-                        longitude: city.location.longitude,
-                        p: city.location.p,
-                    })
-                    .build();
-
+                
                 let _city = app_state
                     .world
                     .create_entity()
                     .with(CCity {
                         territory: _territory,
-                        location: _location,
+                        location: CLocation::new(city.location.longitude, city.location.latitude),
                         name: city.name,
                         size,
                         armies: 1,

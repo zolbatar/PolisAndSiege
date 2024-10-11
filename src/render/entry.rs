@@ -40,11 +40,9 @@ fn render_connections(skia: &mut Skia, app_state: &mut AppState) {
     for connection in connections.join() {
         let city1 = cities.get(connection.city1).unwrap();
         let city2 = cities.get(connection.city2).unwrap();
-        let city1_location = locations.get(city1.location).unwrap();
-        let city2_location = locations.get(city2.location).unwrap();
 
-        skia.get_canvas().draw_line(city1_location.p, city2_location.p, &paint);
-        skia.get_canvas().draw_line(city1_location.p, city2_location.p, &paint_alt);
+        skia.get_canvas().draw_line(city1.location.p, city2.location.p, &paint);
+        skia.get_canvas().draw_line(city1.location.p, city2.location.p, &paint_alt);
     }
 }
 
@@ -63,25 +61,24 @@ fn render_territories(skia: &mut Skia, app_state: &mut AppState) {
 fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
     let entities = app_state.world.entities();
     let cities = app_state.world.read_storage::<CCity>();
-    let locations = app_state.world.read_storage::<CLocation>();
     let territories = app_state.world.read_storage::<CTerritory>();
-    for city in (&entities, &cities).join() {
+    for (entity, city) in (&entities, &cities).join() {
         let selected = if let Some(selected) = app_state.selection.last_city_selection {
             if app_state.current_turn == app_state.actual_human {
-                selected == city.0
+                selected == entity
             } else { false }
         } else {
             false
         };
         let hover = if let Some(hover) = app_state.selection.last_city_hover {
             if app_state.current_turn == app_state.actual_human {
-                hover == city.0
+                hover == entity
             } else { false }
         } else {
             false
         };
-        let centre = locations.get(city.1.location).unwrap().p;
-        let territory = territories.get(city.1.territory).unwrap();
+        let centre = city.location.p;
+        let territory = territories.get(city.territory).unwrap();
         let font_size: f32 = 2.4;
 
         let mut paint_name = Paint::default();
@@ -96,7 +93,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
         paint_fill.set_color(skia::mix_colors(territory.colour, Color::WHITE, 0.6));
         let mut paint_fill_circle = Paint::default();
         paint_fill_circle.set_style(PaintStyle::Fill);
-        let colours = match &city.1.owner {
+        let colours = match &city.owner {
             Some(x) => app_state.world.read_storage::<CPlayer>().get(*x).unwrap().colours.clone(),
             None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
         };
@@ -114,7 +111,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia
-                .text_dimensions(font_size, &paint_name, &city.1.name, &FontFamily::EbGaramond, TextAlign::Left)
+                .text_dimensions(font_size, &paint_name, &city.name, &FontFamily::EbGaramond, TextAlign::Left)
                 .clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
                 skia.get_canvas().draw_round_rect(
@@ -148,7 +145,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
             paint_outline.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase).unwrap());
         }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        let strength = format!("{}/{}", city.1.armies, city.1.size);
+        let strength = format!("{}/{}", city.armies, city.size);
         skia.write_text_centre(
             5.0,
             &paint_number,
@@ -161,7 +158,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
             skia.write_text(
                 font_size,
                 &paint_name,
-                &city.1.name,
+                &city.name,
                 Point::new(centre.x + SIZE + 0.5, centre.y - 1.2),
                 MAXIMUM_LABEL_WIDTH,
                 &FontFamily::EbGaramond,

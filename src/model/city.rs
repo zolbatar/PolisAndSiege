@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::model::location::{calculate_distance, Location};
+use crate::model::location::{calculate_distance, CLocation};
 use petgraph::graph::NodeIndex;
 use specs::prelude::*;
 use specs::Entity;
@@ -11,7 +11,7 @@ use std::collections::HashMap;
 #[storage(VecStorage)]
 pub struct CCity {
     pub territory: Entity,
-    pub location: Entity,
+    pub location: CLocation,
     pub name: String,
     pub size: u8,
     pub armies: u8,
@@ -21,7 +21,7 @@ pub struct CCity {
 
 pub struct City {
     pub name: String,
-    pub location: Location,
+    pub location: CLocation,
     pub population: i64,
 }
 
@@ -33,7 +33,7 @@ impl City {
     pub fn new(name: String, longitude: f32, latitude: f32, population: i64) -> Self {
         City {
             name,
-            location: Location::new(longitude, latitude),
+            location: CLocation::new(longitude, latitude),
             population,
         }
     }

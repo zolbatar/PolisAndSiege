@@ -1,4 +1,3 @@
-use crate::model::location::Location;
 use crate::model::player::CPlayer;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
@@ -8,6 +7,7 @@ use skia_safe::{Color, FontMgr, Path, Point, Size};
 use specs::{Builder, Entity, World, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 use std::time::Instant;
+use crate::model::location::CLocation;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
@@ -41,7 +41,7 @@ pub struct Resource {
 #[derive(Default)]
 pub struct Items {
     pub territories: BTreeMap<String, Entity>,
-    pub existing_cities: Vec<Location>, // Only used during initial city placement
+    pub existing_cities: Vec<CLocation>, // Only used during initial city placement
     pub cities: Vec<Entity>,
     pub cities_remaining_to_assign: Vec<Entity>,
     pub north_america: Option<Entity>,

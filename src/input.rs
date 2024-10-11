@@ -49,8 +49,7 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
             let territory = territories.get(*territory_entity.1).unwrap();
             for city_entity in territory.cities.iter() {
                 let city = cities.get_mut(*city_entity).unwrap();
-                let city_location = locations.get(city.location).unwrap();
-                let delta = city_location.p - mp;
+                let delta = city.location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
                 if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 && city.owner.unwrap() == app_state.current_turn {
                     if app_state.mode == GameMode::ArmyPlacement {

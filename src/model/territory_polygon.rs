@@ -8,7 +8,7 @@ use specs_derive::Component;
 #[storage(VecStorage)]
 pub struct CTerritoryPolygon {
     pub territory: Entity,
-    pub locations: Vec<Entity>,
+    pub locations: Vec<CLocation>,
     pub pic: Option<Picture>,
 }
 
@@ -30,9 +30,10 @@ impl<'a> System<'a> for SCreatePictureForPolygon {
 
             // Construct path
             let mut path = Path::new();
-            path.move_to(locations.get(component.locations[0]).unwrap().p);
+            path.move_to(component.locations[0].p);
             for location in component.locations.iter().skip(1) {
-                path.line_to(locations.get(*location).unwrap().p);
+                path.line_to(location.p);
+//                println!("{:?}", location.p);
             }
             path.close();
 
