@@ -1,6 +1,9 @@
 use crate::app_state::AppState;
 use crate::lib::skia::{FontFamily, Skia};
+use crate::model::city::CCity;
+use crate::model::territory::CTerritory;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect, Vector};
+use specs::WorldExt;
 
 pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.set_matrix(&app_state.gfx);
@@ -12,9 +15,11 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     let t = rr.top;
 
     // City
-    let city = app_state.selection.last_city_selection.clone();
-    let city_name = city.clone().unwrap().lock().unwrap().name.clone();
-    let territory_name = city.unwrap().lock().unwrap().territory.lock().unwrap().name.clone();
+    let cities = app_state.world.read_storage::<CCity>();
+    let city = cities.get(app_state.selection.last_city_selection.unwrap()).unwrap();
+    let city_name = city.name.clone();
+    let territories = app_state.world.read_storage::<CTerritory>();
+    let territory_name = territories.get(city.territory).unwrap().name.clone();
 
     // Positions
     let text_w = 80.0;

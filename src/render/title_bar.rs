@@ -1,9 +1,12 @@
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia::{FontFamily, Skia};
-use crate::model::city::Owner;
+use crate::model::player::CPlayer;
 use skia_safe::{Color, Paint, PaintStyle, Point};
+use specs::WorldExt;
 
 pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
+    let players = app_state.world.read_storage::<CPlayer>();
+    let player = players.get(app_state.actual_human).unwrap();
     skia.set_matrix(&app_state.gfx);
 
     // Show faction name
@@ -19,9 +22,10 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
         GameMode::Randomising => "Assigning Cities",
         GameMode::ArmyPlacement => "Initial Army Placement",
         GameMode::Game => {
-            match app_state.current_turn {
-                Owner::Player => "Player Turn",
-                _ => "Enemy Turn"
+            if app_state.current_turn == app_state.actual_human {
+                "Player Turn"
+            } else {
+                "Enemy Turn"
             }
         }
     };
@@ -33,32 +37,21 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
         app_state.gfx.width as f32,
         &FontFamily::EbGaramond,
     );
-    paint_title.set_color(Color::WHITE);
+    paint_title.set_color(Color::LIGHT_GRAY);
     skia.write_text(
-        25.0,
+        20.0,
         &paint_title,
-        app_state.res.player_name.get(&Owner::Player).unwrap(),
+        &player.name.clone(),
         Point::new(160.0, 0.0),
         app_state.gfx.width as f32,
         &FontFamily::EbGaramond,
     );
 
-    let mut total_cities = 0;
-    let mut cities = 0;
-    for territory in &app_state.items.territories {
-        for city in territory.1.lock().unwrap().cities.iter() {
-            if city.lock().unwrap().owner == Owner::Player {
-                cities += 1;
-            }
-            total_cities += 1;
-        }
-    }
-
     // City/territory count
     skia.write_text_right(
-        25.0,
+        20.0,
         &paint_title,
-        &format!("Cities: {}/{}", cities, total_cities),
+        &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), app_state.items.cities.len()),
         Point::new(0.0, 0.0),
         app_state.gfx.width as f32 - 160.0,
         &FontFamily::EbGaramond,

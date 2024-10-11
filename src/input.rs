@@ -1,7 +1,10 @@
 use crate::app_state::{AppState, GameMode};
-use crate::model::city::{Owner, SIZE};
+use crate::model::city::{CCity, SIZE};
+use crate::model::location::CLocation;
+use crate::model::territory::CTerritory;
 use sdl2::mouse::{MouseButton, MouseWheelDirection};
 use skia_safe::Point;
+use specs::WorldExt;
 
 const THRESHOLD: i32 = 64;
 
@@ -37,15 +40,21 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
         } else {
             app_state.selection.last_city_hover = None;
         }
-        for territory in &app_state.items.territories {
-            for city in territory.1.lock().unwrap().cities.iter() {
-                let delta = city.lock().unwrap().location.p - mp;
+        let territories = app_state.world.read_storage::<CTerritory>();
+        let mut cities = app_state.world.write_storage::<CCity>();
+        let locations = app_state.world.read_storage::<CLocation>();
+        for territory_entity in &app_state.items.territories {
+            let territory = territories.get(*territory_entity.1).unwrap();
+            for city_entity in territory.cities.iter() {
+                let city = cities.get_mut(*city_entity).unwrap();
+                let city_location = locations.get(city.location).unwrap();
+                let delta = city_location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
                 if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 {
                     if app_state.mode == GameMode::ArmyPlacement {
-                        app_state.selection.last_city_selection = Some(city.clone());
+                        app_state.selection.last_city_selection = Some(*city_entity);
                     } else {
-                        app_state.selection.last_city_hover = Some(city.clone());
+                        app_state.selection.last_city_hover = Some(*city_entity);
                     }
                 }
             }
@@ -59,18 +68,22 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
     } else if button == MouseButton::Left {
         match app_state.mode {
             GameMode::ArmyPlacement => {
-                if let Some(city) = &app_state.selection.last_city_selection {
-                    if city.lock().unwrap().owner == Owner::Player {
-                        city.lock().unwrap().armies += 1;
+                if let Some(city_entity) = &app_state.selection.last_city_selection {
+                    let mut cities = app_state.world.write_storage::<CCity>();
+                    let city = cities.get_mut(*city_entity).unwrap();
+                    if city.owner.unwrap() == app_state.actual_human {
+                        city.armies += 1;
                         app_state.armies_to_assign -= 1;
                         if app_state.armies_to_assign == 0 {
                             app_state.mode = GameMode::Game;
+                            app_state.selection.last_city_hover = app_state.selection.last_city_selection;
+                            app_state.selection.last_city_selection = None;
                         }
                     }
                 }
             }
             GameMode::Game => {
-                app_state.selection.last_city_selection = app_state.selection.last_city_hover.clone();
+                app_state.selection.last_city_selection = app_state.selection.last_city_hover;
             }
             _ => {}
         }

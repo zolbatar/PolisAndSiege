@@ -92,7 +92,6 @@ impl Skia {
 
         // Shaders
         let noise_shader = RuntimeEffect::make_for_shader(NOISE_SKSL, None);
-        //        println!("{}", &noise_shader.clone().unwrap_err());
 
         // Filters
         let drop_shadow =

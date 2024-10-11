@@ -3,6 +3,7 @@ mod lib {
     pub mod cbor;
     pub mod skia;
 }
+pub mod ai;
 mod game_state;
 mod input;
 
@@ -11,9 +12,9 @@ mod model {
     pub mod connection;
     pub mod location;
     pub mod math;
+    pub mod player;
     pub mod territory;
     pub mod territory_polygon;
-    pub mod scoring;
 }
 mod render {
     pub mod army_placement;
@@ -26,19 +27,21 @@ mod render {
     pub mod title_bar;
 }
 
-mod ai {
-    pub mod base;
-    pub mod tree_search;
-}
-
+use crate::ai::computer_turn;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
+use crate::model::city::CCity;
+use crate::model::connection::CConnection;
+use crate::model::location::CLocation;
+use crate::model::player::{CPlayer, SUpdateScores};
+use crate::model::territory::CTerritory;
+use crate::model::territory_polygon::CTerritoryPolygon;
+use ai::Difficulty;
 use app_state::AppState;
 use sdl2::video::GLProfile;
+use specs::prelude::*;
 use std::time::{Duration, Instant};
-use crate::ai::base::{computer_turn, AIModel, AIStrength};
-use crate::model::scoring::create_score;
 
 fn main() {
     // Initialize SDL2
@@ -79,10 +82,20 @@ fn main() {
             eprintln!("Could not get DPI information: {}", e);
         }
     }
+    dpi = dpi.floor();
+
+    // Set up ECS
+    let mut world = World::new();
+    world.register::<CPlayer>();
+    world.register::<CTerritory>();
+    world.register::<CTerritoryPolygon>();
+    world.register::<CLocation>();
+    world.register::<CCity>();
+    world.register::<CConnection>();
+    world.insert(Difficulty::TreeSearchNormal);
 
     // Create an AppState instance using the new method
-    dpi = dpi.floor();
-    let mut app_state = AppState::new(&window, dpi);
+    let mut app_state = AppState::new(&window, dpi, world);
 
     // Load CBOR data
     let territories = cbor::import(&mut app_state);
@@ -102,12 +115,13 @@ fn main() {
     let mut last_fps_check = Instant::now();
     let fps_check_interval = Duration::from_secs(1); // Check FPS every second
 
-    computer_turn(AIModel::TreeSearch, AIStrength::Normal, &app_state);
-    create_score(&app_state.players, &app_state.items.territories);
+    computer_turn(&mut app_state);
 
     // Loop
     let start = Instant::now();
     'running: loop {
+        app_state.world.maintain();
+
         // Measure the time it took to render the previous frame
         let current_time = Instant::now();
         app_state.phase = (current_time.duration_since(start).as_millis() as f32 / 250.0) % 2.0;
@@ -167,6 +181,10 @@ fn main() {
                 _ => {}
             }
         }
+
+        // Update scores
+        let mut dispatcher_score = DispatcherBuilder::new().with(SUpdateScores, "update_scores", &[]).build();
+        dispatcher_score.dispatch_par(&app_state.world);
 
         render::entry::main(&mut skia, &mut app_state);
         window.gl_swap_window();

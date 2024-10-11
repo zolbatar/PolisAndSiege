@@ -1,14 +1,12 @@
-use crate::model::city::{City, Owner};
-use crate::model::connection::Connection;
 use crate::model::location::Location;
-use crate::model::territory::Territory;
+use crate::model::player::{CPlayer, PlayerType};
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use sdl2::video::Window;
 use skia_safe::svg::Dom;
 use skia_safe::{Color, FontMgr, Path, Point, Size};
+use specs::{Builder, Entity, World, WorldExt};
 use std::collections::{BTreeMap, HashMap};
-use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
@@ -36,36 +34,45 @@ pub struct Resource {
     pub side_path: Dom,
     pub corner_path: Dom,
     pub button_path: Dom,
-    pub player_lookup: HashMap<u8, Owner>,
-    pub player_colours: HashMap<Owner, Vec<Color>>,
-    pub player_name: HashMap<Owner, String>,
+    pub player_lookup: HashMap<usize, Entity>,
 }
 
+#[derive(Default)]
 pub struct Items {
-    pub territories: BTreeMap<String, Arc<Mutex<Territory>>>,
+    pub territories: BTreeMap<String, Entity>,
     pub existing_cities: Vec<Location>, // Only used during initial city placement
-    pub cities: Vec<Arc<Mutex<City>>>,
-    pub cities_remaining_to_assign: Vec<Arc<Mutex<City>>>,
-    pub connections: Vec<Arc<Mutex<Connection>>>,
+    pub cities: Vec<Entity>,
+    pub cities_remaining_to_assign: Vec<Entity>,
+    pub north_america: Option<Entity>,
+    pub latin_america: Option<Entity>,
+    pub asia: Option<Entity>,
+    pub europe: Option<Entity>,
+    pub eastern_europe: Option<Entity>,
+    pub australia: Option<Entity>,
+    pub middle_east: Option<Entity>,
+    pub africa: Option<Entity>,
 }
 
 pub struct CitySelection {
     pub last_selection: Instant,
-    pub last_city_hover: Option<Arc<Mutex<City>>>,
-    pub last_city_selection: Option<Arc<Mutex<City>>>,
-    pub last_player: u8,
+    pub last_city_hover: Option<Entity>,
+    pub last_city_selection: Option<Entity>,
+    pub last_army_city_selection: Option<Entity>,
+    pub last_player: usize,
     pub minimum_allowed_distance: f32,
     pub assign_speed: u128,
 }
 
 pub struct AppState {
-    pub players: Vec<Owner>,
+    pub world: World,
+    pub players: Vec<Entity>,
+    pub num_of_players: usize,
+
     pub selection: CitySelection,
     pub gfx: GFXState,
     pub res: Resource,
     pub items: Items,
     pub mode: GameMode,
-    pub num_of_players: u8,
     pub fps: f64,
     pub zoom: f32,
     pub target: Point,
@@ -74,12 +81,13 @@ pub struct AppState {
     pub show_shadows: bool,
     pub phase: f32,
     pub armies_to_assign: i32,
-    pub current_turn: Owner,
+    pub current_turn: Entity,
+    pub actual_human: Entity,
     pub hover: Point,
 }
 
 impl AppState {
-    pub fn new(window: &Window, dpi: f32) -> Self {
+    pub fn new(window: &Window, dpi: f32, mut world: World) -> Self {
         let width = window.size().0 as i32;
         let height = window.size().1 as i32;
         println!("Screen resolution: {}x{}", width, height);
@@ -107,8 +115,6 @@ impl AppState {
             side_path,
             button_path,
             player_lookup: HashMap::new(),
-            player_colours: HashMap::new(),
-            player_name: HashMap::new(),
         };
 
         let num_of_players = 5;
@@ -125,7 +131,7 @@ impl AppState {
             "The Persian Ascendants",
             "The Italian Legions",
             "The Dragon Empire",
-            " The Iberian Dominion",
+            "The Iberian Dominion",
             "The Nordic Coalition",
             "The Balkan Confederacy",
             "The Egyptian Dynasts",
@@ -138,58 +144,74 @@ impl AppState {
         let mut rng = thread_rng(); // Create a random number generator
         possible_names.shuffle(&mut rng);
 
+        // Player colours
+        let player_colours = [
+            vec![Color::from_rgb(0, 0, 255), Color::WHITE],
+            vec![Color::from_rgb(255, 0, 0), Color::WHITE],
+            vec![Color::from_rgb(0, 255, 0), Color::BLACK],
+            vec![Color::from_rgb(255, 255, 0), Color::BLACK],
+            vec![Color::from_rgb(0, 255, 255), Color::BLACK],
+        ];
+
+        // Create player(s)
+        let mut _players = Vec::new();
+        _players.push(
+            world
+                .create_entity()
+                .with(CPlayer {
+                    player_type: PlayerType::Human,
+                    name: possible_names[0].parse().unwrap(),
+                    colours: player_colours[0].clone(),
+                    ..Default::default()
+                })
+                .build(),
+        );
+        for i in 1..num_of_players {
+            _players.push(
+                world
+                    .create_entity()
+                    .with(CPlayer {
+                        name: possible_names[0].parse().unwrap(),
+                        colours: player_colours[i].clone(),
+                        ..Default::default()
+                    })
+                    .build(),
+            );
+        }
+
         // Colours for each player
-        let mut players = Vec::new();
-        res.player_lookup.insert(0, Owner::None);
-        res.player_lookup.insert(1, Owner::Player);
-        res.player_lookup.insert(2, Owner::Enemy1);
+        res.player_lookup.insert(0, _players[0]);
+        res.player_lookup.insert(1, _players[1]);
         if num_of_players >= 3 {
-            res.player_lookup.insert(3, Owner::Enemy2);
-            players.push(Owner::Enemy2);
+            res.player_lookup.insert(2, _players[2]);
         }
         if num_of_players >= 4 {
-            res.player_lookup.insert(4, Owner::Enemy3);
-            players.push(Owner::Enemy3);
+            res.player_lookup.insert(3, _players[3]);
         }
         if num_of_players >= 5 {
-            res.player_lookup.insert(5, Owner::Enemy4);
-            players.push(Owner::Enemy4);
+            res.player_lookup.insert(4, _players[4]);
         }
-        res.player_colours.insert(Owner::None, vec![Color::from_rgb(128, 128, 128), Color::BLACK]);
-        res.player_colours.insert(Owner::Player, vec![Color::from_rgb(0, 0, 255), Color::WHITE]);
-        res.player_colours.insert(Owner::Enemy1, vec![Color::from_rgb(255, 0, 0), Color::WHITE]);
-        res.player_colours.insert(Owner::Enemy2, vec![Color::from_rgb(0, 255, 0), Color::BLACK]);
-        res.player_colours.insert(Owner::Enemy3, vec![Color::from_rgb(255, 255, 0), Color::BLACK]);
-        res.player_colours.insert(Owner::Enemy4, vec![Color::from_rgb(0, 255, 255), Color::BLACK]);
-        res.player_name.insert(Owner::None, "No control".parse().unwrap());
-        res.player_name.insert(Owner::Player, possible_names[0].parse().unwrap());
-        res.player_name.insert(Owner::Enemy1, possible_names[1].parse().unwrap());
-        res.player_name.insert(Owner::Enemy2, possible_names[2].parse().unwrap());
-        res.player_name.insert(Owner::Enemy3, possible_names[3].parse().unwrap());
-        res.player_name.insert(Owner::Enemy4, possible_names[4].parse().unwrap());
 
-        let items = Items {
-            territories: BTreeMap::new(),
-            existing_cities: Vec::new(),
-            connections: Vec::new(),
-            cities: Vec::new(),
-            cities_remaining_to_assign: Vec::new(),
-        };
+        let items = Items::default();
 
         AppState {
-            players,
+            world,
             mode: GameMode::Randomising,
             selection: CitySelection {
                 last_selection: Instant::now(),
                 last_city_selection: None,
                 last_city_hover: None,
-                last_player: 1,
+                last_army_city_selection: None,
+                last_player: 0,
                 minimum_allowed_distance: 18.0, //12.0,
-                assign_speed: 0,
+                assign_speed: 10,
             },
             gfx,
             res,
             items,
+            current_turn: _players[0],
+            actual_human: _players[0],
+            players: _players,
             num_of_players,
             fps: 0.0,
             panning: false,
@@ -199,7 +221,6 @@ impl AppState {
             target: Point::new(25.0, -10.0),
             phase: 0.0,
             armies_to_assign: 10,
-            current_turn: Owner::Player,
             hover: Point::new(-1.0, -1.0),
         }
     }

@@ -38,7 +38,6 @@ pub fn army_placement(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     for _ in 0..app_state.armies_to_assign {
         ss += "⚔";
     }
-    //    &*app_state.armies_to_assign.to_string(),
     skia.write_text_centre(30.0, &paint_right, &ss, Point::new(l, rr.top + 125.0), w, &FontFamily::NotoSansSymbols);
 
     skia.get_canvas().restore();
