@@ -1,12 +1,10 @@
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia;
 use crate::lib::skia::{FontFamily, Skia};
-use crate::model::city::{CCity, MAXIMUM_LABEL_WIDTH, SIZE, SIZE_SELECTED};
+use crate::model::city::{City, MAXIMUM_LABEL_WIDTH, SIZE, SIZE_SELECTED};
 use crate::model::connection::{CConnection, LINE_WIDTH};
-use crate::model::location::CLocation;
-use crate::model::player::CPlayer;
-use crate::model::territory::CTerritory;
-use crate::model::territory_polygon::CTerritoryPolygon;
+use crate::model::player::Player;
+use crate::model::territory::Territory;
 use crate::render::army_placement::army_placement;
 use crate::render::city_selection::city_selection;
 use crate::render::lower_panel::render_lower_panel;
@@ -34,9 +32,8 @@ fn render_connections(skia: &mut Skia, app_state: &mut AppState) {
     paint.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase).unwrap());
     paint_alt.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase + 1.0).unwrap());
 
-    let cities = app_state.world.read_storage::<CCity>();
+    let cities = app_state.world.read_storage::<City>();
     let connections = app_state.world.read_storage::<CConnection>();
-    let locations = app_state.world.read_storage::<CLocation>();
     for connection in connections.join() {
         let city1 = cities.get(connection.city1).unwrap();
         let city2 = cities.get(connection.city2).unwrap();
@@ -47,21 +44,18 @@ fn render_connections(skia: &mut Skia, app_state: &mut AppState) {
 }
 
 fn render_territories(skia: &mut Skia, app_state: &mut AppState) {
-    let territories = app_state.world.read_storage::<CTerritory>();
-    let polygons = app_state.world.read_storage::<CTerritoryPolygon>();
+    let territories = app_state.world.read_storage::<Territory>();
     for territory in territories.join() {
-        for polygon_entity in &territory.polygons {
-            if let Some(polygon) = polygons.get(*polygon_entity) {
-                skia.get_canvas().draw_picture(polygon.pic.as_ref().unwrap(), None, None);
-            }
+        for polygon in &territory.polygons {
+            skia.get_canvas().draw_picture(polygon.pic.as_ref(), None, None);
         }
     }
 }
 
 fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
     let entities = app_state.world.entities();
-    let cities = app_state.world.read_storage::<CCity>();
-    let territories = app_state.world.read_storage::<CTerritory>();
+    let cities = app_state.world.read_storage::<City>();
+    let territories = app_state.world.read_storage::<Territory>();
     for (entity, city) in (&entities, &cities).join() {
         let selected = if let Some(selected) = app_state.selection.last_city_selection {
             if app_state.current_turn == app_state.actual_human {
@@ -94,7 +88,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
         let mut paint_fill_circle = Paint::default();
         paint_fill_circle.set_style(PaintStyle::Fill);
         let colours = match &city.owner {
-            Some(x) => app_state.world.read_storage::<CPlayer>().get(*x).unwrap().colours.clone(),
+            Some(x) => app_state.world.read_storage::<Player>().get(*x).unwrap().colours.clone(),
             None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
         };
         paint_fill_circle.set_color(colours[0]);

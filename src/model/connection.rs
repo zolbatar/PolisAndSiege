@@ -1,7 +1,7 @@
 use crate::app_state::AppState;
-use crate::model::city::CCity;
-use crate::model::location::{calculate_distance, CLocation};
-use crate::model::territory::CTerritory;
+use crate::model::city::City;
+use crate::model::location::{calculate_distance};
+use crate::model::territory::Territory;
 use petgraph::algo::min_spanning_tree;
 use petgraph::data::FromElements;
 use petgraph::prelude::UnGraph;
@@ -29,9 +29,8 @@ fn build_territory_connections(
 ) {
     let mut m1 = BTreeMap::new();
     let mut m2 = BTreeMap::new();
-    let cities = app_state.world.read_storage::<CCity>();
-    let locations = app_state.world.read_storage::<CLocation>();
-    let territories = app_state.world.read_storage::<CTerritory>();
+    let cities = app_state.world.read_storage::<City>();
+    let territories = app_state.world.read_storage::<Territory>();
 
     let territory1 = territories.get(territory1_entity).unwrap();
     let territory2 = territories.get(territory2_entity).unwrap();
@@ -76,11 +75,11 @@ fn build_territory_connections(
 
 pub fn build_connections(app_state: &mut AppState) {
     let mut connections = Vec::new();
-    for territory in app_state.world.read_storage::<CTerritory>().join() {
+    for territory in app_state.world.read_storage::<Territory>().join() {
         let mut graph = UnGraph::new_undirected();
 
         // Cities
-        let mut cities = app_state.world.write_storage::<CCity>();
+        let mut cities = app_state.world.write_storage::<City>();
         for entity in &territory.cities {
             let city = cities.get_mut(*entity).unwrap();
             let node = graph.add_node(entity);
@@ -88,7 +87,6 @@ pub fn build_connections(app_state: &mut AppState) {
         }
 
         // Distances
-        let locations = app_state.world.read_storage::<CLocation>();
         for city1_entity in &territory.cities {
             for city2_entity in &territory.cities {
                 let city1 = cities.get(*city1_entity).unwrap();

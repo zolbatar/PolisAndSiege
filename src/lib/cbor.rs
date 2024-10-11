@@ -1,15 +1,15 @@
 use crate::app_state::AppState;
-use crate::model::city::{CCity, City};
+use crate::model::city::{select_evenly_spaced_cities, City, CityTemporary};
 use crate::model::connection::build_connections;
-use crate::model::location::{CLocation};
-use crate::model::territory::{get_colour_for_territory_name, CTerritory};
-use crate::model::territory_polygon::{CTerritoryPolygon, SCreatePictureForPolygon};
+use crate::model::location::{Location};
+use crate::model::territory::{get_colour_for_territory_name, Territory};
+use crate::model::territory_polygon::{TerritoryPolygon};
 use ciborium::de::from_reader;
 use ciborium::Value;
 use petgraph::prelude::NodeIndex;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use specs::{Builder, DispatcherBuilder, Entity, WorldExt};
+use specs::{Builder, Entity, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 
 const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
@@ -20,10 +20,6 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
     let mut polygon_count = 0;
     let mut point_count_total = 0;
     let mut cities_count = 0;
-
-    // Create the dispatcher and add the system
-    let mut dispatcher_create_pic =
-        DispatcherBuilder::new().with(SCreatePictureForPolygon, "create_picture", &[]).build();
 
     // Top level is a map of territories
     let mut territories = BTreeMap::new();
@@ -43,7 +39,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
         let _territory = app_state
             .world
             .create_entity()
-            .with(CTerritory {
+            .with(Territory {
                 colour: get_colour_for_territory_name(&territory_name_unwrapped),
                 name: territory_name_unwrapped.clone(),
                 ..Default::default()
@@ -67,7 +63,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                         adjust_russia = true;
                     }
 
-                    _locations.push(CLocation::new(longitude, latitude));
+                    _locations.push(Location::new(longitude, latitude));
                     point_count_total += 1;
                 }
             }
@@ -84,24 +80,19 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
             if _locations.len() >= 64 {
                 polygon_count += 1;
 
-                let _territory_polygon = app_state
-                    .world
-                    .create_entity()
-                    .with(CTerritoryPolygon {
-                        territory: _territory,
-                        locations: _locations,
-                        pic: None,
-                    })
-                    .build();
+                let territory_polygon = TerritoryPolygon::new(
+                    app_state,
+                    _territory,
+                    _locations);
 
                 // Add polygon to territory
                 app_state
                     .world
-                    .write_storage::<CTerritory>()
+                    .write_storage::<Territory>()
                     .get_mut(_territory)
                     .unwrap()
                     .polygons
-                    .push(_territory_polygon);
+                    .push(territory_polygon);
             }
         }
 
@@ -114,7 +105,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
             let longitude = city_details[2].as_float().unwrap() as f32;
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
             if !name.eq("Honolulu") && longitude > -140.0 {
-                let city = City::new(name.to_string(), longitude, latitude, population);
+                let city = CityTemporary::new(name.to_string(), longitude, latitude, population);
                 if !territory_city.contains_key(&territory_name_unwrapped) {
                     territory_city.insert(territory_name_unwrapped.clone(), Vec::new());
                 }
@@ -123,11 +114,8 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
             }
         }
 
-        // Pre-render polygons
-        dispatcher_create_pic.dispatch_par(&app_state.world);
-
         // Choose sensible cities for each territory
-        territory_city = City::select_evenly_spaced_cities(app_state, &mut territory_city, 25);
+        territory_city = select_evenly_spaced_cities(app_state, &mut territory_city, 25);
 
         // Now add to ECS
         for (_, cities) in territory_city {
@@ -139,13 +127,13 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                     2500000..5000000 => 4,
                     _ => 5,
                 };
-                
+
                 let _city = app_state
                     .world
                     .create_entity()
-                    .with(CCity {
+                    .with(City {
                         territory: _territory,
-                        location: CLocation::new(city.location.longitude, city.location.latitude),
+                        location: Location::new(city.location.longitude, city.location.latitude),
                         name: city.name,
                         size,
                         armies: 1,
@@ -155,7 +143,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                     .build();
 
                 // Add city to territory
-                app_state.world.write_storage::<CTerritory>().get_mut(_territory).unwrap().cities.push(_city);
+                app_state.world.write_storage::<Territory>().get_mut(_territory).unwrap().cities.push(_city);
             }
         }
 
@@ -180,7 +168,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
     }*/
 
     // And a list of all cities
-    let _territories = app_state.world.read_storage::<CTerritory>();
+    let _territories = app_state.world.read_storage::<Territory>();
     for territory_entity in territories.values() {
         let territory = _territories.get(*territory_entity).unwrap();
         for city in territory.cities.iter() {

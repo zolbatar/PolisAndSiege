@@ -1,4 +1,4 @@
-use crate::model::player::CPlayer;
+use crate::model::player::Player;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use sdl2::video::Window;
@@ -7,7 +7,7 @@ use skia_safe::{Color, FontMgr, Path, Point, Size};
 use specs::{Builder, Entity, World, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 use std::time::Instant;
-use crate::model::location::CLocation;
+use crate::model::location::Location;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
@@ -41,7 +41,7 @@ pub struct Resource {
 #[derive(Default)]
 pub struct Items {
     pub territories: BTreeMap<String, Entity>,
-    pub existing_cities: Vec<CLocation>, // Only used during initial city placement
+    pub existing_cities: Vec<Location>, // Only used during initial city placement
     pub cities: Vec<Entity>,
     pub cities_remaining_to_assign: Vec<Entity>,
     pub north_america: Option<Entity>,
@@ -159,7 +159,7 @@ impl AppState {
             _players.push(
                 world
                     .create_entity()
-                    .with(CPlayer {
+                    .with(Player {
                         index: i,
                         name: possible_names[i].parse().unwrap(),
                         colours: player_colours[i].clone(),

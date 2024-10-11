@@ -1,11 +1,11 @@
-use crate::model::city::CCity;
+use crate::model::city::City;
 use skia_safe::Color;
 use specs::prelude::*;
 use specs_derive::Component;
 
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
-pub struct CPlayer {
+pub struct Player {
     pub index: usize,
     pub name: String,
     pub score: i32,
@@ -16,7 +16,7 @@ pub struct CPlayer {
 
 pub struct SUpdateScores;
 impl<'a> System<'a> for SUpdateScores {
-    type SystemData = (WriteStorage<'a, CPlayer>, ReadStorage<'a, CCity>);
+    type SystemData = (WriteStorage<'a, Player>, ReadStorage<'a, City>);
 
     fn run(&mut self, (mut components, cities): Self::SystemData) {
         for component in (&mut components).join() {

@@ -1,11 +1,10 @@
 use crate::app_state::{AppState, GameMode};
-use crate::model::city::{CCity, SIZE};
-use crate::model::location::CLocation;
-use crate::model::territory::CTerritory;
+use crate::model::city::{City, SIZE};
+use crate::model::territory::Territory;
 use sdl2::mouse::{MouseButton, MouseWheelDirection};
 use skia_safe::Point;
 use specs::{WorldExt};
-use crate::model::player::{CPlayer};
+use crate::model::player::{Player};
 use crate::next_turn;
 
 const THRESHOLD: i32 = 64;
@@ -42,16 +41,15 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
         } else {
             app_state.selection.last_city_hover = None;
         }
-        let territories = app_state.world.read_storage::<CTerritory>();
-        let mut cities = app_state.world.write_storage::<CCity>();
-        let locations = app_state.world.read_storage::<CLocation>();
+        let territories = app_state.world.read_storage::<Territory>();
+        let mut cities = app_state.world.write_storage::<City>();
         for territory_entity in &app_state.items.territories {
             let territory = territories.get(*territory_entity.1).unwrap();
             for city_entity in territory.cities.iter() {
                 let city = cities.get_mut(*city_entity).unwrap();
                 let delta = city.location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
-                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 && city.owner.unwrap() == app_state.current_turn {
+                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 && city.owner.is_some() && city.owner.unwrap() == app_state.current_turn {
                     if app_state.mode == GameMode::ArmyPlacement {
                         app_state.selection.last_city_selection = Some(*city_entity);
                     } else {
@@ -70,8 +68,8 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
         match app_state.mode {
             GameMode::ArmyPlacement => {
                 if let Some(city_entity) = &app_state.selection.last_city_selection {
-                    let mut cities = app_state.world.write_storage::<CCity>();
-                    let mut players = app_state.world.write_storage::<CPlayer>();
+                    let mut cities = app_state.world.write_storage::<City>();
+                    let mut players = app_state.world.write_storage::<Player>();
                     let city = cities.get_mut(*city_entity).unwrap();
                     let player = players.get_mut(app_state.current_turn).unwrap();
                     if city.owner.unwrap() == app_state.current_turn {

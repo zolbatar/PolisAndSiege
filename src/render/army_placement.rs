@@ -2,7 +2,7 @@ use crate::app_state::AppState;
 use crate::lib::skia::{FontFamily, Skia};
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use specs::WorldExt;
-use crate::model::player::CPlayer;
+use crate::model::player::Player;
 
 pub fn army_placement(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.set_matrix(&app_state.gfx);
@@ -37,7 +37,7 @@ pub fn army_placement(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         &FontFamily::EbGaramond,
     );
     let mut ss = String::from("");
-    let mut players = app_state.world.write_storage::<CPlayer>();
+    let mut players = app_state.world.write_storage::<Player>();
     let player = players.get_mut(app_state.current_turn).unwrap();
     for _ in 0..player.armies_to_assign {
         ss += "⚔";

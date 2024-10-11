@@ -1,18 +1,18 @@
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia::{FontFamily, Skia};
-use crate::model::city::CCity;
-use crate::model::player::CPlayer;
-use crate::model::territory::CTerritory;
+use crate::model::city::City;
+use crate::model::player::Player;
+use crate::model::territory::Territory;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use specs::WorldExt;
 use std::time::Instant;
 use crate::next_turn;
 
 fn assign(app_state: &mut AppState) {
-    let mut cities = app_state.world.write_storage::<CCity>();
+    let mut cities = app_state.world.write_storage::<City>();
     let next_player = *app_state.res.player_lookup.get(&app_state.selection.last_player).unwrap();
     let next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
-    let mut player = app_state.world.write_storage::<CPlayer>();
+    let mut player = app_state.world.write_storage::<Player>();
     player.get_mut(next_player).unwrap().cities.push(next_city);
 
     //    player.get_mut(next_player).unwrap().score += next_city_obj.size as i32;
@@ -77,7 +77,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
     // Name and territory
     if let Some(city) = app_state.selection.last_army_city_selection {
-        let cities = app_state.world.read_storage::<CCity>();
+        let cities = app_state.world.read_storage::<City>();
         let last_city = cities.get(city).unwrap();
         let mut paint_left = Paint::default();
         paint_left.set_anti_alias(true);
@@ -118,7 +118,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         skia.write_text(
             20.0,
             &paint_right,
-            &app_state.world.read_storage::<CTerritory>().get(last_city.territory).unwrap().name,
+            &app_state.world.read_storage::<Territory>().get(last_city.territory).unwrap().name,
             Point::new(text_x, rr.top + 85.0),
             text_w,
             &FontFamily::EbGaramond,
@@ -134,7 +134,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             &FontFamily::EbGaramond,
         );
         let owner = last_city.owner.clone().unwrap();
-        let owner_string = app_state.world.read_storage::<CPlayer>().get(owner).unwrap().name.clone();
+        let owner_string = app_state.world.read_storage::<Player>().get(owner).unwrap().name.clone();
         skia.write_text(
             20.0,
             &paint_right,

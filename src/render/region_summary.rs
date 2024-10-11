@@ -1,6 +1,6 @@
 use crate::app_state::AppState;
 use crate::lib::skia::{FontFamily, Skia};
-use crate::model::territory::CTerritory;
+use crate::model::territory::Territory;
 use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
 use specs::{Join, WorldExt};
@@ -25,7 +25,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_border.set_color(skia.colour_outline);
 
     {
-        let territories = app_state.world.read_storage::<CTerritory>();
+        let territories = app_state.world.read_storage::<Territory>();
         let mut territories_map = BTreeMap::new();
         for territory in territories.join() {
             territories_map.insert(territory.name.clone(), territory);

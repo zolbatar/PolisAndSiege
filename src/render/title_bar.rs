@@ -1,11 +1,11 @@
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia::{FontFamily, Skia};
-use crate::model::player::CPlayer;
+use crate::model::player::Player;
 use skia_safe::{Color, Paint, PaintStyle, Point};
 use specs::WorldExt;
 
 pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
-    let players = app_state.world.read_storage::<CPlayer>();
+    let players = app_state.world.read_storage::<Player>();
     let player = players.get(app_state.current_turn).unwrap();
     skia.set_matrix(&app_state.gfx);
 

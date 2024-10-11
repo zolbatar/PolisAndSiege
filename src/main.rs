@@ -31,12 +31,12 @@ use crate::ai::computer_turn;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
-use crate::model::city::CCity;
+use crate::model::city::City;
 use crate::model::connection::CConnection;
-use crate::model::location::CLocation;
-use crate::model::player::{CPlayer, SUpdateScores};
-use crate::model::territory::CTerritory;
-use crate::model::territory_polygon::CTerritoryPolygon;
+use crate::model::location::Location;
+use crate::model::player::{Player, SUpdateScores};
+use crate::model::territory::Territory;
+use crate::model::territory_polygon::TerritoryPolygon;
 use ai::Difficulty;
 use app_state::AppState;
 use sdl2::video::GLProfile;
@@ -86,11 +86,11 @@ fn main() {
 
     // Set up ECS
     let mut world = World::new();
-    world.register::<CPlayer>();
-    world.register::<CTerritory>();
-    world.register::<CTerritoryPolygon>();
-    world.register::<CLocation>();
-    world.register::<CCity>();
+    world.register::<Player>();
+    world.register::<Territory>();
+    world.register::<TerritoryPolygon>();
+    world.register::<Location>();
+    world.register::<City>();
     world.register::<CConnection>();
     world.insert(Difficulty::TreeSearchNormal);
 
@@ -192,7 +192,7 @@ fn main() {
 }
 
 pub fn next_turn(app_state: &mut AppState) {
-    let players = app_state.world.read_storage::<CPlayer>();
+    let players = app_state.world.read_storage::<Player>();
     let mut current_player = players.get(app_state.current_turn).unwrap().index;
     current_player += 1;
     if current_player == app_state.num_of_players {
