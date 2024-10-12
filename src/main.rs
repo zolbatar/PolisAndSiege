@@ -7,8 +7,8 @@ mod ai {
     pub mod computer_turn;
     pub mod difficulty;
     pub mod possible_move;
+    mod game_state;
 }
-mod game_state;
 mod input;
 
 mod model {
