@@ -17,7 +17,6 @@ impl TerritoryPolygon {
 
         // Paint
         let mut paint = Paint::default();
-        //        paint.set_anti_alias(true);
         paint.set_style(PaintStyle::Fill);
         paint.set_argb(255, 255, 0, 0);
         paint.set_color(territories.get(territory).unwrap().colour);

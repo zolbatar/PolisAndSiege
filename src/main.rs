@@ -3,7 +3,11 @@ mod lib {
     pub mod cbor;
     pub mod skia;
 }
-pub mod ai;
+mod ai {
+    pub mod computer_turn;
+    pub mod difficulty;
+    pub mod possible_move;
+}
 mod game_state;
 mod input;
 
@@ -26,8 +30,6 @@ mod render {
     pub mod surround;
     pub mod title_bar;
 }
-
-use crate::ai::computer_turn;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
@@ -37,11 +39,12 @@ use crate::model::location::Location;
 use crate::model::player::{Player, SUpdateScores};
 use crate::model::territory::Territory;
 use crate::model::territory_polygon::TerritoryPolygon;
-use ai::Difficulty;
 use app_state::AppState;
 use sdl2::video::GLProfile;
 use specs::prelude::*;
 use std::time::{Duration, Instant};
+use crate::ai::computer_turn::computer_turn;
+use crate::ai::difficulty::Difficulty;
 
 fn main() {
     // Initialize SDL2
@@ -114,8 +117,6 @@ fn main() {
     let mut frame_count = 0;
     let mut last_fps_check = Instant::now();
     let fps_check_interval = Duration::from_secs(1); // Check FPS every second
-
-    computer_turn(&mut app_state);
 
     // Loop
     let start = Instant::now();
@@ -192,11 +193,21 @@ fn main() {
 }
 
 pub fn next_turn(app_state: &mut AppState) {
-    let players = app_state.world.read_storage::<Player>();
-    let mut current_player = players.get(app_state.current_turn).unwrap().index;
-    current_player += 1;
-    if current_player == app_state.num_of_players {
-        current_player = 0;
+    {
+        let players = app_state.world.read_storage::<Player>();
+        let mut current_player = players.get(app_state.current_turn).unwrap().index;
+        current_player += 1;
+        if current_player == app_state.num_of_players {
+            current_player = 0;
+        }
+        app_state.current_turn = app_state.players[current_player];
     }
-    app_state.current_turn = app_state.players[current_player];
+    // Computer turn?
+    let index = {
+        let players = app_state.world.read_storage::<Player>();
+        players.get(app_state.current_turn).unwrap().index
+    };
+    if index != 0 {
+        computer_turn(app_state);
+    }
 }

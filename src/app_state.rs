@@ -15,7 +15,7 @@ const SVG_BUTTON: &str = include_str!("../assets/Button.svg");
 pub const NOISE_MIX: f32 = 0.075;
 pub(crate) const MIN_ZOOM: f32 = 4.2;
 
-#[derive(PartialEq, Clone, Default)]
+#[derive(PartialEq, Clone, Default, Debug)]
 pub enum GameMode {
     Randomising,
     ArmyPlacement,
@@ -195,7 +195,7 @@ impl AppState {
                 last_army_city_selection: None,
                 last_player: 0,
                 minimum_allowed_distance: 18.0, //12.0,
-                assign_speed: 100,
+                assign_speed: 0,
             },
             gfx,
             res,

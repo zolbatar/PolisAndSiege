@@ -12,4 +12,4 @@ sdl2 = { version = "0.37.0", features = ["bundled", "static-link"] }
 gl = "0.14.0"
 mcts = "0.3.0"
 specs = "0.20.0"
-specs-derive = "0.4"
+specs-derive = "0.4.1"
