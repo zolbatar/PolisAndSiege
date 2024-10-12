@@ -6,7 +6,7 @@ use crate::model::territory::Territory;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use specs::WorldExt;
 use std::time::Instant;
-use crate::next_turn;
+use crate::{next_turn, update_scores};
 
 fn assign(app_state: &mut AppState) {
     let mut cities = app_state.world.write_storage::<City>();
@@ -53,7 +53,8 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
                 if app_state.items.cities_remaining_to_assign.is_empty() {
                     app_state.selection.last_city_selection = None;
                     app_state.mode = GameMode::ArmyPlacement;
-                    app_state.current_turn = app_state.actual_human;
+                    app_state.current_player = app_state.actual_human;
+                    update_scores(app_state);
                     return;
                 } else {
                     assign(app_state);
@@ -67,7 +68,8 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         if app_state.items.cities_remaining_to_assign.is_empty() {
             app_state.selection.last_city_selection = None;
             app_state.mode = GameMode::ArmyPlacement;
-            app_state.current_turn = app_state.actual_human;
+            app_state.current_player = app_state.actual_human;
+            update_scores(app_state);
             return;
         } else {
             assign(app_state);

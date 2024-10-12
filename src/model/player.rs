@@ -11,7 +11,14 @@ pub struct Player {
     pub score: i32,
     pub colours: Vec<Color>,
     pub cities: Vec<Entity>,
-    pub armies_to_assign: i32,
+    pub armies_to_assign: u32,
+}
+
+fn score_for_city(score_in: i32, city: &City) -> i32 {
+    let mut score = score_in;
+    score += (city.size as i32) * 10;
+    score += city.armies as i32;
+    score
 }
 
 pub struct SUpdateScores;
@@ -23,9 +30,9 @@ impl<'a> System<'a> for SUpdateScores {
             component.score = 0;
             for city_entity in &component.cities {
                 let city = cities.get(*city_entity);
-                component.score += (city.unwrap().size as i32) * 10;
-                component.score += city.unwrap().armies as i32;
+                component.score = score_for_city(component.score, city.unwrap());
             }
         }
     }
 }
+

@@ -6,7 +6,7 @@ use specs::WorldExt;
 
 pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
     let players = app_state.world.read_storage::<Player>();
-    let player = players.get(app_state.current_turn).unwrap();
+    let player = players.get(app_state.current_player).unwrap();
     skia.set_matrix(&app_state.gfx);
 
     // Show faction name
@@ -22,7 +22,7 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
         GameMode::Randomising => "Assigning Cities",
         GameMode::ArmyPlacement => "Initial Army Placement",
         GameMode::Game => {
-            if app_state.current_turn == app_state.actual_human {
+            if app_state.current_player == app_state.actual_human {
                 "Player Turn"
             } else {
                 "Enemy Turn"

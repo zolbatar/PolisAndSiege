@@ -49,7 +49,7 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
                 let city = cities.get_mut(*city_entity).unwrap();
                 let delta = city.location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
-                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 && city.owner.is_some() && city.owner.unwrap() == app_state.current_turn {
+                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 && city.owner.is_some() && city.owner.unwrap() == app_state.current_player {
                     if app_state.mode == GameMode::ArmyPlacement {
                         app_state.selection.last_city_selection = Some(*city_entity);
                     } else {
@@ -62,27 +62,29 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
 }
 
 pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
+    let human_turn = app_state.current_player == app_state.actual_human;
     if button == MouseButton::Right {
         app_state.panning = true;
     } else if button == MouseButton::Left {
         match app_state.mode {
             GameMode::ArmyPlacement => {
-                if let Some(city_entity) = &app_state.selection.last_city_selection {
-                    let mut cities = app_state.world.write_storage::<City>();
-                    let mut players = app_state.world.write_storage::<Player>();
-                    let city = cities.get_mut(*city_entity).unwrap();
-                    let player = players.get_mut(app_state.current_turn).unwrap();
-                    if city.owner.unwrap() == app_state.current_turn {
-                        city.armies += 1;
-                        player.armies_to_assign -= 1;
-                        if player.armies_to_assign == 0 {
-                            app_state.mode = GameMode::Game;
-                            app_state.selection.last_city_hover = app_state.selection.last_city_selection;
-                            app_state.selection.last_city_selection = None;
+                if human_turn {
+                    if let Some(city_entity) = &app_state.selection.last_city_selection {
+                        let mut cities = app_state.world.write_storage::<City>();
+                        let mut players = app_state.world.write_storage::<Player>();
+                        let city = cities.get_mut(*city_entity).unwrap();
+                        let player = players.get_mut(app_state.current_player).unwrap();
+                        if city.owner.unwrap() == app_state.current_player {
+                            city.armies += 1;
+                            player.armies_to_assign -= 1;
+                            if player.armies_to_assign == 0 {
+                                app_state.selection.last_city_hover = app_state.selection.last_city_selection;
+                                app_state.selection.last_city_selection = None;
+                            }
                         }
                     }
+                    next_turn(app_state);
                 }
-                next_turn(app_state);
             }
             GameMode::Game => {
                 app_state.selection.last_city_selection = app_state.selection.last_city_hover;

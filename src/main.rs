@@ -45,6 +45,7 @@ use specs::prelude::*;
 use std::time::{Duration, Instant};
 use crate::ai::computer_turn::computer_turn;
 use crate::ai::difficulty::Difficulty;
+use crate::app_state::GameMode;
 
 fn main() {
     // Initialize SDL2
@@ -183,29 +184,56 @@ fn main() {
             }
         }
 
-        // Update scores
-        let mut dispatcher_score = DispatcherBuilder::new().with(SUpdateScores, "update_scores", &[]).build();
-        dispatcher_score.dispatch_par(&app_state.world);
-
         render::entry::main(&mut skia, &mut app_state);
         window.gl_swap_window();
     }
 }
 
+pub fn update_scores(app_state: &mut AppState) {
+    let mut dispatcher_score = DispatcherBuilder::new().with(SUpdateScores, "update_scores", &[]).build();
+    dispatcher_score.dispatch_par(&app_state.world);
+}
+
 pub fn next_turn(app_state: &mut AppState) {
+    update_scores(app_state);
+
+    let index = {
+        let players = app_state.world.read_storage::<Player>();
+        players.get(app_state.current_player).unwrap().index
+    };
+
+    // Have we finished this phase?
+    if index == app_state.num_of_players - 1 {
+        let players = app_state.world.read_storage::<Player>();
+        let current_player = players.get(app_state.current_player).unwrap();
+        match &app_state.mode {
+            GameMode::ArmyPlacement => {
+                // If no more armies to place then this phase is over
+                if current_player.armies_to_assign == 0 {
+                    app_state.mode = GameMode::Game;
+                }
+            }
+            &app_state::GameMode::Randomising => {}
+            &app_state::GameMode::Game => { // Need to calculate victory conditions
+            }
+        }
+    }
+
+    // Switch to next player
     {
         let players = app_state.world.read_storage::<Player>();
-        let mut current_player = players.get(app_state.current_turn).unwrap().index;
+        let mut current_player = players.get(app_state.current_player).unwrap().index;
         current_player += 1;
         if current_player == app_state.num_of_players {
             current_player = 0;
         }
-        app_state.current_turn = app_state.players[current_player];
+        app_state.current_player = app_state.players[current_player];
     }
+
     // Computer turn?
     let index = {
         let players = app_state.world.read_storage::<Player>();
-        players.get(app_state.current_turn).unwrap().index
+        players.get(app_state.current_player).unwrap().index
     };
     if index != 0 {
         computer_turn(app_state);

@@ -38,7 +38,7 @@ pub fn army_placement(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     );
     let mut ss = String::from("");
     let mut players = app_state.world.write_storage::<Player>();
-    let player = players.get_mut(app_state.current_turn).unwrap();
+    let player = players.get_mut(app_state.current_player).unwrap();
     for _ in 0..player.armies_to_assign {
         ss += "⚔";
     }

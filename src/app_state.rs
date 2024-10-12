@@ -81,7 +81,7 @@ pub struct AppState {
     pub show_labels: bool,
     pub show_shadows: bool,
     pub phase: f32,
-    pub current_turn: Entity,
+    pub current_player: Entity,
     pub actual_human: Entity,
     pub hover: Point,
 }
@@ -200,7 +200,7 @@ impl AppState {
             gfx,
             res,
             items,
-            current_turn: _players[0],
+            current_player: _players[0],
             actual_human: _players[0],
             players: _players,
             num_of_players,

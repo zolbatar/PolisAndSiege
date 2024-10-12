@@ -58,14 +58,14 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
     let territories = app_state.world.read_storage::<Territory>();
     for (entity, city) in (&entities, &cities).join() {
         let selected = if let Some(selected) = app_state.selection.last_city_selection {
-            if app_state.current_turn == app_state.actual_human {
+            if app_state.current_player == app_state.actual_human {
                 selected == entity
             } else { false }
         } else {
             false
         };
         let hover = if let Some(hover) = app_state.selection.last_city_hover {
-            if app_state.current_turn == app_state.actual_human {
+            if app_state.current_player == app_state.actual_human {
                 hover == entity
             } else { false }
         } else {
