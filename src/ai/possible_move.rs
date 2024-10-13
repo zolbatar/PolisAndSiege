@@ -63,7 +63,7 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Resul
                 for city_entity in &territory.cities {
 
                     // Is this the player's city?
-                    if city_entity.lock().unwrap().city == game_state.current_turn.unwrap() {
+                    if city_entity.lock().unwrap().owner.unwrap() == game_state.current_turn.unwrap() {
                         if game_state.depth == game_state.requested_depth {
                             results.push(Result {
                                 score: current_player.score + 1,

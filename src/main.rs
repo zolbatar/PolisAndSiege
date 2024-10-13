@@ -233,7 +233,6 @@ pub fn next_turn(app_state: &mut AppState) {
         let current_player = players.get(app_state.current_player).unwrap();
         match &app_state.mode {
             GameMode::ArmyPlacement => {
-                // If no more armies to place then this phase is over
                 if current_player.armies_to_assign == 0 {
                     println!("All armies placed");
                     app_state.mode = GameMode::Game;
@@ -251,9 +250,11 @@ pub fn next_turn(app_state: &mut AppState) {
     }
 
     // Computer turn?
-    let index = {
-        let players = app_state.world.read_storage::<Player>();
-        players.get(app_state.current_player).unwrap().index
-    };
-    if index != 0 && app_state.mode == GameMode::Game { computer_turn(app_state) }
+    if index != 0 {
+        match app_state.mode {
+            GameMode::ArmyPlacement => computer_turn(app_state),
+            GameMode::Game => computer_turn(app_state),
+            _ => {}
+        }
+    }
 }

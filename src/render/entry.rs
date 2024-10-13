@@ -53,21 +53,22 @@ fn render_territories(skia: &mut Skia, app_state: &mut AppState) {
 }
 
 fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
+    let is_human = app_state.current_player == app_state.actual_human;
     let cities = app_state.world.read_storage::<City>();
     let territories = app_state.world.read_storage::<Territory>();
     for territory in territories.join() {
         for city_state in &territory.cities {
             let selected = if let Some(selected) = &app_state.selection.last_city_selection {
-                if app_state.current_player == app_state.actual_human {
-                    selected.lock().unwrap().city ==  city_state.lock().unwrap().city
-                } else { false }
+                let c1 = selected.lock().unwrap().city;
+                let c2 = city_state.lock().unwrap().city;
+                is_human && c1 == c2
             } else {
                 false
             };
             let hover = if let Some(hover) = &app_state.selection.last_city_hover {
-                if app_state.current_player == app_state.actual_human {
-                    hover.lock().unwrap().city ==  city_state.lock().unwrap().city
-                } else { false }
+                let c1 = hover.lock().unwrap().city;
+                let c2 = city_state.lock().unwrap().city;
+                is_human && c1 == c2
             } else {
                 false
             };

@@ -49,13 +49,14 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
                 let city = cities.get_mut(city_state.lock().unwrap().city).unwrap();
                 let delta = city.location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
-                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 &&
-                    city_state.lock().unwrap().owner.is_some() &&
-                    city_state.lock().unwrap().owner.unwrap() == app_state.current_player {
-                    if app_state.mode == GameMode::ArmyPlacement {
-                        app_state.selection.last_city_selection = Some(city_state.clone());
-                    } else {
-                        app_state.selection.last_city_hover = Some(city_state.clone());
+                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 {
+                    let owner = city_state.lock().unwrap().owner;
+                    if owner.is_some() && owner.unwrap() == app_state.current_player {
+                        if app_state.mode == GameMode::ArmyPlacement {
+                            app_state.selection.last_city_selection = Some(city_state.clone());
+                        } else {
+                            app_state.selection.last_city_hover = Some(city_state.clone());
+                        }
                     }
                 }
             }
