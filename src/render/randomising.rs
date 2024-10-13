@@ -5,10 +5,8 @@ use crate::model::player::Player;
 use crate::model::territory::Territory;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use specs::WorldExt;
-use std::time::Instant;
-use crate::{next_turn};
 
-fn assign(app_state: &mut AppState) {
+pub fn assign(app_state: &mut AppState) {
     let next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
     let mut player = app_state.world.write_storage::<Player>();
     next_city.lock().unwrap().owner = Some(app_state.current_player);
@@ -33,18 +31,6 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_title.set_style(PaintStyle::StrokeAndFill);
     paint_title.set_color(Color::YELLOW);
     skia.write_text_centre(30.0, &paint_title, "Assigning Cities", Point::new(l, rr.top), w, &FontFamily::EbGaramond);
-
-    // Do we need to assign a new one?
-    let diff = Instant::now() - app_state.selection.last_selection;
-    if diff.as_millis() > app_state.selection.assign_speed {
-        app_state.selection.last_selection = Instant::now();
-
-        // Take top item
-        if !app_state.items.cities_remaining_to_assign.is_empty() {
-            assign(app_state);
-            next_turn(app_state);
-        }
-    }
 
     // Name and territory
     if let Some(city_state) = &app_state.selection.last_army_city_selection {

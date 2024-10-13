@@ -47,6 +47,7 @@ use std::time::{Duration, Instant};
 use crate::ai::computer_turn::computer_turn;
 use crate::ai::difficulty::Difficulty;
 use crate::app_state::GameMode;
+use crate::render::randomising::assign;
 
 fn main() {
     // Initialize SDL2
@@ -185,6 +186,20 @@ fn main() {
             }
         }
 
+        // Game loop
+        if app_state.mode == GameMode::Randomising {
+            let diff = Instant::now() - app_state.selection.last_selection;
+            if diff.as_millis() > app_state.selection.assign_speed {
+                app_state.selection.last_selection = Instant::now();
+
+                // Take top item
+                if !app_state.items.cities_remaining_to_assign.is_empty() {
+                    assign(&mut app_state);
+                }
+                next_turn(&mut app_state);
+            }
+        }
+
         render::entry::main(&mut skia, &mut app_state);
         window.gl_swap_window();
     }
@@ -220,11 +235,17 @@ pub fn next_turn(app_state: &mut AppState) {
             GameMode::ArmyPlacement => {
                 // If no more armies to place then this phase is over
                 if current_player.armies_to_assign == 0 {
+                    println!("All armies placed");
                     app_state.mode = GameMode::Game;
                 }
             }
-            &app_state::GameMode::Randomising => {}
-            &app_state::GameMode::Game => { // Need to calculate victory conditions
+            GameMode::Randomising => {
+                if app_state.items.cities_remaining_to_assign.is_empty() {
+                    println!("All cities assigned");
+                    app_state.mode = GameMode::ArmyPlacement;
+                }
+            }
+            GameMode::Game => { // Need to calculate victory conditions
             }
         }
     }
@@ -234,7 +255,5 @@ pub fn next_turn(app_state: &mut AppState) {
         let players = app_state.world.read_storage::<Player>();
         players.get(app_state.current_player).unwrap().index
     };
-    if index != 0 {
-        computer_turn(app_state);
-    }
+    if index != 0 && app_state.mode == GameMode::Game { computer_turn(app_state) }
 }
