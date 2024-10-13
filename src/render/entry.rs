@@ -59,19 +59,19 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
         for city_state in &territory.cities {
             let selected = if let Some(selected) = &app_state.selection.last_city_selection {
                 if app_state.current_player == app_state.actual_human {
-                    selected == city_state
+                    selected.lock().unwrap().city ==  city_state.lock().unwrap().city
                 } else { false }
             } else {
                 false
             };
             let hover = if let Some(hover) = &app_state.selection.last_city_hover {
                 if app_state.current_player == app_state.actual_human {
-                    hover == city_state
+                    hover.lock().unwrap().city ==  city_state.lock().unwrap().city
                 } else { false }
             } else {
                 false
             };
-            let city = cities.get(city_state.city).unwrap();
+            let city = cities.get(city_state.lock().unwrap().city).unwrap();
             let centre = city.location.p;
             let territory = territories.get(city.territory).unwrap();
             let font_size: f32 = 2.4;
@@ -88,7 +88,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
             paint_fill.set_color(skia::mix_colors(territory.colour, Color::WHITE, 0.6));
             let mut paint_fill_circle = Paint::default();
             paint_fill_circle.set_style(PaintStyle::Fill);
-            let colours = match &city_state.owner {
+            let colours = match &city_state.lock().unwrap().owner {
                 Some(x) => app_state.world.read_storage::<Player>().get(*x).unwrap().colours.clone(),
                 None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
             };
@@ -140,7 +140,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
                 paint_outline.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase).unwrap());
             }
             skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-            let strength = format!("{}/{}", city_state.armies, city.size);
+            let strength = format!("{}/{}", city_state.lock().unwrap().armies, city.size);
             skia.write_text_centre(
                 5.0,
                 &paint_number,

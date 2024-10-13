@@ -36,23 +36,23 @@ fn build_territory_connections(
     let territory2 = territories.get(territory2_entity).unwrap();
     for city1_state in territory1.cities.iter() {
         for city2_state in territory2.cities.iter() {
-            let city1 = cities.get(city1_state.city).unwrap();
-            let city2 = cities.get(city2_state.city).unwrap();
+            let city1 = cities.get(city1_state.lock().unwrap().city).unwrap();
+            let city2 = cities.get(city2_state.lock().unwrap().city).unwrap();
             if city1 != city2 {
                 let distance = calculate_distance(&city1.location, &city2.location);
                 m1.insert(
                     distance as usize,
                     Connection {
-                        city1: city1_state.city,
-                        city2: city2_state.city,
+                        city1: city1_state.lock().unwrap().city,
+                        city2: city2_state.lock().unwrap().city,
                         render: true,
                     },
                 );
                 m2.insert(
                     distance as usize,
                     Connection {
-                        city2: city1_state.city,
-                        city1: city2_state.city,
+                        city2: city1_state.lock().unwrap().city,
+                        city1: city2_state.lock().unwrap().city,
                         render: false,
                     },
                 );
@@ -81,16 +81,16 @@ pub fn build_connections(app_state: &mut AppState) {
         // Cities
         let mut cities = app_state.world.write_storage::<City>();
         for city_state in &territory.cities {
-            let city = cities.get_mut(city_state.city).unwrap();
-            let node = graph.add_node(city_state.city);
+            let city = cities.get_mut(city_state.lock().unwrap().city).unwrap();
+            let node = graph.add_node(city_state.lock().unwrap().city);
             city.node = node;
         }
 
         // Distances
         for city1_state in &territory.cities {
             for city2_state in &territory.cities {
-                let city1 = cities.get(city1_state.city).unwrap();
-                let city2 = cities.get(city2_state.city).unwrap();
+                let city1 = cities.get(city1_state.lock().unwrap().city).unwrap();
+                let city2 = cities.get(city2_state.lock().unwrap().city).unwrap();
                 if city1 != city2 {
                     let distance = calculate_distance(&city1.location, &city2.location);
                     graph.add_edge(city1.node, city2.node, distance);

@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use specs::WorldExt;
 use crate::app_state::{AppState, GameMode};
 use crate::ai::game_state::GameState;
@@ -14,12 +15,11 @@ pub enum MoveType {
 #[derive(Debug)]
 pub struct Move {
     move_type: MoveType,
-    //    territory: Entity,
-    city_state: CityState,
+    city_state: Arc<Mutex<CityState>>,
 }
 
 impl Move {
-    fn new_place_army(city_state: CityState) -> Self {
+    fn new_place_army(city_state: Arc<Mutex<CityState>>) -> Self {
         Self {
             move_type: MoveType::PlaceArmy,
             city_state,
@@ -41,7 +41,7 @@ impl Result {
             let current_player = players.get_mut(app_state.current_player).unwrap();
             match self.the_move.move_type {
                 MoveType::PlaceArmy => {
-                    self.the_move.city_state.armies += 1;
+                    self.the_move.city_state.lock().unwrap().armies += 1;
                     current_player.armies_to_assign -= 1;
                 }
             }
@@ -63,7 +63,7 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Resul
                 for city_entity in &territory.cities {
 
                     // Is this the player's city?
-                    if city_entity.owner == game_state.current_turn {
+                    if city_entity.lock().unwrap().city == game_state.current_turn.unwrap() {
                         if game_state.depth == game_state.requested_depth {
                             results.push(Result {
                                 score: current_player.score + 1,
@@ -80,8 +80,8 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Resul
                 }
             }
         }
+        GameMode::Randomising => {}
         GameMode::Game => {}
-        _ => todo!("To do game mode {:?}", game_state.mode)
     }
 
     results

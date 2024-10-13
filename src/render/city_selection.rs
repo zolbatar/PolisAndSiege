@@ -16,7 +16,9 @@ pub fn city_selection(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
     // City
     let cities = app_state.world.read_storage::<City>();
-    let city = cities.get(app_state.selection.last_city_selection.clone().unwrap().city).unwrap();
+    let city = cities.get(app_state.selection.last_city_selection.clone().unwrap().lock().unwrap()
+        .city)
+        .unwrap();
     let city_name = city.name.clone();
     let territories = app_state.world.read_storage::<Territory>();
     let territory_name = territories.get(city.territory).unwrap().name.clone();

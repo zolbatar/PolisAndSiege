@@ -1,4 +1,4 @@
-use crate::app_state::{AppState, GameMode};
+use crate::app_state::{AppState};
 use crate::lib::skia::{FontFamily, Skia};
 use crate::model::city::City;
 use crate::model::player::Player;
@@ -6,20 +6,13 @@ use crate::model::territory::Territory;
 use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 use specs::WorldExt;
 use std::time::Instant;
-use crate::{next_turn, update_scores};
-use crate::model::city_state::CityState;
+use crate::{next_turn};
 
 fn assign(app_state: &mut AppState) {
-    let next_player = *app_state.res.player_lookup.get(&app_state.selection.last_player).unwrap();
-    let mut next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
+    let next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
     let mut player = app_state.world.write_storage::<Player>();
-    player.get_mut(next_player).unwrap().cities.push(next_city.clone());
-
-    next_city.owner = Some(next_player);
-    app_state.selection.last_player += 1;
-    if app_state.selection.last_player >= app_state.num_of_players {
-        app_state.selection.last_player = 0;
-    }
+    next_city.lock().unwrap().owner = Some(app_state.current_player);
+    player.get_mut(app_state.current_player).unwrap().cities.push(next_city.clone());
     app_state.selection.last_army_city_selection = Some(next_city);
 }
 
@@ -43,34 +36,11 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
 
     // Do we need to assign a new one?
     let diff = Instant::now() - app_state.selection.last_selection;
-    if app_state.selection.assign_speed == 0 {
-        loop {
-            if diff.as_millis() > app_state.selection.assign_speed {
-                app_state.selection.last_selection = Instant::now();
-
-                // Take top item
-                if app_state.items.cities_remaining_to_assign.is_empty() {
-                    app_state.selection.last_city_selection = None;
-                    app_state.mode = GameMode::ArmyPlacement;
-                    app_state.current_player = app_state.actual_human;
-                    update_scores(app_state);
-                    return;
-                } else {
-                    assign(app_state);
-                }
-            }
-        }
-    } else if diff.as_millis() > app_state.selection.assign_speed {
+    if diff.as_millis() > app_state.selection.assign_speed {
         app_state.selection.last_selection = Instant::now();
 
         // Take top item
-        if app_state.items.cities_remaining_to_assign.is_empty() {
-            app_state.selection.last_city_selection = None;
-            app_state.mode = GameMode::ArmyPlacement;
-            app_state.current_player = app_state.actual_human;
-            update_scores(app_state);
-            return;
-        } else {
+        if !app_state.items.cities_remaining_to_assign.is_empty() {
             assign(app_state);
             next_turn(app_state);
         }
@@ -79,7 +49,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     // Name and territory
     if let Some(city_state) = &app_state.selection.last_army_city_selection {
         let cities = app_state.world.read_storage::<City>();
-        let last_city = cities.get(city_state.city).unwrap();
+        let last_city = cities.get(city_state.lock().unwrap().city).unwrap();
         let mut paint_left = Paint::default();
         paint_left.set_anti_alias(true);
         paint_left.set_style(PaintStyle::StrokeAndFill);
@@ -134,7 +104,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             label_width,
             &FontFamily::EbGaramond,
         );
-        let owner = city_state.owner.clone().unwrap();
+        let owner = city_state.lock().unwrap().owner.unwrap();
         let owner_string = app_state.world.read_storage::<Player>().get(owner).unwrap().name.clone();
         skia.write_text(
             20.0,

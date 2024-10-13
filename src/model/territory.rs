@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use skia_safe::Color;
 use specs::prelude::*;
 use specs_derive::Component;
@@ -21,7 +22,7 @@ pub fn get_colour_for_territory_name(name: &String) -> Color {
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
 pub struct Territory {
-    pub cities: Vec<CityState>,
+    pub cities: Vec<Arc<Mutex<CityState>>>,
     pub polygons: Vec<TerritoryPolygon>,
     pub name: String,
     pub colour: Color,

@@ -11,6 +11,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use specs::{Builder, Entity, WorldExt};
 use std::collections::{BTreeMap, HashMap};
+use std::sync::{Arc, Mutex};
 use crate::model::city_state::CityState;
 
 const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
@@ -149,7 +150,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
 
                 // Add city to territory
                 app_state.world.write_storage::<Territory>().get_mut(_territory).unwrap().cities
-                    .push(city_state);
+                    .push(Arc::new(Mutex::new(city_state)));
             }
         }
 

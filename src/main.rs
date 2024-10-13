@@ -47,7 +47,6 @@ use std::time::{Duration, Instant};
 use crate::ai::computer_turn::computer_turn;
 use crate::ai::difficulty::Difficulty;
 use crate::app_state::GameMode;
-use crate::model::city_state::CityState;
 
 fn main() {
     // Initialize SDL2
@@ -199,13 +198,22 @@ pub fn update_scores(app_state: &mut AppState) {
 pub fn next_turn(app_state: &mut AppState) {
     update_scores(app_state);
 
-    let index = {
+    // Switch to next player
+    let (turn_done, index) = {
         let players = app_state.world.read_storage::<Player>();
-        players.get(app_state.current_player).unwrap().index
+        let mut index = players.get(app_state.current_player).unwrap().index;
+        index += 1;
+        if index == app_state.num_of_players {
+            index = 0;
+            (true, index)
+        } else {
+            (false, index)
+        }
     };
+    app_state.current_player = app_state.players[index];
 
     // Have we finished this phase?
-    if index == app_state.num_of_players - 1 {
+    if turn_done {
         let players = app_state.world.read_storage::<Player>();
         let current_player = players.get(app_state.current_player).unwrap();
         match &app_state.mode {
@@ -219,17 +227,6 @@ pub fn next_turn(app_state: &mut AppState) {
             &app_state::GameMode::Game => { // Need to calculate victory conditions
             }
         }
-    }
-
-    // Switch to next player
-    {
-        let players = app_state.world.read_storage::<Player>();
-        let mut current_player = players.get(app_state.current_player).unwrap().index;
-        current_player += 1;
-        if current_player == app_state.num_of_players {
-            current_player = 0;
-        }
-        app_state.current_player = app_state.players[current_player];
     }
 
     // Computer turn?

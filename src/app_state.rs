@@ -6,6 +6,7 @@ use skia_safe::svg::Dom;
 use skia_safe::{Color, FontMgr, Path, Point, Size};
 use specs::{Builder, Entity, World, WorldExt};
 use std::collections::{BTreeMap, HashMap};
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use crate::model::city_state::CityState;
 use crate::model::location::Location;
@@ -43,8 +44,8 @@ pub struct Resource {
 pub struct Items {
     pub territories: BTreeMap<String, Entity>,
     pub existing_cities: Vec<Location>, // Only used during initial city placement
-    pub cities: Vec<CityState>,
-    pub cities_remaining_to_assign: Vec<CityState>,
+    pub cities: Vec<Arc<Mutex<CityState>>>,
+    pub cities_remaining_to_assign: Vec<Arc<Mutex<CityState>>>,
     pub north_america: Option<Entity>,
     pub latin_america: Option<Entity>,
     pub asia: Option<Entity>,
@@ -57,10 +58,9 @@ pub struct Items {
 
 pub struct CitySelection {
     pub last_selection: Instant,
-    pub last_city_hover: Option<CityState>,
-    pub last_city_selection: Option<CityState>,
-    pub last_army_city_selection: Option<CityState>,
-    pub last_player: usize,
+    pub last_city_hover: Option<Arc<Mutex<CityState>>>,
+    pub last_city_selection: Option<Arc<Mutex<CityState>>>,
+    pub last_army_city_selection: Option<Arc<Mutex<CityState>>>,
     pub minimum_allowed_distance: f32,
     pub assign_speed: u128,
 }
@@ -194,7 +194,6 @@ impl AppState {
                 last_city_selection: None,
                 last_city_hover: None,
                 last_army_city_selection: None,
-                last_player: 0,
                 minimum_allowed_distance: 18.0, //12.0,
                 assign_speed: 0,
             },
