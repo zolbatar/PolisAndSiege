@@ -9,12 +9,13 @@ use specs::prelude::*;
 use specs::{Join, WorldExt};
 use specs_derive::Component;
 use std::collections::BTreeMap;
+use crate::model::city_state::CityState;
 
 pub const LINE_WIDTH: f32 = 0.25;
 
 #[derive(Component, Debug, PartialEq, Clone)]
 #[storage(VecStorage)]
-pub struct CConnection {
+pub struct Connection {
     pub city1: Entity,
     pub city2: Entity,
     pub render: bool,
@@ -22,7 +23,7 @@ pub struct CConnection {
 
 fn build_territory_connections(
     app_state: &mut AppState,
-    connections: &mut Vec<CConnection>,
+    connections: &mut Vec<Connection>,
     territory1_entity: Entity,
     territory2_entity: Entity,
     num_connections: usize,
@@ -30,29 +31,32 @@ fn build_territory_connections(
     let mut m1 = BTreeMap::new();
     let mut m2 = BTreeMap::new();
     let cities = app_state.world.read_storage::<City>();
+    let city_states = app_state.world.read_storage::<CityState>();
     let territories = app_state.world.read_storage::<Territory>();
 
     let territory1 = territories.get(territory1_entity).unwrap();
     let territory2 = territories.get(territory2_entity).unwrap();
     for city1_entity in territory1.cities.iter() {
         for city2_entity in territory2.cities.iter() {
-            let city1 = cities.get(*city1_entity).unwrap();
-            let city2 = cities.get(*city2_entity).unwrap();
+            let city1_state = city_states.get(*city1_entity).unwrap();
+            let city2_state = city_states.get(*city2_entity).unwrap();
+            let city1 = cities.get(city1_state.city).unwrap();
+            let city2 = cities.get(city2_state.city).unwrap();
             if city1 != city2 {
                 let distance = calculate_distance(&city1.location, &city2.location);
                 m1.insert(
                     distance as usize,
-                    CConnection {
-                        city1: *city1_entity,
-                        city2: *city2_entity,
+                    Connection {
+                        city1: city1_state.city,
+                        city2: city2_state.city,
                         render: true,
                     },
                 );
                 m2.insert(
                     distance as usize,
-                    CConnection {
-                        city2: *city1_entity,
-                        city1: *city2_entity,
+                    Connection {
+                        city2: city1_state.city,
+                        city1: city2_state.city,
                         render: false,
                     },
                 );
@@ -79,18 +83,22 @@ pub fn build_connections(app_state: &mut AppState) {
         let mut graph = UnGraph::new_undirected();
 
         // Cities
+        let city_states = app_state.world.read_storage::<CityState>();
         let mut cities = app_state.world.write_storage::<City>();
         for entity in &territory.cities {
-            let city = cities.get_mut(*entity).unwrap();
-            let node = graph.add_node(entity);
+            let city_state = city_states.get(*entity).unwrap();
+            let city = cities.get_mut(city_state.city).unwrap();
+            let node = graph.add_node(city_state.city);
             city.node = node;
         }
 
         // Distances
         for city1_entity in &territory.cities {
             for city2_entity in &territory.cities {
-                let city1 = cities.get(*city1_entity).unwrap();
-                let city2 = cities.get(*city2_entity).unwrap();
+                let city1_state = city_states.get(*city1_entity).unwrap();
+                let city2_state = city_states.get(*city2_entity).unwrap();
+                let city1 = cities.get(city1_state.city).unwrap();
+                let city2 = cities.get(city2_state.city).unwrap();
                 if city1 != city2 {
                     let distance = calculate_distance(&city1.location, &city2.location);
                     graph.add_edge(city1.node, city2.node, distance);
@@ -102,16 +110,16 @@ pub fn build_connections(app_state: &mut AppState) {
         let mst = UnGraph::<_, _>::from_elements(min_spanning_tree(&graph));
         for edge in mst.raw_edges() {
             let _weight = edge.weight;
-            let source = *graph[edge.source()];
-            let target = *graph[edge.target()];
+            let source = graph[edge.source()];
+            let target = graph[edge.target()];
 
             // Create connections, but only render one
-            connections.push(CConnection {
+            connections.push(Connection {
                 city1: source,
                 city2: target,
                 render: true,
             });
-            connections.push(CConnection {
+            connections.push(Connection {
                 city2: source,
                 city1: target,
                 render: false,

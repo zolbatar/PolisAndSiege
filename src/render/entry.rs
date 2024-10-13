@@ -2,7 +2,7 @@ use crate::app_state::{AppState, GameMode};
 use crate::lib::skia;
 use crate::lib::skia::{FontFamily, Skia};
 use crate::model::city::{City, MAXIMUM_LABEL_WIDTH, SIZE, SIZE_SELECTED};
-use crate::model::connection::{CConnection, LINE_WIDTH};
+use crate::model::connection::{Connection, LINE_WIDTH};
 use crate::model::player::Player;
 use crate::model::territory::Territory;
 use crate::render::army_placement::army_placement;
@@ -15,6 +15,7 @@ use crate::render::title_bar::render_title_bar;
 use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, RRect, Rect};
 use specs::{Join, WorldExt};
+use crate::model::city_state::CityState;
 
 fn render_connections(skia: &mut Skia, app_state: &mut AppState) {
     // Paint
@@ -33,7 +34,7 @@ fn render_connections(skia: &mut Skia, app_state: &mut AppState) {
     paint_alt.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase + 1.0).unwrap());
 
     let cities = app_state.world.read_storage::<City>();
-    let connections = app_state.world.read_storage::<CConnection>();
+    let connections = app_state.world.read_storage::<Connection>();
     for connection in connections.join() {
         let city1 = cities.get(connection.city1).unwrap();
         let city2 = cities.get(connection.city2).unwrap();
@@ -55,8 +56,9 @@ fn render_territories(skia: &mut Skia, app_state: &mut AppState) {
 fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
     let entities = app_state.world.entities();
     let cities = app_state.world.read_storage::<City>();
+    let city_states = app_state.world.read_storage::<CityState>();
     let territories = app_state.world.read_storage::<Territory>();
-    for (entity, city) in (&entities, &cities).join() {
+    for (entity, city_state) in (&entities, &city_states).join() {
         let selected = if let Some(selected) = app_state.selection.last_city_selection {
             if app_state.current_player == app_state.actual_human {
                 selected == entity
@@ -71,6 +73,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
         } else {
             false
         };
+        let city = cities.get(city_state.city).unwrap();
         let centre = city.location.p;
         let territory = territories.get(city.territory).unwrap();
         let font_size: f32 = 2.4;
@@ -87,7 +90,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
         paint_fill.set_color(skia::mix_colors(territory.colour, Color::WHITE, 0.6));
         let mut paint_fill_circle = Paint::default();
         paint_fill_circle.set_style(PaintStyle::Fill);
-        let colours = match &city.owner {
+        let colours = match &city_state.owner {
             Some(x) => app_state.world.read_storage::<Player>().get(*x).unwrap().colours.clone(),
             None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
         };
@@ -139,7 +142,7 @@ fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
             paint_outline.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase).unwrap());
         }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        let strength = format!("{}/{}", city.armies, city.size);
+        let strength = format!("{}/{}", city_state.armies, city.size);
         skia.write_text_centre(
             5.0,
             &paint_number,

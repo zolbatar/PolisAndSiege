@@ -11,6 +11,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use specs::{Builder, Entity, WorldExt};
 use std::collections::{BTreeMap, HashMap};
+use crate::model::city_state::CityState;
 
 const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
 
@@ -128,7 +129,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                     _ => 5,
                 };
 
-                let _city = app_state
+                let city = app_state
                     .world
                     .create_entity()
                     .with(City {
@@ -136,14 +137,23 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                         location: Location::new(city.location.longitude, city.location.latitude),
                         name: city.name,
                         size,
-                        armies: 1,
-                        owner: None,
                         node: NodeIndex::new(0),
                     })
                     .build();
 
+                let city_state = app_state
+                    .world
+                    .create_entity()
+                    .with(CityState {
+                        city,
+                        armies: 1,
+                        owner: None,
+                    })
+                    .build();
+
                 // Add city to territory
-                app_state.world.write_storage::<Territory>().get_mut(_territory).unwrap().cities.push(_city);
+                app_state.world.write_storage::<Territory>().get_mut(_territory).unwrap().cities
+                    .push(city_state);
             }
         }
 

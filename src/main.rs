@@ -13,6 +13,7 @@ mod input;
 
 mod model {
     pub mod city;
+    pub mod city_state;
     pub mod connection;
     pub mod location;
     pub mod math;
@@ -34,7 +35,7 @@ use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mous
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
 use crate::model::city::City;
-use crate::model::connection::CConnection;
+use crate::model::connection::Connection;
 use crate::model::location::Location;
 use crate::model::player::{Player, SUpdateScores};
 use crate::model::territory::Territory;
@@ -46,6 +47,7 @@ use std::time::{Duration, Instant};
 use crate::ai::computer_turn::computer_turn;
 use crate::ai::difficulty::Difficulty;
 use crate::app_state::GameMode;
+use crate::model::city_state::CityState;
 
 fn main() {
     // Initialize SDL2
@@ -95,7 +97,8 @@ fn main() {
     world.register::<TerritoryPolygon>();
     world.register::<Location>();
     world.register::<City>();
-    world.register::<CConnection>();
+    world.register::<CityState>();
+    world.register::<Connection>();
     world.insert(Difficulty::TreeSearchNormal);
 
     // Create an AppState instance using the new method

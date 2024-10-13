@@ -14,8 +14,6 @@ pub struct City {
     pub location: Location,
     pub name: String,
     pub size: u8,
-    pub armies: u32,
-    pub owner: Option<Entity>,
     pub node: NodeIndex,
 }
 
