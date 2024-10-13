@@ -77,7 +77,9 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Resul
                             })
                         } else {
                             let new_state = game_state.clone();
-                            //                                Move::new_place_army(*city_entity);
+                            
+                            // Next depth
+                            possible_moves(&new_state, app_state)
                         }
                     }
                 }
