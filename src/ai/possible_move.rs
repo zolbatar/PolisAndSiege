@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use std::vec;
 use specs::WorldExt;
 use crate::app_state::{AppState, GameMode};
 use crate::ai::game_state::GameState;
@@ -30,7 +31,7 @@ impl Move {
 #[derive(Debug)]
 pub struct Result {
     pub(crate) score: i32,
-    the_move: Move,
+    the_moves: Vec<Move>,
     result: GameState,
 }
 
@@ -39,10 +40,13 @@ impl Result {
         {
             let mut players = app_state.world.write_storage::<Player>();
             let current_player = players.get_mut(app_state.current_player).unwrap();
-            match self.the_move.move_type {
-                MoveType::PlaceArmy => {
-                    self.the_move.city_state.lock().unwrap().armies += 1;
-                    current_player.armies_to_assign -= 1;
+            for the_move in &self.the_moves
+            {
+                match the_move.move_type {
+                    MoveType::PlaceArmy => {
+                        the_move.city_state.lock().unwrap().armies += 1;
+                        current_player.armies_to_assign -= 1;
+                    }
                 }
             }
         }
@@ -61,13 +65,13 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Resul
             for (territory_name, territory_entity) in &game_state.territories {
                 let territory = territories.get(*territory_entity).unwrap();
                 for city_entity in &territory.cities {
-
+                    
                     // Is this the player's city?
                     if city_entity.lock().unwrap().owner.unwrap() == game_state.current_turn.unwrap() {
                         if game_state.depth == game_state.requested_depth {
                             results.push(Result {
                                 score: current_player.score + 1,
-                                the_move: Move::new_place_army(city_entity.clone()),
+                                the_moves: vec![Move::new_place_army(city_entity.clone())],
                                 result: Default::default(),
                             })
                         } else {
