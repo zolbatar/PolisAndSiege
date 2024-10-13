@@ -23,7 +23,7 @@ pub fn computer_turn(app_state: &mut AppState) {
 
     // Select move
     possibles.sort_by(|a, b| a.score.cmp(&b.score));
-    let best = &possibles[0];
+    let best = &mut possibles[0];
     best.do_move_and_next_turn(app_state);
     //    println!("{:?}", possibles);
 }

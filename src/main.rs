@@ -97,7 +97,6 @@ fn main() {
     world.register::<TerritoryPolygon>();
     world.register::<Location>();
     world.register::<City>();
-    world.register::<CityState>();
     world.register::<Connection>();
     world.insert(Difficulty::TreeSearchNormal);
 

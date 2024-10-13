@@ -141,15 +141,11 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                     })
                     .build();
 
-                let city_state = app_state
-                    .world
-                    .create_entity()
-                    .with(CityState {
-                        city,
-                        armies: 1,
-                        owner: None,
-                    })
-                    .build();
+                let city_state = CityState {
+                    city,
+                    armies: 1,
+                    owner: None,
+                };
 
                 // Add city to territory
                 app_state.world.write_storage::<Territory>().get_mut(_territory).unwrap().cities
@@ -182,8 +178,8 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
     for territory_entity in territories.values() {
         let territory = _territories.get(*territory_entity).unwrap();
         for city in territory.cities.iter() {
-            app_state.items.cities.push(*city);
-            app_state.items.cities_remaining_to_assign.push(*city);
+            app_state.items.cities.push(city.clone());
+            app_state.items.cities_remaining_to_assign.push(city.clone());
         }
     }
 

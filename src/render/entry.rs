@@ -15,7 +15,6 @@ use crate::render::title_bar::render_title_bar;
 use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, RRect, Rect};
 use specs::{Join, WorldExt};
-use crate::model::city_state::CityState;
 
 fn render_connections(skia: &mut Skia, app_state: &mut AppState) {
     // Paint
@@ -54,121 +53,121 @@ fn render_territories(skia: &mut Skia, app_state: &mut AppState) {
 }
 
 fn render_cities(skia: &mut Skia, app_state: &mut AppState) {
-    let entities = app_state.world.entities();
     let cities = app_state.world.read_storage::<City>();
-    let city_states = app_state.world.read_storage::<CityState>();
     let territories = app_state.world.read_storage::<Territory>();
-    for (entity, city_state) in (&entities, &city_states).join() {
-        let selected = if let Some(selected) = app_state.selection.last_city_selection {
-            if app_state.current_player == app_state.actual_human {
-                selected == entity
-            } else { false }
-        } else {
-            false
-        };
-        let hover = if let Some(hover) = app_state.selection.last_city_hover {
-            if app_state.current_player == app_state.actual_human {
-                hover == entity
-            } else { false }
-        } else {
-            false
-        };
-        let city = cities.get(city_state.city).unwrap();
-        let centre = city.location.p;
-        let territory = territories.get(city.territory).unwrap();
-        let font_size: f32 = 2.4;
+    for territory in territories.join() {
+        for city_state in &territory.cities {
+            let selected = if let Some(selected) = &app_state.selection.last_city_selection {
+                if app_state.current_player == app_state.actual_human {
+                    selected == city_state
+                } else { false }
+            } else {
+                false
+            };
+            let hover = if let Some(hover) = &app_state.selection.last_city_hover {
+                if app_state.current_player == app_state.actual_human {
+                    hover == city_state
+                } else { false }
+            } else {
+                false
+            };
+            let city = cities.get(city_state.city).unwrap();
+            let centre = city.location.p;
+            let territory = territories.get(city.territory).unwrap();
+            let font_size: f32 = 2.4;
 
-        let mut paint_name = Paint::default();
-        paint_name.set_anti_alias(true);
-        paint_name.set_style(PaintStyle::Fill);
-        paint_name.set_color(Color::BLACK);
-        let mut paint_shadow = Paint::default();
-        paint_shadow.set_style(PaintStyle::Fill);
-        paint_shadow.set_image_filter(skia.drop_shadow.clone());
-        let mut paint_fill = Paint::default();
-        paint_fill.set_style(PaintStyle::Fill);
-        paint_fill.set_color(skia::mix_colors(territory.colour, Color::WHITE, 0.6));
-        let mut paint_fill_circle = Paint::default();
-        paint_fill_circle.set_style(PaintStyle::Fill);
-        let colours = match &city_state.owner {
-            Some(x) => app_state.world.read_storage::<Player>().get(*x).unwrap().colours.clone(),
-            None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
-        };
-        paint_fill_circle.set_color(colours[0]);
-        let mut paint_number = Paint::default();
-        paint_number.set_anti_alias(true);
-        paint_number.set_style(PaintStyle::Fill);
-        paint_number.set_color(colours[1]);
-        let mut paint_outline = Paint::default();
-        paint_outline.set_anti_alias(true);
-        paint_outline.set_style(PaintStyle::Stroke);
-        paint_outline.set_color(Color::BLACK);
-        paint_outline.set_stroke_width(SIZE / 8.0);
+            let mut paint_name = Paint::default();
+            paint_name.set_anti_alias(true);
+            paint_name.set_style(PaintStyle::Fill);
+            paint_name.set_color(Color::BLACK);
+            let mut paint_shadow = Paint::default();
+            paint_shadow.set_style(PaintStyle::Fill);
+            paint_shadow.set_image_filter(skia.drop_shadow.clone());
+            let mut paint_fill = Paint::default();
+            paint_fill.set_style(PaintStyle::Fill);
+            paint_fill.set_color(skia::mix_colors(territory.colour, Color::WHITE, 0.6));
+            let mut paint_fill_circle = Paint::default();
+            paint_fill_circle.set_style(PaintStyle::Fill);
+            let colours = match &city_state.owner {
+                Some(x) => app_state.world.read_storage::<Player>().get(*x).unwrap().colours.clone(),
+                None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
+            };
+            paint_fill_circle.set_color(colours[0]);
+            let mut paint_number = Paint::default();
+            paint_number.set_anti_alias(true);
+            paint_number.set_style(PaintStyle::Fill);
+            paint_number.set_color(colours[1]);
+            let mut paint_outline = Paint::default();
+            paint_outline.set_anti_alias(true);
+            paint_outline.set_style(PaintStyle::Stroke);
+            paint_outline.set_color(Color::BLACK);
+            paint_outline.set_stroke_width(SIZE / 8.0);
 
-        // Name background
-        if app_state.show_all_info() {
-            let dimensions = skia
-                .text_dimensions(font_size, &paint_name, &city.name, &FontFamily::EbGaramond, TextAlign::Left)
-                .clamp(1.0, MAXIMUM_LABEL_WIDTH);
-            if app_state.show_shadows {
+            // Name background
+            if app_state.show_all_info() {
+                let dimensions = skia
+                    .text_dimensions(font_size, &paint_name, &city.name, &FontFamily::EbGaramond, TextAlign::Left)
+                    .clamp(1.0, MAXIMUM_LABEL_WIDTH);
+                if app_state.show_shadows {
+                    skia.get_canvas().draw_round_rect(
+                        Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
+                        0.5,
+                        0.5,
+                        &paint_shadow,
+                    );
+                }
                 skia.get_canvas().draw_round_rect(
                     Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
                     0.5,
                     0.5,
-                    &paint_shadow,
+                    &paint_fill,
+                );
+                skia.get_canvas().draw_round_rect(
+                    Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
+                    0.5,
+                    0.5,
+                    &paint_outline,
                 );
             }
-            skia.get_canvas().draw_round_rect(
-                Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
-                0.5,
-                0.5,
-                &paint_fill,
-            );
-            skia.get_canvas().draw_round_rect(
-                Rect::from_xywh(centre.x, centre.y - 1.5, dimensions + SIZE + 1.5, 3.0),
-                0.5,
-                0.5,
-                &paint_outline,
-            );
-        }
 
-        // Draw
-        if app_state.show_shadows {
-            skia.get_canvas().draw_circle(centre, SIZE, &paint_shadow);
-        }
-        skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
-        if hover {
-            paint_outline.set_color(colours[1]);
-            paint_outline.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase).unwrap());
-        }
-        skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        let strength = format!("{}/{}", city_state.armies, city.size);
-        skia.write_text_centre(
-            5.0,
-            &paint_number,
-            &strength,
-            Point::new(centre.x - SIZE, centre.y - 3.5),
-            SIZE * 2.0,
-            &FontFamily::EbGaramond,
-        );
-        if app_state.show_all_info() {
-            skia.write_text(
-                font_size,
-                &paint_name,
-                &city.name,
-                Point::new(centre.x + SIZE + 0.5, centre.y - 1.2),
-                MAXIMUM_LABEL_WIDTH,
+            // Draw
+            if app_state.show_shadows {
+                skia.get_canvas().draw_circle(centre, SIZE, &paint_shadow);
+            }
+            skia.get_canvas().draw_circle(centre, SIZE, &paint_fill_circle);
+            if hover {
+                paint_outline.set_color(colours[1]);
+                paint_outline.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase).unwrap());
+            }
+            skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
+            let strength = format!("{}/{}", city_state.armies, city.size);
+            skia.write_text_centre(
+                5.0,
+                &paint_number,
+                &strength,
+                Point::new(centre.x - SIZE, centre.y - 3.5),
+                SIZE * 2.0,
                 &FontFamily::EbGaramond,
             );
-        }
-        if selected {
-            let mut paint_selected = Paint::default();
-            paint_selected.set_anti_alias(true);
-            paint_selected.set_style(PaintStyle::Stroke);
-            paint_selected.set_color(Color::WHITE);
-            paint_selected.set_stroke_width(SIZE / 4.0);
-            paint_selected.set_path_effect(dash_path_effect::new(&[5.0, 5.0], app_state.phase * 5.0).unwrap());
-            skia.get_canvas().draw_circle(centre, SIZE_SELECTED, &paint_selected);
+            if app_state.show_all_info() {
+                skia.write_text(
+                    font_size,
+                    &paint_name,
+                    &city.name,
+                    Point::new(centre.x + SIZE + 0.5, centre.y - 1.2),
+                    MAXIMUM_LABEL_WIDTH,
+                    &FontFamily::EbGaramond,
+                );
+            }
+            if selected {
+                let mut paint_selected = Paint::default();
+                paint_selected.set_anti_alias(true);
+                paint_selected.set_style(PaintStyle::Stroke);
+                paint_selected.set_color(Color::WHITE);
+                paint_selected.set_stroke_width(SIZE / 4.0);
+                paint_selected.set_path_effect(dash_path_effect::new(&[5.0, 5.0], app_state.phase * 5.0).unwrap());
+                skia.get_canvas().draw_circle(centre, SIZE_SELECTED, &paint_selected);
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 use skia_safe::Color;
 use specs::prelude::*;
 use specs_derive::Component;
+use crate::model::city_state::CityState;
 use crate::model::territory_polygon::TerritoryPolygon;
 
 pub fn get_colour_for_territory_name(name: &String) -> Color {
@@ -20,7 +21,7 @@ pub fn get_colour_for_territory_name(name: &String) -> Color {
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
 pub struct Territory {
-    pub cities: Vec<Entity>,
+    pub cities: Vec<CityState>,
     pub polygons: Vec<TerritoryPolygon>,
     pub name: String,
     pub colour: Color,

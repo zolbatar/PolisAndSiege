@@ -7,6 +7,7 @@ use skia_safe::{Color, FontMgr, Path, Point, Size};
 use specs::{Builder, Entity, World, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 use std::time::Instant;
+use crate::model::city_state::CityState;
 use crate::model::location::Location;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
@@ -42,8 +43,8 @@ pub struct Resource {
 pub struct Items {
     pub territories: BTreeMap<String, Entity>,
     pub existing_cities: Vec<Location>, // Only used during initial city placement
-    pub cities: Vec<Entity>,
-    pub cities_remaining_to_assign: Vec<Entity>,
+    pub cities: Vec<CityState>,
+    pub cities_remaining_to_assign: Vec<CityState>,
     pub north_america: Option<Entity>,
     pub latin_america: Option<Entity>,
     pub asia: Option<Entity>,
@@ -56,9 +57,9 @@ pub struct Items {
 
 pub struct CitySelection {
     pub last_selection: Instant,
-    pub last_city_hover: Option<Entity>,
-    pub last_city_selection: Option<Entity>,
-    pub last_army_city_selection: Option<Entity>,
+    pub last_city_hover: Option<CityState>,
+    pub last_city_selection: Option<CityState>,
+    pub last_army_city_selection: Option<CityState>,
     pub last_player: usize,
     pub minimum_allowed_distance: f32,
     pub assign_speed: u128,

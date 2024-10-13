@@ -10,15 +10,12 @@ use crate::{next_turn, update_scores};
 use crate::model::city_state::CityState;
 
 fn assign(app_state: &mut AppState) {
-    let cities = app_state.world.read_storage::<City>();
-    let mut city_states = app_state.world.write_storage::<CityState>();
     let next_player = *app_state.res.player_lookup.get(&app_state.selection.last_player).unwrap();
-    let next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
+    let mut next_city = app_state.items.cities_remaining_to_assign.pop().unwrap();
     let mut player = app_state.world.write_storage::<Player>();
-    player.get_mut(next_player).unwrap().cities.push(next_city);
+    player.get_mut(next_player).unwrap().cities.push(next_city.clone());
 
-    //    player.get_mut(next_player).unwrap().score += next_city_obj.size as i32;
-    city_states.get_mut(next_city).unwrap().owner = Some(next_player);
+    next_city.owner = Some(next_player);
     app_state.selection.last_player += 1;
     if app_state.selection.last_player >= app_state.num_of_players {
         app_state.selection.last_player = 0;
@@ -80,11 +77,9 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     }
 
     // Name and territory
-    if let Some(city_state) = app_state.selection.last_army_city_selection {
+    if let Some(city_state) = &app_state.selection.last_army_city_selection {
         let cities = app_state.world.read_storage::<City>();
-        let city_states = app_state.world.read_storage::<CityState>();
-        let last_city_state = city_states.get(city_state).unwrap();
-        let last_city = cities.get(last_city_state.city).unwrap();
+        let last_city = cities.get(city_state.city).unwrap();
         let mut paint_left = Paint::default();
         paint_left.set_anti_alias(true);
         paint_left.set_style(PaintStyle::StrokeAndFill);
@@ -139,7 +134,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             label_width,
             &FontFamily::EbGaramond,
         );
-        let owner = last_city_state.owner.clone().unwrap();
+        let owner = city_state.owner.clone().unwrap();
         let owner_string = app_state.world.read_storage::<Player>().get(owner).unwrap().name.clone();
         skia.write_text(
             20.0,

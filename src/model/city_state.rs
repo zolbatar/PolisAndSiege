@@ -1,9 +1,6 @@
-use specs::prelude::*;
 use specs::Entity;
-use specs_derive::Component;
 
-#[derive(Component, Debug, PartialEq)]
-#[storage(VecStorage)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CityState {
     pub city: Entity,
     pub armies: u32,

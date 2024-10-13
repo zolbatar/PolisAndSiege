@@ -11,7 +11,7 @@ pub struct Player {
     pub name: String,
     pub score: i32,
     pub colours: Vec<Color>,
-    pub cities: Vec<Entity>,
+    pub cities: Vec<CityState>,
     pub armies_to_assign: u32,
 }
 
@@ -24,16 +24,14 @@ fn score_for_city(score_in: i32, city: &City, city_state: &CityState) -> i32 {
 
 pub struct SUpdateScores;
 impl<'a> System<'a> for SUpdateScores {
-    type SystemData = (WriteStorage<'a, Player>, ReadStorage<'a, City>, ReadStorage<'a, CityState>);
+    type SystemData = (WriteStorage<'a, Player>, ReadStorage<'a, City>);
 
-    fn run(&mut self, (mut components, cities, city_states): Self::SystemData) {
+    fn run(&mut self, (mut components, cities): Self::SystemData) {
         for component in (&mut components).join() {
             component.score = 0;
-            for city_entity in &component.cities {
-                let city_state = city_states.get(*city_entity);
-                let city = cities.get(city_state.unwrap().city);
-                let city_state = city_states.get(*city_entity);
-                component.score = score_for_city(component.score, city.unwrap(), city_state.unwrap());
+            for city_state in &component.cities {
+                let city = cities.get(city_state.city);
+                component.score = score_for_city(component.score, city.unwrap(), &city_state);
             }
         }
     }

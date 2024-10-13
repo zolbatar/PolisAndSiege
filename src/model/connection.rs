@@ -9,7 +9,6 @@ use specs::prelude::*;
 use specs::{Join, WorldExt};
 use specs_derive::Component;
 use std::collections::BTreeMap;
-use crate::model::city_state::CityState;
 
 pub const LINE_WIDTH: f32 = 0.25;
 
@@ -31,15 +30,12 @@ fn build_territory_connections(
     let mut m1 = BTreeMap::new();
     let mut m2 = BTreeMap::new();
     let cities = app_state.world.read_storage::<City>();
-    let city_states = app_state.world.read_storage::<CityState>();
     let territories = app_state.world.read_storage::<Territory>();
 
     let territory1 = territories.get(territory1_entity).unwrap();
     let territory2 = territories.get(territory2_entity).unwrap();
-    for city1_entity in territory1.cities.iter() {
-        for city2_entity in territory2.cities.iter() {
-            let city1_state = city_states.get(*city1_entity).unwrap();
-            let city2_state = city_states.get(*city2_entity).unwrap();
+    for city1_state in territory1.cities.iter() {
+        for city2_state in territory2.cities.iter() {
             let city1 = cities.get(city1_state.city).unwrap();
             let city2 = cities.get(city2_state.city).unwrap();
             if city1 != city2 {
@@ -83,20 +79,16 @@ pub fn build_connections(app_state: &mut AppState) {
         let mut graph = UnGraph::new_undirected();
 
         // Cities
-        let city_states = app_state.world.read_storage::<CityState>();
         let mut cities = app_state.world.write_storage::<City>();
-        for entity in &territory.cities {
-            let city_state = city_states.get(*entity).unwrap();
+        for city_state in &territory.cities {
             let city = cities.get_mut(city_state.city).unwrap();
             let node = graph.add_node(city_state.city);
             city.node = node;
         }
 
         // Distances
-        for city1_entity in &territory.cities {
-            for city2_entity in &territory.cities {
-                let city1_state = city_states.get(*city1_entity).unwrap();
-                let city2_state = city_states.get(*city2_entity).unwrap();
+        for city1_state in &territory.cities {
+            for city2_state in &territory.cities {
                 let city1 = cities.get(city1_state.city).unwrap();
                 let city2 = cities.get(city2_state.city).unwrap();
                 if city1 != city2 {
