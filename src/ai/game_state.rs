@@ -3,6 +3,8 @@ use crate::app_state::{AppState, GameMode};
 use crate::model::city::City;
 use crate::model::city_state::CityState;
 use crate::model::player::score_for_city;
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
 use specs::{Entity, WorldExt};
 use std::sync::{Arc, Mutex};
 
@@ -10,7 +12,6 @@ use std::sync::{Arc, Mutex};
 pub struct GameState {
     pub score: i32,
     pub current_turn: Option<Entity>,
-    pub actual_human: Option<Entity>,
     pub players: Vec<TempPlayer>,
     pub city_states: Vec<Arc<Mutex<CityState>>>,
     pub mode: GameMode,
@@ -39,6 +40,11 @@ impl GameState {
                 cities.push(city.clone());
             }
         }
+
+        // Shuffle (for now)
+        let mut rng = thread_rng(); // Create a random number generator
+        cities.shuffle(&mut rng);
+
         cities
     }
 

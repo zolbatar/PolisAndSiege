@@ -1,5 +1,5 @@
 pub enum Difficulty {
-    TreeSearchEasy,
-    TreeSearchNormal,
-    TreeSearchHard,
+    //    Easy,
+    Normal,
+    //    Hard,
 }

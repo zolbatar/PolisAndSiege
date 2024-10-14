@@ -100,7 +100,7 @@ fn main() {
     world.register::<Location>();
     world.register::<City>();
     world.register::<Connection>();
-    world.insert(Difficulty::TreeSearchNormal);
+    world.insert(Difficulty::Normal);
 
     // Create an AppState instance using the new method
     let mut app_state = AppState::new(&window, dpi, world);

@@ -25,7 +25,6 @@ pub fn computer_turn(app_state: &mut AppState) {
         for player_entity in &app_state.players {
             let player = players.get(*player_entity).unwrap();
             temp_players.push(TempPlayer {
-                index: player.index,
                 armies_to_assign: player.armies_to_assign,
             })
         }
@@ -34,12 +33,11 @@ pub fn computer_turn(app_state: &mut AppState) {
     // Create initial game state
     let mut game_state = GameState {
         score: 0,
-        actual_human: Some(app_state.actual_human),
         current_turn: Some(app_state.current_player),
         players: temp_players,
         mode: app_state.mode.clone(),
         depth: 0,
-        requested_depth: 0,
+        requested_depth: 1,
         city_states: all_cities,
     };
     game_state.calculate_score(app_state);
@@ -49,10 +47,14 @@ pub fn computer_turn(app_state: &mut AppState) {
     if possibles.is_empty() {
         println!("No possible moves");
         return;
+    } else {
+        println!("There are {} possible moves", possibles.len());
     }
+    let children = &possibles[0].child_moves;
+    let a = 1;
 
     // Score range
-    let lowest = possibles.iter().min_by_key(|p| p.game_state.score).unwrap().game_state.score;
+    /*    let lowest = possibles.iter().min_by_key(|p| p.game_state.score).unwrap().game_state.score;
     let highest = possibles.iter().min_by_key(|p| p.game_state.score).unwrap().game_state.score;
     println!("Lowest and highest score: {}/{}", lowest, highest);
 
@@ -60,5 +62,18 @@ pub fn computer_turn(app_state: &mut AppState) {
     possibles.sort_by(|a, b| a.game_state.score.cmp(&b.game_state.score));
     let best = &mut possibles[0];
     best.do_move_and_next_turn(app_state);
-    //    println!("{:?}", possibles);
+    println!("{:?}", possibles);*/
+}
+
+pub fn move_to_next_player(game_state: &mut GameState, app_state: &AppState) -> bool {
+    let players = app_state.world.read_storage::<Player>();
+    let current_player = players.get(game_state.current_turn.unwrap());
+
+    // Next index
+    let mut index = current_player.unwrap().index + 1;
+    if index == app_state.num_of_players {
+        index = 0;
+    }
+    game_state.current_turn = Some(app_state.players[index]);
+    index == 0
 }

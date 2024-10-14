@@ -224,7 +224,7 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     }
 
     // FPS
-    let fps = format!(
+    let _fps = format!(
         "FPS: {:.0} Zoom: {}, Position: {},{}",
         app_state.fps, app_state.zoom, app_state.target.x, app_state.target.y
     );
