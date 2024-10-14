@@ -50,8 +50,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     } else {
         println!("There are {} possible moves", possibles.len());
     }
-    let children = &possibles[0].child_moves;
-    let a = 1;
+    println!("{:#?}", possibles[0]);
 
     // Score range
     /*    let lowest = possibles.iter().min_by_key(|p| p.game_state.score).unwrap().game_state.score;
@@ -61,8 +60,8 @@ pub fn computer_turn(app_state: &mut AppState) {
     // Select move
     possibles.sort_by(|a, b| a.game_state.score.cmp(&b.game_state.score));
     let best = &mut possibles[0];
-    best.do_move_and_next_turn(app_state);
-    println!("{:?}", possibles);*/
+    best.do_move_and_next_turn(app_state);*/
+    //    println!("{:#?}", possibles);
 }
 
 pub fn move_to_next_player(game_state: &mut GameState, app_state: &AppState) -> bool {
