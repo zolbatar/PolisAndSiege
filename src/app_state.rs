@@ -1,3 +1,5 @@
+use crate::model::city_state::CityState;
+use crate::model::location::Location;
 use crate::model::player::Player;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
@@ -8,8 +10,6 @@ use specs::{Builder, Entity, World, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
-use crate::model::city_state::CityState;
-use crate::model::location::Location;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
@@ -118,7 +118,7 @@ impl AppState {
             player_lookup: HashMap::new(),
         };
 
-        let num_of_players = 5;
+        let num_of_players = 2;
 
         let mut possible_names = vec![
             "The Britannian Dominion",

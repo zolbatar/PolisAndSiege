@@ -1,9 +1,9 @@
-use std::sync::{Arc, Mutex};
 use crate::model::city::City;
+use crate::model::city_state::CityState;
 use skia_safe::Color;
 use specs::prelude::*;
 use specs_derive::Component;
-use crate::model::city_state::CityState;
+use std::sync::{Arc, Mutex};
 
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
@@ -16,10 +16,10 @@ pub struct Player {
     pub armies_to_assign: u32,
 }
 
-fn score_for_city(score_in: i32, city: &City, city_state: Arc<Mutex<CityState>>) -> i32 {
-    let mut score = score_in;
+pub fn score_for_city(city: &City, city_state: &CityState) -> i32 {
+    let mut score = 0;
     score += (city.size as i32) * 10;
-    score += city_state.lock().unwrap().armies as i32;
+    score += city_state.armies as i32;
     score
 }
 
@@ -32,9 +32,8 @@ impl<'a> System<'a> for SUpdateScores {
             component.score = 0;
             for city_state in &component.cities {
                 let city = cities.get(city_state.lock().unwrap().city);
-                component.score = score_for_city(component.score, city.unwrap(), city_state.clone());
+                component.score += score_for_city(city.unwrap(), &city_state.lock().unwrap());
             }
         }
     }
 }
-

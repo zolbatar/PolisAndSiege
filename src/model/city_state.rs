@@ -1,6 +1,6 @@
 use specs::Entity;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CityState {
     pub city: Entity,
     pub armies: u32,

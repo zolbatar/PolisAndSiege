@@ -6,8 +6,9 @@ mod lib {
 mod ai {
     pub mod computer_turn;
     pub mod difficulty;
-    pub mod possible_move;
     mod game_state;
+    mod r#move;
+    pub mod possible_move;
 }
 mod input;
 
@@ -31,6 +32,9 @@ mod render {
     pub mod surround;
     pub mod title_bar;
 }
+use crate::ai::computer_turn::computer_turn;
+use crate::ai::difficulty::Difficulty;
+use crate::app_state::GameMode;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
@@ -40,14 +44,11 @@ use crate::model::location::Location;
 use crate::model::player::{Player, SUpdateScores};
 use crate::model::territory::Territory;
 use crate::model::territory_polygon::TerritoryPolygon;
+use crate::render::randomising::assign;
 use app_state::AppState;
 use sdl2::video::GLProfile;
 use specs::prelude::*;
 use std::time::{Duration, Instant};
-use crate::ai::computer_turn::computer_turn;
-use crate::ai::difficulty::Difficulty;
-use crate::app_state::GameMode;
-use crate::render::randomising::assign;
 
 fn main() {
     // Initialize SDL2
