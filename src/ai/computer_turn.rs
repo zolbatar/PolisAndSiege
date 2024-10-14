@@ -1,6 +1,8 @@
 use crate::ai::game_state::GameState;
 use crate::ai::possible_move::possible_moves;
+use crate::ai::temp_player::TempPlayer;
 use crate::app_state::AppState;
+use crate::model::player::Player;
 use crate::model::territory::Territory;
 use specs::WorldExt;
 
@@ -17,12 +19,24 @@ pub fn computer_turn(app_state: &mut AppState) {
         }
     }
 
+    let mut temp_players = Vec::new();
+    {
+        let players = app_state.world.read_storage::<Player>();
+        for player_entity in &app_state.players {
+            let player = players.get(*player_entity).unwrap();
+            temp_players.push(TempPlayer {
+                index: player.index,
+                armies_to_assign: player.armies_to_assign,
+            })
+        }
+    }
+
     // Create initial game state
     let mut game_state = GameState {
         score: 0,
         actual_human: Some(app_state.actual_human),
         current_turn: Some(app_state.current_player),
-        players: app_state.players.clone(),
+        players: temp_players,
         mode: app_state.mode.clone(),
         depth: 0,
         requested_depth: 0,

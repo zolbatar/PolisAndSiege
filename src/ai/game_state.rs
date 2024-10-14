@@ -1,3 +1,4 @@
+use crate::ai::temp_player::TempPlayer;
 use crate::app_state::{AppState, GameMode};
 use crate::model::city::City;
 use crate::model::city_state::CityState;
@@ -10,7 +11,7 @@ pub struct GameState {
     pub score: i32,
     pub current_turn: Option<Entity>,
     pub actual_human: Option<Entity>,
-    pub players: Vec<Entity>,
+    pub players: Vec<TempPlayer>,
     pub city_states: Vec<Arc<Mutex<CityState>>>,
     pub mode: GameMode,
     pub depth: u8,

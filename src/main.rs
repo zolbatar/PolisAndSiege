@@ -9,6 +9,7 @@ mod ai {
     mod game_state;
     mod r#move;
     pub mod possible_move;
+    pub mod temp_player;
 }
 mod input;
 

@@ -194,7 +194,7 @@ impl AppState {
                 last_city_selection: None,
                 last_city_hover: None,
                 last_army_city_selection: None,
-                minimum_allowed_distance: 18.0, //12.0,
+                minimum_allowed_distance: 40.0, //18.0, //12.0,
                 assign_speed: 0,
             },
             gfx,
