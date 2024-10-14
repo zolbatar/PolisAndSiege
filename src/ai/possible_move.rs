@@ -19,9 +19,11 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Move>
                 let mut new_state = game_state.full_clone();
                 let new_city = new_state.find_city(city.clone());
                 let mut the_move = Move::new_place_army(app_state, new_state.clone(), new_city);
+                new_state.score = 0;
 
                 // Go deeper
                 if new_state.depth != new_state.requested_depth {
+                    let mut new_state = new_state.clone();
                     println!("Descending");
 
                     // Update player

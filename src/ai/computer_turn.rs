@@ -7,6 +7,12 @@ use crate::model::territory::Territory;
 use specs::WorldExt;
 
 pub fn computer_turn(app_state: &mut AppState) {
+    {
+        let players = app_state.world.read_storage::<Player>();
+        let player = players.get(app_state.current_player).unwrap();
+        println!("Starting score: {}", player.score);
+    }
+
     // Collate a list of all cities
     let mut all_cities = Vec::new();
     {
@@ -31,7 +37,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     }
 
     // Create initial game state
-    let mut game_state = GameState {
+    let game_state = GameState {
         score: 0,
         current_turn: Some(app_state.current_player),
         players: temp_players,
@@ -40,8 +46,6 @@ pub fn computer_turn(app_state: &mut AppState) {
         requested_depth: 1,
         city_states: all_cities,
     };
-    game_state.calculate_score(app_state);
-    game_state.display_score();
 
     let mut possibles = possible_moves(&game_state, app_state);
     if possibles.is_empty() {
