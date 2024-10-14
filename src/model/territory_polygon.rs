@@ -4,6 +4,7 @@ use skia_safe::{Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
 use specs::prelude::*;
 use specs_derive::Component;
 use crate::app_state::AppState;
+use crate::lib::skia::Skia;
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
@@ -12,12 +13,13 @@ pub struct TerritoryPolygon {
 }
 
 impl TerritoryPolygon {
-    pub fn new(app_state: &mut AppState, territory: Entity, locations: Vec<Location>) -> Self {
+    pub fn new(skia: &mut Skia, app_state: &mut AppState, territory: Entity, locations: Vec<Location>) -> Self {
         let territories = app_state.world.read_storage::<Territory>();
 
         // Paint
         let mut paint = Paint::default();
         paint.set_style(PaintStyle::Fill);
+        paint.set_shader(skia.create_halftone_shader(self.colour_background, 3.0));
         paint.set_argb(255, 255, 0, 0);
         paint.set_color(territories.get(territory).unwrap().colour);
 

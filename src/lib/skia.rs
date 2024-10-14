@@ -10,14 +10,13 @@ use skia_safe::paint::Style;
 use skia_safe::textlayout::{
     FontCollection, ParagraphBuilder, ParagraphStyle, TextAlign, TextStyle, TypefaceFontProvider,
 };
-use skia_safe::{
-    gpu, Canvas, Color, Color4f, Contains, Data, FontMgr, FontStyle, ImageFilter, Paint, PaintStyle, Point, Rect,
-    RuntimeEffect, Shader, Surface, Vector,
-};
+use skia_safe::{gpu, Canvas, Color, Color4f, Contains, Data, FontMgr, FontStyle, Image, ImageFilter, Paint, PaintStyle, Point, Rect, RuntimeEffect, SamplingOptions, Shader, Surface, TileMode, Vector};
+use skia_safe::runtime_effect::ChildPtr;
 
 static EBGARAMOND_TTF: &[u8] = include_bytes!("../../assets/EBGaramond-VariableFont_wght.ttf");
 static NOTO_SANS_SYMBOLS_TTF: &[u8] = include_bytes!("../../assets/NotoSansSymbols-VariableFont_wght.ttf");
 const NOISE_SKSL: &str = include_str!("../../assets/noise.sksl");
+const HALFTONE_SKSL: &str = include_str!("../../assets/halftone.sksl");
 pub const ELLIPSIS: &str = "\u{2026}";
 
 pub enum FontFamily {
@@ -31,7 +30,8 @@ pub struct Skia {
     font_collection: FontCollection,
     pub drop_shadow: Option<ImageFilter>,
     pub drop_shadow_white: Option<ImageFilter>,
-    noise_shader: Result<RuntimeEffect, String>,
+    noise_shader: Option<RuntimeEffect>,
+    halftone_shader: Option<RuntimeEffect>,
     pub surface: Surface,
     pub colour_background: Color,
     pub colour_popup: Color,
@@ -64,7 +64,7 @@ impl Skia {
             None,
             None,
         )
-        .expect("Could not create Skia surface")
+            .expect("Could not create Skia surface")
     }
 
     pub fn new(app_state: &AppState) -> Self {
@@ -91,7 +91,10 @@ impl Skia {
         font_collection.set_default_font_manager(Some(typeface_font_provider.into()), "EB Garamond");
 
         // Shaders
-        let noise_shader = RuntimeEffect::make_for_shader(NOISE_SKSL, None);
+        let noise_shader = RuntimeEffect::make_for_shader(NOISE_SKSL, None).ok();
+
+        // Create the runtime effect from the SkSL code
+        let halftone_shader = RuntimeEffect::make_for_shader(HALFTONE_SKSL, None).ok();
 
         // Filters
         let drop_shadow =
@@ -113,6 +116,7 @@ impl Skia {
             drop_shadow,
             drop_shadow_white,
             noise_shader,
+            halftone_shader,
             colour_background: Color::from_argb(255, 53, 53, 53),
             colour_popup: Color::from_argb(255, 80, 80, 80),
             colour_outline: Color::from_argb(255, 209, 185, 120),
@@ -314,12 +318,37 @@ impl Skia {
     pub fn create_noise_shader(&mut self, base_color: Color, mix: f32) -> Shader {
         let uniforms = {
             let mut data = vec![];
+
+            // Mix
             data.extend_from_slice(&mix.to_ne_bytes());
+
+            // Colour 
             let d = Color4f::from(base_color).as_array().iter().map(|&f| f.to_ne_bytes()).flatten().collect::<Vec<_>>();
             data.extend_from_slice(&d);
+
             Data::new_copy(&data)
         };
         self.noise_shader.clone().unwrap().make_shader(uniforms, &[], None).expect("Make shader failed")
+    }
+
+    pub fn create_halftone_shader(&mut self, image: Image, dot_radius: f32) -> Shader {
+        let uniforms = {
+            let mut data = vec![];
+
+            // Dot radius
+            data.extend_from_slice(&dot_radius.to_ne_bytes());
+
+            Data::new_copy(&data)
+        };
+
+        // Get the image shader and set it as a uniform
+        let image_shader = image.to_shader(
+            (TileMode::Repeat, TileMode::Repeat),
+            SamplingOptions::default(),
+            None,
+        );
+
+        self.noise_shader.clone().unwrap().make_shader(uniforms, &[ChildPtr::from(image_shader.unwrap())], None).expect("Make shader failed")
     }
 
     pub fn button(&mut self, text: &str, app_state: &AppState, xy: Vector) {

@@ -1,0 +1,17 @@
+uniform float dotRadius;  // Maximum radius of halftone dots
+uniform shader image;  // The input image
+
+half4 main(float2 coord) {
+    half4 color = image.eval(coord);
+    float intensity = dot(color.r * 0.2126, color.g * 0.7152, color.b * 0.0722);  // Calculate luminance
+
+    float2 grid = floor(coord / dotRadius) * dotRadius;  // Snap coordinates to a grid
+
+    float dist = length(coord - grid);  // Calculate distance from the center of the dot
+    float radius = dotRadius * intensity;  // Adjust radius based on intensity
+
+    if (dist < radius) {
+        return half4(0, 0, 0, 1);  // Draw a black dot
+    }
+    return half4(1, 1, 1, 1);  // Draw the white background
+}
