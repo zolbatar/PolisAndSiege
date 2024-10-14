@@ -4,7 +4,7 @@ use crate::model::city::City;
 use crate::model::city_state::CityState;
 use crate::model::player::score_for_city;
 use rand::prelude::SliceRandom;
-use rand::thread_rng;
+use rand::{thread_rng, Rng};
 use specs::{Entity, WorldExt};
 use std::sync::{Arc, Mutex};
 
@@ -17,6 +17,7 @@ pub struct GameState {
     pub mode: GameMode,
     pub depth: u8,
     pub requested_depth: u8,
+    pub no_choices: usize,
 }
 
 impl GameState {
@@ -60,6 +61,11 @@ impl GameState {
             let city_entity = cities.get(city.lock().unwrap().city);
             self.score += score_for_city(city_entity.unwrap(), &city.lock().unwrap());
         }
+        
+        // Add randomness to keep it interesting and less easy to guess intentions
+        let range = self.score / 15;
+        let mut r = thread_rng();
+        self.score += r.gen_range(0..range);
     }
 
     pub fn find_city(&self, city_state_in: Arc<Mutex<CityState>>) -> Arc<Mutex<CityState>> {

@@ -18,6 +18,7 @@ pub struct Move {
     pub _city_state_target: Option<Arc<Mutex<CityState>>>,
     pub game_state: Option<GameState>,
     pub child_moves: Vec<Move>,
+    pub best_score: i32,
 }
 
 impl fmt::Debug for Move {
@@ -25,8 +26,9 @@ impl fmt::Debug for Move {
         // We choose not to display `secret_field`
         f.debug_struct("Move")
             .field("move_type", &self.move_type)
+            .field("best_score", &self.best_score)
+/*            .field("score", &self.game_state.clone().unwrap().score)*/
             .field("child_moves", &self.child_moves)
-            .field("score", &self.game_state.clone().unwrap().score)
             .finish()
     }
 }
@@ -46,10 +48,11 @@ impl Move {
             _city_state_target: None,
             game_state: Some(game_state),
             child_moves: Vec::new(),
+            best_score: 0,
         }
     }
 
-    pub fn find_city(&self, app_state: &AppState, city_state_in: Arc<Mutex<CityState>>) -> Arc<Mutex<CityState>> {
+    fn find_city(&self, app_state: &AppState, city_state_in: Arc<Mutex<CityState>>) -> Arc<Mutex<CityState>> {
         let search_entity = city_state_in.lock().unwrap().city;
         for city_state_entity in &app_state.items.cities {
             if city_state_entity.lock().unwrap().city == search_entity {

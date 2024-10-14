@@ -45,6 +45,7 @@ pub fn computer_turn(app_state: &mut AppState) {
         depth: 0,
         requested_depth: 1,
         city_states: all_cities,
+        no_choices: 3,
     };
 
     let mut possibles = possible_moves(&game_state, app_state);
@@ -54,21 +55,21 @@ pub fn computer_turn(app_state: &mut AppState) {
     } else {
         println!("There are {} possible moves", possibles.len());
     }
-    println!("{:#?}", possibles[0]);
 
     // Score range
-    /*    let lowest = possibles.iter().min_by_key(|p| p.game_state.score).unwrap().game_state.score;
-    let highest = possibles.iter().min_by_key(|p| p.game_state.score).unwrap().game_state.score;
+    let lowest = possibles.iter().min_by_key(|p| p.best_score).unwrap().best_score;
+    let highest = possibles.iter().max_by_key(|p| p.best_score).unwrap().best_score;
     println!("Lowest and highest score: {}/{}", lowest, highest);
 
     // Select move
-    possibles.sort_by(|a, b| a.game_state.score.cmp(&b.game_state.score));
+    possibles.sort_by(|a, b| a.best_score.cmp(&b.best_score));
     let best = &mut possibles[0];
-    best.do_move_and_next_turn(app_state);*/
-    //    println!("{:#?}", possibles);
+    best.do_move_and_next_turn(app_state);
+//    println!("{:#?}", possibles);
 }
 
-pub fn move_to_next_player(game_state: &mut GameState, app_state: &AppState) -> bool {
+pub fn move_to_next_player(game_state: &mut GameState, app_state: &AppState, to_index: usize) ->
+bool {
     let players = app_state.world.read_storage::<Player>();
     let current_player = players.get(game_state.current_player.unwrap());
 
@@ -78,5 +79,5 @@ pub fn move_to_next_player(game_state: &mut GameState, app_state: &AppState) -> 
         index = 0;
     }
     game_state.current_player = Some(app_state.players[index]);
-    index == 0
+    index == to_index
 }
