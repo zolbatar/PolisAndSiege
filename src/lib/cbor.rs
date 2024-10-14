@@ -1,9 +1,11 @@
 use crate::app_state::AppState;
+use crate::lib::skia::Skia;
 use crate::model::city::{select_evenly_spaced_cities, City, CityTemporary};
+use crate::model::city_state::CityState;
 use crate::model::connection::build_connections;
-use crate::model::location::{Location};
+use crate::model::location::Location;
 use crate::model::territory::{get_colour_for_territory_name, Territory};
-use crate::model::territory_polygon::{TerritoryPolygon};
+use crate::model::territory_polygon::TerritoryPolygon;
 use ciborium::de::from_reader;
 use ciborium::Value;
 use petgraph::prelude::NodeIndex;
@@ -12,11 +14,10 @@ use rand::thread_rng;
 use specs::{Builder, Entity, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex};
-use crate::model::city_state::CityState;
 
 const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
 
-pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
+pub fn import(skia: &mut Skia, app_state: &mut AppState) -> BTreeMap<String, Entity> {
     // Open file
     let reader = from_reader::<Value, _>(REGIONS_CBOR).expect("Can't load CBOR file");
     let mut polygon_count = 0;
@@ -82,10 +83,7 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
             if _locations.len() >= 64 {
                 polygon_count += 1;
 
-                let territory_polygon = TerritoryPolygon::new(
-                    app_state,
-                    _territory,
-                    _locations);
+                let territory_polygon = TerritoryPolygon::new(skia, app_state, _territory, _locations);
 
                 // Add polygon to territory
                 app_state
@@ -149,7 +147,12 @@ pub fn import(app_state: &mut AppState) -> BTreeMap<String, Entity> {
                 };
 
                 // Add city to territory
-                app_state.world.write_storage::<Territory>().get_mut(_territory).unwrap().cities
+                app_state
+                    .world
+                    .write_storage::<Territory>()
+                    .get_mut(_territory)
+                    .unwrap()
+                    .cities
                     .push(Arc::new(Mutex::new(city_state)));
             }
         }

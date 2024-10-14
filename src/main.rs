@@ -105,15 +105,15 @@ fn main() {
     // Create an AppState instance using the new method
     let mut app_state = AppState::new(&window, dpi, world);
 
-    // Load CBOR data
-    let territories = cbor::import(&mut app_state);
-    app_state.items.territories = territories;
-
     // Skia and surfaces
     let mut skia = Skia::new(&app_state);
     unsafe {
         skia.flush();
     }
+
+    // Load CBOR data
+    let territories = cbor::import(&mut skia, &mut app_state);
+    app_state.items.territories = territories;
 
     // Event pump for SDL2 events
     let mut event_pump = sdl.event_pump().unwrap();

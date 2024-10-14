@@ -1,10 +1,10 @@
+use crate::app_state::AppState;
+use crate::lib::skia::Skia;
 use crate::model::location::Location;
 use crate::model::territory::Territory;
 use skia_safe::{Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
 use specs::prelude::*;
 use specs_derive::Component;
-use crate::app_state::AppState;
-use crate::lib::skia::Skia;
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
@@ -13,13 +13,12 @@ pub struct TerritoryPolygon {
 }
 
 impl TerritoryPolygon {
-    pub fn new(skia: &mut Skia, app_state: &mut AppState, territory: Entity, locations: Vec<Location>) -> Self {
+    pub fn new(_skia: &mut Skia, app_state: &mut AppState, territory: Entity, locations: Vec<Location>) -> Self {
         let territories = app_state.world.read_storage::<Territory>();
 
         // Paint
         let mut paint = Paint::default();
         paint.set_style(PaintStyle::Fill);
-        paint.set_shader(skia.create_halftone_shader(self.colour_background, 3.0));
         paint.set_argb(255, 255, 0, 0);
         paint.set_color(territories.get(territory).unwrap().colour);
 
@@ -34,6 +33,7 @@ impl TerritoryPolygon {
         // And draw to a Picture
         let mut recorder = PictureRecorder::new();
         let canvas = recorder.begin_recording(Rect::from_wh(0.0, 0.0), None);
+        //paint.set_shader(skia.halftone(territories.get(territory).unwrap().colour));
         canvas.draw_path(&path, &paint);
         let pic = recorder.finish_recording_as_picture(None).unwrap();
 
