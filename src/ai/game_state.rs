@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 #[derive(Default, Clone, Debug)]
 pub struct GameState {
     pub score: i32,
-    pub current_turn: Option<Entity>,
+    pub current_player: Option<Entity>,
     pub players: Vec<TempPlayer>,
     pub city_states: Vec<Arc<Mutex<CityState>>>,
     pub mode: GameMode,
@@ -36,7 +36,7 @@ impl GameState {
     pub fn get_player_cities(&self) -> Vec<Arc<Mutex<CityState>>> {
         let mut cities = Vec::new();
         for city in self.city_states.iter() {
-            if city.lock().unwrap().owner == self.current_turn {
+            if city.lock().unwrap().owner == self.current_player {
                 cities.push(city.clone());
             }
         }

@@ -39,7 +39,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     // Create initial game state
     let game_state = GameState {
         score: 0,
-        current_turn: Some(app_state.current_player),
+        current_player: Some(app_state.current_player),
         players: temp_players,
         mode: app_state.mode.clone(),
         depth: 0,
@@ -70,13 +70,13 @@ pub fn computer_turn(app_state: &mut AppState) {
 
 pub fn move_to_next_player(game_state: &mut GameState, app_state: &AppState) -> bool {
     let players = app_state.world.read_storage::<Player>();
-    let current_player = players.get(game_state.current_turn.unwrap());
+    let current_player = players.get(game_state.current_player.unwrap());
 
     // Next index
     let mut index = current_player.unwrap().index + 1;
     if index == app_state.num_of_players {
         index = 0;
     }
-    game_state.current_turn = Some(app_state.players[index]);
+    game_state.current_player = Some(app_state.players[index]);
     index == 0
 }
