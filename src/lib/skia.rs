@@ -33,7 +33,7 @@ pub struct Skia {
     pub drop_shadow: Option<ImageFilter>,
     pub drop_shadow_white: Option<ImageFilter>,
     noise_shader: RuntimeEffect,
-    halftone_shader: RuntimeEffect,
+    _halftone_shader: RuntimeEffect,
     pub surface: Surface,
     pub colour_background: Color,
     pub colour_popup: Color,
@@ -119,7 +119,7 @@ impl Skia {
             drop_shadow,
             drop_shadow_white,
             noise_shader,
-            halftone_shader,
+            _halftone_shader: halftone_shader,
             colour_background: Color::from_argb(255, 53, 53, 53),
             colour_popup: Color::from_argb(255, 80, 80, 80),
             colour_outline: Color::from_argb(255, 209, 185, 120),
@@ -334,7 +334,7 @@ impl Skia {
         self.noise_shader.clone().make_shader(uniforms, &[], None).expect("Make shader failed")
     }
 
-    fn create_halftone_shader(&mut self, dot_colour: Color, bg_color: Color, dot_radius: f32) -> Shader {
+    fn _create_halftone_shader(&mut self, dot_colour: Color, bg_color: Color, dot_radius: f32) -> Shader {
         let uniforms = {
             let mut data = vec![];
 
@@ -350,15 +350,15 @@ impl Skia {
             Data::new_copy(&data)
         };
 
-        self.halftone_shader.clone().make_shader(uniforms, &[], None).expect("Make shader failed")
+        self._halftone_shader.clone().make_shader(uniforms, &[], None).expect("Make shader failed")
     }
 
-    pub fn halftone(&mut self, dot_color: Color) -> Shader {
-        self.apply_halftone_shader(0.1, dot_color, Color::BLACK)
+    pub fn _halftone(&mut self, dot_color: Color) -> Shader {
+        self._apply_halftone_shader(0.1, dot_color, Color::BLACK)
     }
 
-    fn apply_halftone_shader(&mut self, dot_radius: f32, dot_color: Color, bg_color: Color) -> Shader {
-        self.create_halftone_shader(dot_color, bg_color, dot_radius)
+    fn _apply_halftone_shader(&mut self, dot_radius: f32, dot_color: Color, bg_color: Color) -> Shader {
+        self._create_halftone_shader(dot_color, bg_color, dot_radius)
     }
 
     pub fn button(&mut self, text: &str, app_state: &AppState, xy: Vector) {

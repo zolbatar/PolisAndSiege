@@ -10,7 +10,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     {
         let players = app_state.world.read_storage::<Player>();
         let player = players.get(app_state.current_player).unwrap();
-        println!("Starting score: {}", player.score);
+        print!("Starting score: {}, ", player.score);
     }
 
     // Collate a list of all cities
@@ -50,16 +50,16 @@ pub fn computer_turn(app_state: &mut AppState) {
 
     let mut possibles = possible_moves(&game_state, app_state);
     if possibles.is_empty() {
-        println!("No possible moves");
+        println!("no possible moves");
         return;
     } else {
-        println!("There are {} possible moves", possibles.len());
+        print!("there are {} possible moves, ", possibles.len());
     }
 
     // Score range
     let lowest = possibles.iter().min_by_key(|p| p.best_score).unwrap().best_score;
     let highest = possibles.iter().max_by_key(|p| p.best_score).unwrap().best_score;
-    println!("Lowest and highest score: {}/{}", lowest, highest);
+    println!("lowest and highest score: {}/{}", lowest, highest);
 
     // Select move
     possibles.sort_by(|a, b| a.best_score.cmp(&b.best_score));
@@ -68,7 +68,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     //    println!("{:#?}", possibles);
 }
 
-pub fn move_to_next_player(game_state: &mut GameState, app_state: &AppState, to_index: usize) -> bool {
+pub fn _move_to_next_player(game_state: &mut GameState, app_state: &AppState, to_index: usize) -> bool {
     let players = app_state.world.read_storage::<Player>();
     let current_player = players.get(game_state.current_player.unwrap());
 

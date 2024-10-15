@@ -4,6 +4,7 @@ mod lib {
     pub mod skia;
 }
 mod ai {
+    pub mod army_placement;
     pub mod computer_turn;
     pub mod difficulty;
     mod game_state;
