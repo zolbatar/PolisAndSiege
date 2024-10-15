@@ -24,7 +24,7 @@ where
 {
     let mut results = data_in;
     let players = app_state.world.read_storage::<Player>();
-    if game_state.depth != game_state.requested_depth {
+    if game_state.depth != players.get(game_state.current_player.unwrap()).unwrap().profile.search_depth {
         for result in &mut results {
             let new_state = &mut result.game_state.clone().unwrap();
             new_state.depth += 1;

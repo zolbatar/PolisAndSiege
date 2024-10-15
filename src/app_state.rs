@@ -1,6 +1,6 @@
 use crate::model::city_state::CityState;
 use crate::model::location::Location;
-use crate::model::player::Player;
+use crate::model::player::{AIProfile, Player};
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use sdl2::video::Window;
@@ -165,7 +165,16 @@ impl AppState {
                         name: possible_names[i].parse().unwrap(),
                         colours: player_colours[i].clone(),
                         armies_to_assign: 10,
-                        ..Default::default()
+                        cities: Vec::new(),
+                        score: 0,
+                        profile: AIProfile {
+                            search_depth: 3,
+                            city_size_multiplier: 1.5,
+                            army_multiplier: 1.0,
+                            army_same_territory: 2.0,
+                            army_bordering: 3.0,
+                            random_fraction: 0.1,
+                        },
                     })
                     .build(),
             );

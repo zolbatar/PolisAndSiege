@@ -43,7 +43,6 @@ pub fn computer_turn(app_state: &mut AppState) {
         players: temp_players,
         mode: app_state.mode.clone(),
         depth: 0,
-        requested_depth: 1,
         city_states: all_cities,
         no_choices: 3,
     };

@@ -15,7 +15,6 @@ pub struct GameState {
     pub city_states: Vec<Arc<Mutex<CityState>>>,
     pub mode: GameMode,
     pub depth: u8,
-    pub requested_depth: u8,
     pub no_choices: usize,
 }
 
