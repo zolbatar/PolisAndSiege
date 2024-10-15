@@ -154,6 +154,15 @@ impl AppState {
             vec![Color::from_rgb(128, 255, 255), Color::BLACK],
         ];
 
+        let profile = AIProfile {
+            search_depth: 3,
+            city_size_multiplier: 1.5,
+            army_multiplier: 1.0,
+            army_same_territory: 2.0,
+            army_bordering: 3.0,
+            random_fraction: 0.1,
+        };
+
         // Create player(s)
         let mut _players = Vec::new();
         for i in 0..num_of_players {
@@ -167,14 +176,7 @@ impl AppState {
                         armies_to_assign: 10,
                         cities: Vec::new(),
                         score: 0,
-                        profile: AIProfile {
-                            search_depth: 3,
-                            city_size_multiplier: 1.5,
-                            army_multiplier: 1.0,
-                            army_same_territory: 2.0,
-                            army_bordering: 3.0,
-                            random_fraction: 0.1,
-                        },
+                        profile: profile.clone(),
                     })
                     .build(),
             );

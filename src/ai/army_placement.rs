@@ -1,5 +1,5 @@
 use crate::ai::game_state::GameState;
-use crate::ai::r#move::Move;
+use crate::ai::moves::Move;
 use crate::app_state::AppState;
 
 pub fn ap_build_list_of_possibles(game_state: &GameState, app_state: &AppState) -> Vec<Move> {

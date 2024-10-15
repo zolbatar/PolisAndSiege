@@ -1,6 +1,6 @@
 use crate::ai::army_placement::ap_build_list_of_possibles;
 use crate::ai::game_state::GameState;
-use crate::ai::r#move::Move;
+use crate::ai::moves::Move;
 use crate::app_state::{AppState, GameMode};
 use crate::model::player::Player;
 use specs::WorldExt;

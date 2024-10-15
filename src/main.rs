@@ -7,8 +7,8 @@ mod ai {
     pub mod army_placement;
     pub mod computer_turn;
     pub mod difficulty;
-    mod game_state;
-    mod r#move;
+    pub mod game_state;
+    pub mod moves;
     pub mod possible_move;
     pub mod scoring;
     pub mod temp_player;
@@ -37,7 +37,7 @@ mod render {
 }
 use crate::ai::computer_turn::computer_turn;
 use crate::ai::difficulty::Difficulty;
-use crate::ai::scoring::SUpdateScores;
+use crate::ai::scoring::app_state_scoring;
 use crate::app_state::GameMode;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
@@ -211,8 +211,7 @@ fn main() {
 }
 
 pub fn update_scores(app_state: &mut AppState) {
-    let mut dispatcher_score = DispatcherBuilder::new().with(SUpdateScores, "update_scores", &[]).build();
-    dispatcher_score.dispatch_par(&app_state.world);
+    app_state_scoring(app_state);
 }
 
 pub fn next_turn(app_state: &mut AppState) {

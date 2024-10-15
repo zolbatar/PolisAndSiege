@@ -10,7 +10,6 @@ ciborium = "0.2.2"
 petgraph = "0.6.5"
 sdl2 = { version = "0.37.0", features = ["bundled", "static-link"] }
 gl = "0.14.0"
-mcts = "0.3.0"
 specs = "0.20.0"
 specs-derive = "0.4.1"
 rayon = "1.10.0"
