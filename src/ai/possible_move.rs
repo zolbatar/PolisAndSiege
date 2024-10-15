@@ -18,11 +18,14 @@ fn reduce_down_to_limited_list(game_state: &GameState, data_in: Vec<Move>) -> Ve
     results.into_iter().take(game_state.no_choices).collect()
 }
 
-fn go_deeper(game_state: &GameState, app_state: &AppState, data_in: Vec<Move>) -> Vec<Move> {
+fn go_deeper<F>(game_state: &GameState, app_state: &AppState, data_in: Vec<Move>, mut f: F) -> Vec<Move>
+where
+    F: FnMut(&GameState, &AppState) -> Vec<Move>,
+{
     let mut results = data_in;
     let players = app_state.world.read_storage::<Player>();
     if game_state.depth != game_state.requested_depth {
-        for mut result in &mut results {
+        for result in &mut results {
             let new_state = &mut result.game_state.clone().unwrap();
             new_state.depth += 1;
 
@@ -49,9 +52,8 @@ fn go_deeper(game_state: &GameState, app_state: &AppState, data_in: Vec<Move>) -
             }*/
 
             // Recurse
-            let additional_moves = &mut possible_moves(new_state, app_state);
-
-            result.child_moves.append(additional_moves);
+            let mut additional_moves = f(new_state, app_state);
+            result.child_moves.append(&mut additional_moves);
         }
     }
     results
@@ -64,7 +66,7 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Move>
         GameMode::ArmyPlacement => {
             results = build_list_of_possibles(game_state, app_state);
             results = reduce_down_to_limited_list(game_state, results);
-            results = go_deeper(game_state, app_state, results);
+            results = go_deeper(game_state, app_state, results, possible_moves);
         }
         GameMode::Randomising => {}
         GameMode::Game => {}
@@ -80,6 +82,5 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Move>
         }
     }
 
-    //    println!("Returning: {}", results.len());
     results
 }

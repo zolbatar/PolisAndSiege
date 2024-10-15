@@ -65,7 +65,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     possibles.sort_by(|a, b| a.best_score.cmp(&b.best_score));
     let best = &mut possibles[0];
     best.do_move_and_next_turn(app_state);
-    //    println!("{:#?}", possibles);
+    //println!("{:#?}", possibles);
 }
 
 pub fn _move_to_next_player(game_state: &mut GameState, app_state: &AppState, to_index: usize) -> bool {
