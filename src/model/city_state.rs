@@ -4,5 +4,6 @@ use specs::Entity;
 pub struct CityState {
     pub city: Entity,
     pub armies: u32,
+    pub additional_armies: u32,
     pub owner: Option<Entity>,
 }

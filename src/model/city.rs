@@ -11,6 +11,7 @@ use std::collections::HashMap;
 #[storage(VecStorage)]
 pub struct City {
     pub territory: Entity,
+    pub connections: Vec<Entity>,
     pub location: Location,
     pub name: String,
     pub size: u8,

@@ -20,6 +20,9 @@ pub fn score_for_city(city: &City, city_state: &CityState) -> i32 {
     let mut score = 0;
     score += (city.size as i32) * 10;
     score += city_state.armies as i32;
+
+    // Logic for additional armies, extra score if bordering enemy concentrations
+
     score
 }
 

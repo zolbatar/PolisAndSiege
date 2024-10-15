@@ -29,6 +29,7 @@ impl GameState {
             new_state.city_states.push(Arc::new(Mutex::new(CityState {
                 city: city_state_unwrapped.city,
                 armies: city_state_unwrapped.armies,
+                additional_armies: city_state_unwrapped.additional_armies,
                 owner: city_state_unwrapped.owner,
             })));
         }
@@ -61,7 +62,7 @@ impl GameState {
             let city_entity = cities.get(city.lock().unwrap().city);
             self.score += score_for_city(city_entity.unwrap(), &city.lock().unwrap());
         }
-        
+
         // Add randomness to keep it interesting and less easy to guess intentions
         let range = self.score / 15;
         let mut r = thread_rng();

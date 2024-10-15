@@ -1,6 +1,6 @@
 use crate::app_state::AppState;
 use crate::model::city::City;
-use crate::model::location::{calculate_distance};
+use crate::model::location::calculate_distance;
 use crate::model::territory::Territory;
 use petgraph::algo::min_spanning_tree;
 use petgraph::data::FromElements;
@@ -18,6 +18,7 @@ pub struct Connection {
     pub city1: Entity,
     pub city2: Entity,
     pub render: bool,
+    pub same_territory: bool,
 }
 
 fn build_territory_connections(
@@ -46,6 +47,7 @@ fn build_territory_connections(
                         city1: city1_state.lock().unwrap().city,
                         city2: city2_state.lock().unwrap().city,
                         render: true,
+                        same_territory: false,
                     },
                 );
                 m2.insert(
@@ -54,6 +56,7 @@ fn build_territory_connections(
                         city2: city1_state.lock().unwrap().city,
                         city1: city2_state.lock().unwrap().city,
                         render: false,
+                        same_territory: false,
                     },
                 );
             }
@@ -110,11 +113,13 @@ pub fn build_connections(app_state: &mut AppState) {
                 city1: source,
                 city2: target,
                 render: true,
+                same_territory: true,
             });
             connections.push(Connection {
                 city2: source,
                 city1: target,
                 render: false,
+                same_territory: true,
             });
         }
     }

@@ -27,7 +27,7 @@ impl fmt::Debug for Move {
         f.debug_struct("Move")
             .field("move_type", &self.move_type)
             .field("best_score", &self.best_score)
-/*            .field("score", &self.game_state.clone().unwrap().score)*/
+            /*            .field("score", &self.game_state.clone().unwrap().score)*/
             .field("child_moves", &self.child_moves)
             .finish()
     }
@@ -40,6 +40,7 @@ impl Move {
         city_state_source: Arc<Mutex<CityState>>,
     ) -> Self {
         city_state_source.lock().unwrap().armies += 1;
+        city_state_source.lock().unwrap().additional_armies += 1;
         game_state.calculate_score(app_state);
 
         Self {

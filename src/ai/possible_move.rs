@@ -1,4 +1,4 @@
-use crate::ai::army_placement::build_list_of_possibles;
+use crate::ai::army_placement::ap_build_list_of_possibles;
 use crate::ai::game_state::GameState;
 use crate::ai::r#move::Move;
 use crate::app_state::{AppState, GameMode};
@@ -64,7 +64,7 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Move>
 
     match game_state.mode {
         GameMode::ArmyPlacement => {
-            results = build_list_of_possibles(game_state, app_state);
+            results = ap_build_list_of_possibles(game_state, app_state);
             results = reduce_down_to_limited_list(game_state, results);
             results = go_deeper(game_state, app_state, results, possible_moves);
         }

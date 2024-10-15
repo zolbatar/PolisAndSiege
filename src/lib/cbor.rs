@@ -2,7 +2,7 @@ use crate::app_state::AppState;
 use crate::lib::skia::Skia;
 use crate::model::city::{select_evenly_spaced_cities, City, CityTemporary};
 use crate::model::city_state::CityState;
-use crate::model::connection::build_connections;
+use crate::model::connection::{build_connections, Connection};
 use crate::model::location::Location;
 use crate::model::territory::{get_colour_for_territory_name, Territory};
 use crate::model::territory_polygon::TerritoryPolygon;
@@ -11,7 +11,7 @@ use ciborium::Value;
 use petgraph::prelude::NodeIndex;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use specs::{Builder, Entity, WorldExt};
+use specs::{Builder, Entity, Join, WorldExt};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex};
 
@@ -133,6 +133,7 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) -> BTreeMap<String, Ent
                     .create_entity()
                     .with(City {
                         territory: _territory,
+                        connections: Vec::new(),
                         location: Location::new(city.location.longitude, city.location.latitude),
                         name: city.name,
                         size,
@@ -143,6 +144,7 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) -> BTreeMap<String, Ent
                 let city_state = CityState {
                     city,
                     armies: 1,
+                    additional_armies: 0,
                     owner: None,
                 };
 
@@ -171,11 +173,13 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) -> BTreeMap<String, Ent
 
     // Now build connections
     build_connections(app_state);
-    /*for connection in app_state.items.connections.iter() {
-        let conn = connection.lock().unwrap();
-        conn.city1.lock().unwrap().connections.push(connection.clone());
-        conn.city2.lock().unwrap().connections.push(connection.clone());
-    }*/
+    let entities = app_state.world.entities();
+    let mut cities = app_state.world.write_storage::<City>();
+    let connections = app_state.world.read_storage::<Connection>();
+    for (connection_entity, connection) in (&entities, &connections).join() {
+        cities.get_mut(connection.city1).unwrap().connections.push(connection_entity);
+        cities.get_mut(connection.city2).unwrap().connections.push(connection_entity);
+    }
 
     // And a list of all cities
     let _territories = app_state.world.read_storage::<Territory>();
