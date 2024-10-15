@@ -1,11 +1,10 @@
+use crate::ai::scoring::game_state_scoring;
 use crate::ai::temp_player::TempPlayer;
 use crate::app_state::{AppState, GameMode};
-use crate::model::city::City;
 use crate::model::city_state::CityState;
-use crate::model::player::score_for_city;
 use rand::prelude::SliceRandom;
-use rand::{thread_rng, Rng};
-use specs::{Entity, WorldExt};
+use rand::thread_rng;
+use specs::Entity;
 use std::sync::{Arc, Mutex};
 
 #[derive(Default, Clone, Debug)]
@@ -55,18 +54,7 @@ impl GameState {
     }
 
     pub fn calculate_score(&mut self, app_state: &AppState) {
-        let cities = app_state.world.read_storage::<City>();
-        self.score = 0;
-        let player_cities = self.get_player_cities();
-        for city in player_cities {
-            let city_entity = cities.get(city.lock().unwrap().city);
-            self.score += score_for_city(city_entity.unwrap(), &city.lock().unwrap());
-        }
-
-        // Add randomness to keep it interesting and less easy to guess intentions
-        let range = self.score / 15;
-        let mut r = thread_rng();
-        self.score += r.gen_range(0..range);
+        game_state_scoring(self, app_state);
     }
 
     pub fn find_city(&self, city_state_in: Arc<Mutex<CityState>>) -> Arc<Mutex<CityState>> {

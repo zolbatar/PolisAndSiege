@@ -10,6 +10,7 @@ mod ai {
     mod game_state;
     mod r#move;
     pub mod possible_move;
+    pub mod scoring;
     pub mod temp_player;
 }
 mod input;
@@ -36,6 +37,7 @@ mod render {
 }
 use crate::ai::computer_turn::computer_turn;
 use crate::ai::difficulty::Difficulty;
+use crate::ai::scoring::SUpdateScores;
 use crate::app_state::GameMode;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
@@ -43,7 +45,7 @@ use crate::lib::skia::Skia;
 use crate::model::city::City;
 use crate::model::connection::Connection;
 use crate::model::location::Location;
-use crate::model::player::{Player, SUpdateScores};
+use crate::model::player::Player;
 use crate::model::territory::Territory;
 use crate::model::territory_polygon::TerritoryPolygon;
 use crate::render::randomising::assign;
