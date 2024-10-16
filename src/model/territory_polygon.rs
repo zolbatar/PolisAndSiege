@@ -1,26 +1,20 @@
-use crate::app_state::AppState;
 use crate::lib::skia::Skia;
 use crate::model::location::Location;
-use crate::model::territory::Territory;
+use crate::model::territory::TerritoryAM;
 use skia_safe::{Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
-use specs::prelude::*;
-use specs_derive::Component;
 
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
+#[derive(Debug)]
 pub struct TerritoryPolygon {
     pub pic: Picture,
 }
 
 impl TerritoryPolygon {
-    pub fn new(_skia: &mut Skia, app_state: &mut AppState, territory: Entity, locations: Vec<Location>) -> Self {
-        let territories = app_state.world.read_storage::<Territory>();
-
+    pub fn new(_skia: &mut Skia, territory: TerritoryAM, locations: Vec<Location>) -> Self {
         // Paint
         let mut paint = Paint::default();
         paint.set_style(PaintStyle::Fill);
         paint.set_argb(255, 255, 0, 0);
-        paint.set_color(territories.get(territory).unwrap().colour);
+        paint.set_color(territory.lock().unwrap().colour);
 
         // Construct path
         let mut path = Path::new();

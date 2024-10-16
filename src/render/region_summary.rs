@@ -1,12 +1,10 @@
 use crate::app_state::AppState;
 use crate::lib::skia::{FontFamily, Skia};
-use crate::model::territory::Territory;
 use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
-use specs::{Join, WorldExt};
-use std::collections::BTreeMap;
 
 pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
+    let world_fixed = &app_state.world_fixed;
     skia.set_matrix(&app_state.gfx);
 
     // Paints
@@ -25,16 +23,11 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     paint_border.set_color(skia.colour_outline);
 
     {
-        let territories = app_state.world.read_storage::<Territory>();
-        let mut territories_map = BTreeMap::new();
-        for territory in territories.join() {
-            territories_map.insert(territory.name.clone(), territory);
-        }
-        for (index, territory) in territories_map.into_iter().enumerate() {
+        for (index, territory) in world_fixed.territories.iter().enumerate() {
             let y = rr.top + 25.0 * index as f32;
 
             let mut paint_territory = Paint::default();
-            paint_territory.set_color(territory.1.colour);
+            paint_territory.set_color(territory.1.lock().unwrap().colour);
             paint_territory.set_anti_alias(true);
             paint_territory.set_style(Style::Fill);
             skia.get_canvas().draw_circle(Point::new(rr.left + 52.0, y + 13.0), 7.0, &paint_territory);
@@ -44,7 +37,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             skia.write_text(
                 20.0,
                 &paint_white,
-                &territory.1.name,
+                &territory.1.lock().unwrap().name,
                 Point::new(rr.left() + 66.0, y),
                 0.0,
                 &FontFamily::EbGaramond,

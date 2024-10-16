@@ -1,11 +1,8 @@
 use crate::model::math::{degrees_to_radians, radians_to_degrees};
 use skia_safe::Point;
-use specs::prelude::*;
-use specs_derive::Component;
 use std::f32::consts::PI;
 
-#[derive(Component, Debug, Default, PartialEq, Clone)]
-#[storage(VecStorage)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct Location {
     pub latitude: f32,
     pub longitude: f32,

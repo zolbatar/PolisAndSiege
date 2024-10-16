@@ -1,14 +1,14 @@
-use crate::ai::game_state::GameState;
 use crate::ai::moves::Move;
-use crate::app_state::AppState;
+use crate::model::world_state::WorldState;
+use std::sync::{Arc, Mutex};
 
-pub fn ap_build_list_of_possibles(game_state: &GameState, app_state: &AppState) -> Vec<Move> {
+pub fn ap_build_list_of_possibles(world_state: &WorldState) -> Vec<Move> {
     let mut results = Vec::new();
-    let player_cities = &mut game_state.get_player_cities();
-    for city in player_cities {
-        let new_state = game_state.full_clone();
-        let new_city = new_state.find_city(city.clone());
-        let the_move = Move::new_place_army(app_state, new_state, new_city);
+    let current_player = world_state.current_player.as_ref().unwrap();
+    for city_state in &current_player.as_ref().lock().unwrap().cities {
+        let new_city_state = Arc::new(Mutex::new(city_state.lock().unwrap().clone()));
+        new_city_state.lock().unwrap().original = Some(city_state.clone());
+        let the_move = Move::new_place_army(new_city_state);
         results.push(the_move);
     }
     results

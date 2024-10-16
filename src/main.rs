@@ -7,15 +7,13 @@ mod ai {
     pub mod army_placement;
     pub mod computer_turn;
     pub mod difficulty;
-    pub mod game_state;
     pub mod moves;
     pub mod possible_move;
-    pub mod scoring;
-    pub mod temp_player;
 }
 mod input;
 
 mod model {
+    pub mod ai_profile;
     pub mod city;
     pub mod city_state;
     pub mod connection;
@@ -24,6 +22,8 @@ mod model {
     pub mod player;
     pub mod territory;
     pub mod territory_polygon;
+    pub mod world_fixed;
+    pub mod world_state;
 }
 mod render {
     pub mod army_placement;
@@ -36,22 +36,14 @@ mod render {
     pub mod title_bar;
 }
 use crate::ai::computer_turn::computer_turn;
-use crate::ai::difficulty::Difficulty;
-use crate::ai::scoring::app_state_scoring;
 use crate::app_state::GameMode;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
 use crate::lib::cbor;
 use crate::lib::skia::Skia;
-use crate::model::city::City;
-use crate::model::connection::Connection;
-use crate::model::location::Location;
-use crate::model::player::Player;
-use crate::model::territory::Territory;
-use crate::model::territory_polygon::TerritoryPolygon;
+use crate::model::world_state::WorldState;
 use crate::render::randomising::assign;
 use app_state::AppState;
 use sdl2::video::GLProfile;
-use specs::prelude::*;
 use std::time::{Duration, Instant};
 
 fn main() {
@@ -95,18 +87,9 @@ fn main() {
     }
     dpi = dpi.floor();
 
-    // Set up ECS
-    let mut world = World::new();
-    world.register::<Player>();
-    world.register::<Territory>();
-    world.register::<TerritoryPolygon>();
-    world.register::<Location>();
-    world.register::<City>();
-    world.register::<Connection>();
-    world.insert(Difficulty::Normal);
-
     // Create an AppState instance using the new method
-    let mut app_state = AppState::new(&window, dpi, world);
+    let mut app_state = AppState::new(&window, dpi, WorldState::default());
+    app_state.world_state.current_player = Some(app_state.world_state.players[0].clone());
 
     // Skia and surfaces
     let mut skia = Skia::new(&app_state);
@@ -115,8 +98,7 @@ fn main() {
     }
 
     // Load CBOR data
-    let territories = cbor::import(&mut skia, &mut app_state);
-    app_state.items.territories = territories;
+    cbor::import(&mut skia, &mut app_state);
 
     // Event pump for SDL2 events
     let mut event_pump = sdl.event_pump().unwrap();
@@ -129,8 +111,6 @@ fn main() {
     // Loop
     let start = Instant::now();
     'running: loop {
-        app_state.world.maintain();
-
         // Measure the time it took to render the previous frame
         let current_time = Instant::now();
         app_state.phase = (current_time.duration_since(start).as_millis() as f32 / 250.0) % 2.0;
@@ -192,13 +172,13 @@ fn main() {
         }
 
         // Game loop
-        if app_state.mode == GameMode::Randomising {
+        if app_state.world_state.mode == GameMode::Randomising && app_state.world_state.current_player.is_some() {
             let diff = Instant::now() - app_state.selection.last_selection;
             if diff.as_millis() > app_state.selection.assign_speed {
                 app_state.selection.last_selection = Instant::now();
 
                 // Take top item
-                if !app_state.items.cities_remaining_to_assign.is_empty() {
+                if !app_state.world_fixed.city_states_to_assign.is_empty() {
                     assign(&mut app_state);
                 }
                 next_turn(&mut app_state);
@@ -210,42 +190,38 @@ fn main() {
     }
 }
 
-pub fn update_scores(app_state: &mut AppState) {
-    app_state_scoring(app_state);
-}
-
 pub fn next_turn(app_state: &mut AppState) {
-    update_scores(app_state);
+    let world_state = &mut app_state.world_state;
+    let world_fixed = &mut app_state.world_fixed;
+    world_state.update_scores();
 
     // Switch to next player
     let (turn_done, index) = {
-        let players = app_state.world.read_storage::<Player>();
-        let mut index = players.get(app_state.current_player).unwrap().index;
+        let mut index = world_state.current_player.as_ref().unwrap().lock().unwrap().index;
         index += 1;
-        if index == app_state.num_of_players {
+        if index == world_state.players.len() {
             index = 0;
             (true, index)
         } else {
             (false, index)
         }
     };
-    app_state.current_player = app_state.players[index];
+    world_state.current_player = Some(world_state.players[index].clone());
 
     // Have we finished this phase?
     if turn_done {
-        let players = app_state.world.read_storage::<Player>();
-        let current_player = players.get(app_state.current_player).unwrap();
-        match &app_state.mode {
+        let current_player = world_state.current_player.as_ref().unwrap();
+        match world_state.mode {
             GameMode::ArmyPlacement => {
-                if current_player.armies_to_assign == 0 {
+                if current_player.lock().unwrap().armies_to_assign == 0 {
                     println!("All armies placed");
-                    app_state.mode = GameMode::Game;
+                    world_state.mode = GameMode::Game;
                 }
             }
             GameMode::Randomising => {
-                if app_state.items.cities_remaining_to_assign.is_empty() {
+                if world_fixed.city_states_to_assign.is_empty() {
                     println!("All cities assigned");
-                    app_state.mode = GameMode::ArmyPlacement;
+                    world_state.mode = GameMode::ArmyPlacement;
                 }
             }
             GameMode::Game => { // Need to calculate victory conditions
@@ -254,8 +230,9 @@ pub fn next_turn(app_state: &mut AppState) {
     }
 
     // Computer turn?
-    if index != 0 {
-        match app_state.mode {
+    if world_state.current_player.is_some() && !world_state.current_player.as_ref().unwrap().lock().unwrap().is_human()
+    {
+        match world_state.mode {
             GameMode::ArmyPlacement => computer_turn(app_state),
             GameMode::Game => computer_turn(app_state),
             _ => {}

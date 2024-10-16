@@ -1,46 +1,47 @@
 use crate::ai::army_placement::ap_build_list_of_possibles;
-use crate::ai::game_state::GameState;
 use crate::ai::moves::Move;
-use crate::app_state::{AppState, GameMode};
-use crate::model::player::Player;
-use specs::WorldExt;
+use crate::app_state::GameMode;
+use crate::model::ai_profile::AIProfile;
+use crate::model::world_fixed::WorldFixed;
+use crate::model::world_state::WorldState;
 
-fn reduce_down_to_limited_list(game_state: &GameState, data_in: Vec<Move>) -> Vec<Move> {
+fn reduce_down_to_limited_list(profile: &AIProfile, data_in: Vec<Move>) -> Vec<Move> {
     let mut results = data_in;
-    results.sort_by(|a, b| {
-        a.game_state
-            .as_ref()
-            .map(|gs| gs.score)
-            .partial_cmp(&b.game_state.as_ref().map(|gs| gs.score))
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .reverse()
-    });
-    results.into_iter().take(game_state.no_choices).collect()
+    results.sort_by(|a, b| a.best_score.partial_cmp(&b.best_score).unwrap().reverse());
+    results.into_iter().take(profile.no_choices).collect()
 }
 
-fn go_deeper<F>(game_state: &GameState, app_state: &AppState, data_in: Vec<Move>, mut f: F) -> Vec<Move>
+fn go_deeper<F>(
+    world_state: &WorldState,
+    world_fixed: &WorldFixed,
+    data_in: Vec<Move>,
+    mut f: F,
+    depth: usize,
+) -> Vec<Move>
 where
-    F: FnMut(&GameState, &AppState) -> Vec<Move>,
+    F: FnMut(&WorldState, &WorldFixed, usize) -> Vec<Move>,
 {
     let mut results = data_in;
-    let players = app_state.world.read_storage::<Player>();
-    if game_state.depth != players.get(game_state.current_player.unwrap()).unwrap().profile.search_depth {
+    let desired_depth = world_state.current_player.as_ref().unwrap().lock().unwrap().profile.search_depth;
+    if depth != desired_depth {
         for result in &mut results {
-            let new_state = &mut result.game_state.clone().unwrap();
-            new_state.depth += 1;
+            let mut world_state = world_state.deep_clone();
 
             // Update player
-            let player_index = players.get(new_state.current_player.unwrap()).unwrap().index;
-            new_state.players[player_index].armies_to_assign -= 1;
+            {
+                let player_index = world_state.current_player.as_ref().unwrap().lock().unwrap().index;
+                let new_player = &mut world_state.players[player_index].lock().unwrap();
+                new_player.armies_to_assign -= 1;
 
-            // Phase done
-            match &new_state.mode {
-                GameMode::ArmyPlacement => {
-                    if new_state.players[player_index].armies_to_assign == 0 {
-                        new_state.mode = GameMode::Game;
+                // Phase done
+                match &world_state.mode {
+                    GameMode::ArmyPlacement => {
+                        if new_player.armies_to_assign == 0 {
+                            world_state.mode = GameMode::Game;
+                        }
                     }
+                    _ => panic!("Unknown mode"),
                 }
-                _ => panic!("Unknown mode"),
             }
 
             // Next player and pretend again
@@ -52,21 +53,37 @@ where
             }*/
 
             // Recurse
-            let mut additional_moves = f(new_state, app_state);
+            let mut additional_moves = f(&world_state, world_fixed, depth + 1);
             result.child_moves.append(&mut additional_moves);
         }
     }
     results
 }
 
-pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Move> {
-    let mut results = Vec::new();
+pub fn possible_moves(world_state: &WorldState, world_fixed: &WorldFixed, depth: usize) -> Vec<Move> {
+    let mut results: Vec<Move> = Vec::new();
+    let world_state = world_state.deep_clone();
 
-    match game_state.mode {
+    match world_state.mode {
         GameMode::ArmyPlacement => {
-            results = ap_build_list_of_possibles(game_state, app_state);
-            results = reduce_down_to_limited_list(game_state, results);
-            results = go_deeper(game_state, app_state, results, possible_moves);
+            results = ap_build_list_of_possibles(&world_state);
+
+            // Update scores
+            {
+                let current_player = world_state.current_player.as_ref().unwrap();
+                for result in &mut results {
+                    result.best_score = current_player.lock().unwrap().get_score() as i32;
+                }
+            }
+
+            // Select x of the list
+            {
+                let current_player = world_state.current_player.as_ref().unwrap();
+                results = reduce_down_to_limited_list(&current_player.lock().unwrap().profile, results);
+            }
+
+            // Go deeper if required
+            results = go_deeper(&world_state, world_fixed, results, possible_moves, depth);
         }
         GameMode::Randomising => {}
         GameMode::Game => {}
@@ -74,10 +91,9 @@ pub fn possible_moves(game_state: &GameState, app_state: &AppState) -> Vec<Move>
 
     // Set best score
     for result in &mut results {
-        result.best_score = result.game_state.as_ref().unwrap().score;
-        let top = result.child_moves.iter().max_by_key(|p| p.game_state.as_ref().unwrap().score);
+        let top = result.child_moves.iter().max_by_key(|p| p.best_score);
         if let Some(top) = top {
-            let highest = top.game_state.as_ref().unwrap().score;
+            let highest = top.best_score;
             result.best_score = highest;
         }
     }
