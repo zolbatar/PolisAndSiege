@@ -134,7 +134,7 @@ impl AppState {
         ];
 
         let profile = AIProfile {
-            human: true,
+            human: false,
             no_choices: 3,
             search_depth: 3,
             city_size_multiplier: 1.5,
