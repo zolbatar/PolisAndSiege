@@ -1,17 +1,17 @@
+use std::cell::RefCell;
 use crate::app_state::AppState;
 use crate::lib::skia::Skia;
 use crate::model::city::{select_evenly_spaced_cities, City};
-use crate::model::city_state::CityState;
 use crate::model::connection::build_connections;
 use crate::model::location::Location;
-use crate::model::territory::{get_colour_for_territory_name, Territory, TerritoryAM};
+use crate::model::territory::{get_colour_for_territory_name, Territory};
 use crate::model::territory_polygon::TerritoryPolygon;
 use ciborium::de::from_reader;
 use ciborium::Value;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex};
+use std::rc::Rc;
 
 const REGIONS_CBOR: &[u8] = include_bytes!("../../assets/Regions.cbor");
 
@@ -23,7 +23,7 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
     let mut cities_count = 0;
 
     // Top level is a map of territories
-    let mut territories: BTreeMap<String, TerritoryAM> = BTreeMap::new();
+    let mut territories = BTreeMap::new();
     for (territory_name, territory_polygons_cities) in reader.as_map().expect("CBOR: Expecting map of territories") {
         let mut territory_name_unwrapped = territory_name.as_text().unwrap().to_string();
 
@@ -37,12 +37,11 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
 
         print!("CBOR: Territory '{}', ", &territory_name_unwrapped);
 
-        let territory = Territory {
+        let mut territory = Territory {
             colour: get_colour_for_territory_name(&territory_name_unwrapped),
             name: territory_name_unwrapped.clone(),
             ..Default::default()
         };
-        let territory_am = Arc::new(Mutex::new(territory));
 
         // Array of polygons, then cities
         let polygons_cities =
@@ -78,13 +77,11 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
             if locations.len() >= 64 {
                 polygon_count += 1;
 
-                let territory_polygon = TerritoryPolygon::new(skia, territory_am.clone(), locations);
-
-                // Add polygon to territory
-                territory_am.lock().unwrap().polygons.push(territory_polygon);
+                let territory_polygon = TerritoryPolygon::new(skia, territory.colour, locations);
+                territory.polygons.push(territory_polygon);
             }
         }
-        print!("{} polygons, ", territory_am.lock().unwrap().polygons.len());
+        print!("{} polygons, ", territory.polygons.len());
 
         // Cities
         for city in polygons_cities[1].as_array().expect("CBOR: Expecting array of cities") {
@@ -94,14 +91,14 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
             let longitude = city_details[2].as_float().unwrap() as f32;
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
             if !name.eq("Honolulu") && longitude > -140.0 {
-                let city = City::new(name.to_string(), longitude, latitude, population, territory_am.clone());
-                territory_am.lock().unwrap().cities.push(Arc::new(Mutex::new(city)));
+                let city = City::new(name.to_string(), longitude, latitude, population);
+                territory.cities.push(Rc::new(RefCell::new(city)));
                 cities_count += 1;
             }
         }
-        println!("{} cities", territory_am.lock().unwrap().cities.len());
+        println!("{} cities", territory.cities.len());
 
-        territories.insert(territory_name_unwrapped, territory_am);
+        territories.insert(territory_name_unwrapped, territory);
     }
 
     // Choose sensible cities for each territory
@@ -114,27 +111,19 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
 
     // And a list of all cities
     for territory in app_state.world_fixed.territories.values() {
-        for city in territory.lock().unwrap().cities.iter() {
-            app_state.world_fixed.cities.push(city.clone());
-
-            let city_state = Arc::new(Mutex::new(CityState {
-                city: city.clone(),
-                armies: 1,
-                ..Default::default()
-            }));
-
-            app_state.world_state.city_states.push(city_state.clone());
-            app_state.world_fixed.city_states_to_assign.push(city_state);
+        for city in territory.cities.iter() {
+            app_state.world_state.cities.push(city.clone());
+            app_state.world_fixed.cities_to_assign.push(city.clone());
         }
     }
 
     // Shuffle remaining ones randomly
     let mut rng = thread_rng(); // Create a random number generator
-    app_state.world_fixed.city_states_to_assign.shuffle(&mut rng); // Shuffle the vector in place
+    app_state.world_fixed.cities_to_assign.shuffle(&mut rng); // Shuffle the vector in place
 
     println!("CBOR: Total territories: {}", app_state.world_fixed.territories.len());
     println!("CBOR: Total polygons: {}", polygon_count);
     println!("CBOR: Total points: {}", point_count_total);
     println!("CBOR: Total cities: {}", cities_count);
-    println!("CBOR: Total cities used: {}", app_state.world_fixed.cities.len());
+    println!("CBOR: Total cities used: {}", app_state.world_state.cities.len());
 }

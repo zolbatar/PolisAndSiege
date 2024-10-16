@@ -4,9 +4,9 @@ use skia_safe::{Color, Paint, PaintStyle, Point, Rect};
 
 pub fn assign(app_state: &mut AppState) {
     let world_state = &app_state.world_state;
-    let next_city = app_state.world_fixed.city_states_to_assign.pop().unwrap();
-    next_city.lock().unwrap().owner = world_state.current_player.clone();
-    world_state.current_player.as_ref().unwrap().lock().unwrap().cities.push(next_city.clone());
+    let next_city = app_state.world_fixed.cities_to_assign.pop().unwrap();
+    next_city.borrow_mut().owner = world_state.current_player.clone();
+    world_state.current_player.as_ref().unwrap().borrow_mut().cities.push(next_city.clone());
     app_state.selection.last_army_city_selection = Some(next_city);
 }
 
@@ -29,8 +29,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     skia.write_text_centre(30.0, &paint_title, "Assigning Cities", Point::new(l, rr.top), w, &FontFamily::EbGaramond);
 
     // Name and territory
-    if let Some(city_state) = &app_state.selection.last_army_city_selection {
-        let last_city = &city_state.lock().unwrap().city;
+    if let Some(city) = &app_state.selection.last_army_city_selection {
         let mut paint_left = Paint::default();
         paint_left.set_anti_alias(true);
         paint_left.set_style(PaintStyle::StrokeAndFill);
@@ -52,7 +51,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         skia.write_text(
             20.0,
             &paint_right,
-            &last_city.lock().unwrap().name,
+            &city.borrow().name,
             Point::new(text_x, rr.top() + 60.0),
             text_w,
             &FontFamily::EbGaramond,
@@ -70,7 +69,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         skia.write_text(
             20.0,
             &paint_right,
-            &last_city.lock().unwrap().territory.lock().unwrap().name,
+            &city.borrow().territory.name,
             Point::new(text_x, rr.top + 85.0),
             text_w,
             &FontFamily::EbGaramond,
@@ -88,7 +87,7 @@ pub fn randomising(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
         skia.write_text(
             20.0,
             &paint_right,
-            &last_city.lock().unwrap().name,
+            &city.borrow().name,
             Point::new(text_x, rr.top + 110.0),
             text_w,
             &FontFamily::EbGaramond,

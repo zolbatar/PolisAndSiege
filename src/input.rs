@@ -1,9 +1,9 @@
+use std::rc::Rc;
 use crate::app_state::{AppState, GameMode};
 use crate::model::city::SIZE;
 use crate::next_turn;
 use sdl2::mouse::{MouseButton, MouseWheelDirection};
 use skia_safe::Point;
-use std::sync::Arc;
 
 const THRESHOLD: i32 = 64;
 
@@ -28,7 +28,7 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
         if world_state.current_player.is_none() {
             return;
         }
-        let current_player = &world_state.current_player.clone().unwrap();
+        let current_player = &world_state.get_current_player();
         let mut mp = Point::new(x as f32, y as f32);
 
         // Do reverse matrix transform
@@ -44,19 +44,17 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
         } else {
             app_state.selection.last_city_hover = None;
         }
-        for _city_state in &world_state.city_states {
-            let city_state = _city_state.lock().unwrap();
-            let city = city_state.city.clone();
-            if city_state.owner.is_some() {
-                let owner = &city_state.owner.clone().unwrap();
-                let delta = city.lock().unwrap().location.p - mp;
+        for city in &world_state.cities {
+            if city.borrow().owner.is_some() {
+                let owner = &city.borrow().owner.clone().unwrap();
+                let delta = city.borrow_mut().location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
                 if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 {
-                    if Arc::ptr_eq(owner, current_player) {
+                    if Rc::ptr_eq(owner, current_player) {
                         if world_state.mode == GameMode::ArmyPlacement {
-                            app_state.selection.last_city_selection = Some(_city_state.clone());
+                            app_state.selection.last_city_selection = Some(city.clone());
                         } else {
-                            app_state.selection.last_city_hover = Some(_city_state.clone());
+                            app_state.selection.last_city_hover = Some(city.clone());
                         }
                     }
                 }
@@ -70,7 +68,7 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
     let is_human = if app_state.world_state.current_player.is_none() {
         false
     } else {
-        app_state.world_state.current_player.as_ref().unwrap().lock().unwrap().is_human()
+        app_state.world_state.current_player.as_ref().unwrap().borrow().is_human()
     };
     if button == MouseButton::Right {
         app_state.panning = true;
@@ -78,12 +76,12 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
         match app_state.world_state.mode {
             GameMode::ArmyPlacement => {
                 if is_human && app_state.selection.last_city_selection.is_some() {
-                    let city_state = app_state.selection.last_city_selection.clone();
-                    let owner = city_state.as_ref().unwrap().lock().unwrap().owner.clone();
-                    if owner.unwrap().lock().unwrap().is_human() {
-                        city_state.unwrap().lock().unwrap().armies += 1;
-                        player.unwrap().lock().unwrap().armies_to_assign -= 1;
-                        if player.unwrap().lock().unwrap().armies_to_assign == 0 {
+                    let city = app_state.selection.last_city_selection.clone();
+                    let owner = city.as_ref().unwrap().borrow().owner.clone();
+                    if owner.unwrap().borrow().is_human() {
+                        city.unwrap().borrow_mut().armies += 1;
+                        player.unwrap().borrow_mut().armies_to_assign -= 1;
+                        if player.unwrap().borrow().armies_to_assign == 0 {
                             app_state.selection.last_city_hover = app_state.selection.last_city_selection.clone();
                             app_state.selection.last_city_selection = None;
                         }

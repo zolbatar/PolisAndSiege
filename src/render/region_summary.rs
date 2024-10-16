@@ -27,7 +27,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             let y = rr.top + 25.0 * index as f32;
 
             let mut paint_territory = Paint::default();
-            paint_territory.set_color(territory.1.lock().unwrap().colour);
+            paint_territory.set_color(territory.1.colour);
             paint_territory.set_anti_alias(true);
             paint_territory.set_style(Style::Fill);
             skia.get_canvas().draw_circle(Point::new(rr.left + 52.0, y + 13.0), 7.0, &paint_territory);
@@ -37,7 +37,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             skia.write_text(
                 20.0,
                 &paint_white,
-                &territory.1.lock().unwrap().name,
+                &territory.1.name,
                 Point::new(rr.left() + 66.0, y),
                 0.0,
                 &FontFamily::EbGaramond,

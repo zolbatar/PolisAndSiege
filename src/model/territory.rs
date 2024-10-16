@@ -1,7 +1,7 @@
-use crate::model::city::CityAM;
+use crate::model::city::CityRR;
 use crate::model::territory_polygon::TerritoryPolygon;
 use skia_safe::Color;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 
 pub fn get_colour_for_territory_name(name: &String) -> Color {
     match name.as_str() {
@@ -19,10 +19,21 @@ pub fn get_colour_for_territory_name(name: &String) -> Color {
 
 #[derive(Debug, Default)]
 pub struct Territory {
-    pub cities: Vec<CityAM>,
+    pub cities: Vec<CityRR>,
     pub polygons: Vec<TerritoryPolygon>,
     pub name: String,
     pub colour: Color,
 }
 
-pub type TerritoryAM = Arc<Mutex<Territory>>;
+pub type TerritoryArc = Arc<Territory>;
+
+impl Territory {
+    pub fn containerise(self) -> TerritoryArc {
+        let container = Arc::new(self);
+
+        // Update cities
+        container.cities.iter().for_each(|city| city.borrow_mut().territory = container.clone());
+
+        container
+    }
+}

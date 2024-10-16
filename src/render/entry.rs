@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia;
 use crate::lib::skia::{FontFamily, Skia};
@@ -13,7 +14,6 @@ use crate::render::surround::render_surround;
 use crate::render::title_bar::render_title_bar;
 use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, RRect, Rect};
-use std::sync::Arc;
 
 fn render_connections(skia: &mut Skia, world_fixed: &WorldFixed) {
     // Paint
@@ -32,17 +32,17 @@ fn render_connections(skia: &mut Skia, world_fixed: &WorldFixed) {
     paint_alt.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase + 1.0).unwrap());
 
     for connection in &world_fixed.connections {
-        let city1 = connection.lock().unwrap().city1.clone();
-        let city2 = connection.lock().unwrap().city2.clone();
+        let city1 = connection.city1.clone();
+        let city2 = connection.city2.clone();
 
-        skia.get_canvas().draw_line(city1.lock().unwrap().location.p, city2.lock().unwrap().location.p, &paint);
-        skia.get_canvas().draw_line(city1.lock().unwrap().location.p, city2.lock().unwrap().location.p, &paint_alt);
+        skia.get_canvas().draw_line(city1.borrow().location.p, city2.borrow().location.p, &paint);
+        skia.get_canvas().draw_line(city1.borrow().location.p, city2.borrow().location.p, &paint_alt);
     }
 }
 
 fn render_territories(skia: &mut Skia, world_fixed: &WorldFixed) {
     for territory in world_fixed.territories.values() {
-        for polygon in &territory.lock().unwrap().polygons {
+        for polygon in &territory.polygons {
             skia.get_canvas().draw_picture(polygon.pic.as_ref(), None, None);
         }
     }
@@ -53,23 +53,21 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
     let is_human = if world_state.current_player.is_none() {
         false
     } else {
-        world_state.current_player.as_ref().unwrap().lock().unwrap().is_human()
+        world_state.current_player.as_ref().unwrap().borrow().is_human()
     };
-    for city_state in &world_state.city_states {
+    for city in &world_state.cities {
         let selected = if let Some(selected) = &app_state.selection.last_city_selection {
-            is_human && Arc::ptr_eq(city_state, selected)
+            is_human && Rc::ptr_eq(city, selected)
         } else {
             false
         };
         let hover = if let Some(hover) = &app_state.selection.last_city_hover {
-            is_human && Arc::ptr_eq(city_state, hover)
+            is_human && Rc::ptr_eq(city, hover)
         } else {
             false
         };
-        let city_state = city_state.lock().unwrap();
-        let city = city_state.city.lock().unwrap();
-        let centre = city.location.p;
-        let territory = city.territory.clone();
+        let centre = city.borrow().location.p;
+        let territory = city.borrow().territory.clone();
         let font_size: f32 = 2.4;
 
         let mut paint_name = Paint::default();
@@ -81,11 +79,11 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
         paint_shadow.set_image_filter(skia.drop_shadow.clone());
         let mut paint_fill = Paint::default();
         paint_fill.set_style(PaintStyle::Fill);
-        paint_fill.set_color(skia::mix_colors(territory.lock().unwrap().colour, Color::WHITE, 0.6));
+        paint_fill.set_color(skia::mix_colors(territory.colour, Color::WHITE, 0.6));
         let mut paint_fill_circle = Paint::default();
         paint_fill_circle.set_style(PaintStyle::Fill);
-        let colours = match &city_state.owner {
-            Some(x) => x.lock().unwrap().colours.clone(),
+        let colours = match &city.borrow().owner {
+            Some(x) => x.borrow().colours.clone(),
             None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
         };
         paint_fill_circle.set_color(colours[0]);
@@ -102,7 +100,8 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia
-                .text_dimensions(font_size, &paint_name, &city.name.clone(), &FontFamily::EbGaramond, TextAlign::Left)
+                .text_dimensions(font_size, &paint_name, &city.borrow().name.clone(),
+                                 &FontFamily::EbGaramond, TextAlign::Left)
                 .clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
                 skia.get_canvas().draw_round_rect(
@@ -136,7 +135,7 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
             paint_outline.set_path_effect(dash_path_effect::new(&[0.5, 0.5], app_state.phase).unwrap());
         }
         skia.get_canvas().draw_circle(centre, SIZE, &paint_outline);
-        let strength = format!("{}/{}", city_state.armies, city.size);
+        let strength = format!("{}/{}", city.borrow().armies, city.borrow().size);
         skia.write_text_centre(
             5.0,
             &paint_number,
@@ -149,7 +148,7 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
             skia.write_text(
                 font_size,
                 &paint_name,
-                &city.name,
+                &city.borrow().name,
                 Point::new(centre.x + SIZE + 0.5, centre.y - 1.2),
                 MAXIMUM_LABEL_WIDTH,
                 &FontFamily::EbGaramond,

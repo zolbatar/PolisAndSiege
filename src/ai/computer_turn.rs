@@ -8,7 +8,7 @@ pub fn computer_turn(app_state: &mut AppState) {
 
     // Get current player
     let player = app_state.world_state.current_player.as_ref().unwrap();
-    print!("Starting score: {}, ", player.lock().unwrap().score);
+    print!("Starting score: {}, ", player.borrow().score);
 
     // Create initial game state
     let depth = 0;
@@ -28,7 +28,7 @@ pub fn computer_turn(app_state: &mut AppState) {
 
     // Select move
     possibles.sort_by(|a, b| a.best_score.cmp(&b.best_score));
-    let best = &mut possibles[0];
+    let best = &possibles[0];
     best.do_move_and_next_turn(app_state);
     //    println!("{:#?}", possibles);
 }

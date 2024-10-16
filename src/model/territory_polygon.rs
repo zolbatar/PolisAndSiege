@@ -1,7 +1,6 @@
 use crate::lib::skia::Skia;
 use crate::model::location::Location;
-use crate::model::territory::TerritoryAM;
-use skia_safe::{Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
+use skia_safe::{Color, Paint, PaintStyle, Path, Picture, PictureRecorder, Rect};
 
 #[derive(Debug)]
 pub struct TerritoryPolygon {
@@ -9,12 +8,12 @@ pub struct TerritoryPolygon {
 }
 
 impl TerritoryPolygon {
-    pub fn new(_skia: &mut Skia, territory: TerritoryAM, locations: Vec<Location>) -> Self {
+    pub fn new(_skia: &mut Skia, colour: Color, locations: Vec<Location>) -> Self {
         // Paint
         let mut paint = Paint::default();
         paint.set_style(PaintStyle::Fill);
         paint.set_argb(255, 255, 0, 0);
-        paint.set_color(territory.lock().unwrap().colour);
+        paint.set_color(colour);
 
         // Construct path
         let mut path = Path::new();

@@ -4,7 +4,6 @@ use skia_safe::{Color, Paint, PaintStyle, Point};
 
 pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
     let world_state = &app_state.world_state;
-    let world_fixed = &app_state.world_fixed;
     let player = world_state.current_player.as_ref();
     skia.set_matrix(&app_state.gfx);
 
@@ -23,7 +22,7 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
         GameMode::Game => {
             if player.is_none() {
                 "No turn"
-            } else if player.unwrap().lock().unwrap().is_human() {
+            } else if player.unwrap().borrow().is_human() {
                 "Player Turn"
             } else {
                 "Enemy Turn"
@@ -39,11 +38,11 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
         &FontFamily::EbGaramond,
     );
     if player.is_some() {
-        paint_title.set_color(player.unwrap().lock().unwrap().colours[0]);
+        paint_title.set_color(player.unwrap().borrow().colours[0]);
         skia.write_text(
             20.0,
             &paint_title,
-            &player.unwrap().lock().unwrap().name,
+            &player.unwrap().borrow().name,
             Point::new(160.0, 0.0),
             app_state.gfx.width as f32,
             &FontFamily::EbGaramond,
@@ -51,11 +50,11 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
 
         // City/territory count
         {
-            let player = player.unwrap().lock().unwrap();
+            let player = player.unwrap().borrow();
             skia.write_text_right(
                 20.0,
                 &paint_title,
-                &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), world_fixed.cities.len(),),
+                &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), world_state.cities.len(), ),
                 Point::new(0.0, 0.0),
                 app_state.gfx.width as f32 - 160.0,
                 &FontFamily::EbGaramond,

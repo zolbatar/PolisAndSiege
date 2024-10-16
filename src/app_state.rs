@@ -1,5 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::model::ai_profile::AIProfile;
-use crate::model::city_state::CityStateAM;
 use crate::model::player::Player;
 use crate::model::world_fixed::WorldFixed;
 use crate::model::world_state::WorldState;
@@ -8,8 +9,8 @@ use rand::thread_rng;
 use sdl2::video::Window;
 use skia_safe::svg::Dom;
 use skia_safe::{Color, FontMgr, Path, Point, Size};
-use std::sync::{Arc, Mutex};
 use std::time::Instant;
+use crate::model::city::CityRR;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
@@ -42,9 +43,9 @@ pub struct Resource {
 #[derive(Debug)]
 pub struct CitySelection {
     pub last_selection: Instant,
-    pub last_city_hover: Option<CityStateAM>,
-    pub last_city_selection: Option<CityStateAM>,
-    pub last_army_city_selection: Option<CityStateAM>,
+    pub last_city_hover: Option<CityRR>,
+    pub last_city_selection: Option<CityRR>,
+    pub last_army_city_selection: Option<CityRR>,
     pub minimum_allowed_distance: f32,
     pub assign_speed: u128,
 }
@@ -169,7 +170,7 @@ impl AppState {
                     ai_profile.clone()
                 },
             };
-            world_state.players.push(Arc::new(Mutex::new(player)));
+            world_state.players.push(Rc::new(RefCell::new(player)));
         }
 
         AppState {

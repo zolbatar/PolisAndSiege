@@ -1,8 +1,9 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::model::ai_profile::AIProfile;
-use crate::model::city_state::CityStateAM;
 use rand::{thread_rng, Rng};
 use skia_safe::Color;
-use std::sync::{Arc, Mutex};
+use crate::model::city::CityRR;
 
 #[derive(Debug, Clone)]
 pub struct Player {
@@ -10,12 +11,12 @@ pub struct Player {
     pub name: String,
     pub score: i32,
     pub colours: Vec<Color>,
-    pub cities: Vec<CityStateAM>,
+    pub cities: Vec<CityRR>,
     pub armies_to_assign: u32,
     pub profile: AIProfile,
 }
 
-pub type PlayerAM = Arc<Mutex<Player>>;
+pub type PlayerRR = Rc<RefCell<Player>>;
 
 impl Player {
     pub fn is_human(&self) -> bool {
@@ -28,20 +29,19 @@ impl Player {
 
     pub fn get_score(&mut self) -> f32 {
         let mut score = 0f32;
-        for city_state in self.cities.iter() {
-            let city = &city_state.as_ref().lock().unwrap().city;
+        for city in self.cities.iter() {
             // Get connections
             let mut outgoing_connections = Vec::new();
-            for connection in &city.lock().unwrap().connections {
-                if Arc::ptr_eq(&connection.lock().unwrap().city1, city) {
-                    outgoing_connections.push(connection.lock().unwrap().city2.clone());
+            for connection in &city.borrow().connections {
+                if Rc::ptr_eq(&connection.city1, city) {
+                    outgoing_connections.push(connection.city2.clone());
                 }
             }
         }
 
         // Update per city
-        for city_state in self.cities.iter() {
-            score += city_state.lock().unwrap().score(&self.profile);
+        for city in self.cities.iter() {
+            score += city.borrow().score(&self.profile);
         }
         /*            for city in &self.cities {
             score += score_for_city(

@@ -1,15 +1,13 @@
-use crate::model::city::CityAM;
-use crate::model::city_state::CityStateAM;
-use crate::model::connection::ConnectionAM;
+use crate::model::city::CityRR;
+use crate::model::connection::ConnectionArc;
 use crate::model::location::Location;
-use crate::model::territory::TerritoryAM;
+use crate::model::territory::TerritoryArc;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Default)]
 pub struct WorldFixed {
-    pub territories: BTreeMap<String, TerritoryAM>,
-    pub cities: Vec<CityAM>,
+    pub territories: BTreeMap<String, TerritoryArc>,
     pub city_locations: Vec<Location>,
-    pub connections: Vec<ConnectionAM>,
-    pub city_states_to_assign: Vec<CityStateAM>,
+    pub connections: Vec<ConnectionArc>,
+    pub cities_to_assign: Vec<CityRR>,
 }

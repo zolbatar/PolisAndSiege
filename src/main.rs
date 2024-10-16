@@ -15,7 +15,6 @@ mod input;
 mod model {
     pub mod ai_profile;
     pub mod city;
-    pub mod city_state;
     pub mod connection;
     pub mod location;
     pub mod math;
@@ -178,7 +177,7 @@ fn main() {
                 app_state.selection.last_selection = Instant::now();
 
                 // Take top item
-                if !app_state.world_fixed.city_states_to_assign.is_empty() {
+                if !app_state.world_fixed.cities_to_assign.is_empty() {
                     assign(&mut app_state);
                 }
                 next_turn(&mut app_state);
@@ -197,7 +196,7 @@ pub fn next_turn(app_state: &mut AppState) {
 
     // Switch to next player
     let (turn_done, index) = {
-        let mut index = world_state.current_player.as_ref().unwrap().lock().unwrap().index;
+        let mut index = world_state.current_player.as_ref().unwrap().borrow().index;
         index += 1;
         if index == world_state.players.len() {
             index = 0;
@@ -210,16 +209,16 @@ pub fn next_turn(app_state: &mut AppState) {
 
     // Have we finished this phase?
     if turn_done {
-        let current_player = world_state.current_player.as_ref().unwrap();
+        let current_player = world_state.get_current_player();
         match world_state.mode {
             GameMode::ArmyPlacement => {
-                if current_player.lock().unwrap().armies_to_assign == 0 {
+                if current_player.borrow().armies_to_assign == 0 {
                     println!("All armies placed");
                     world_state.mode = GameMode::Game;
                 }
             }
             GameMode::Randomising => {
-                if world_fixed.city_states_to_assign.is_empty() {
+                if world_fixed.cities_to_assign.is_empty() {
                     println!("All cities assigned");
                     world_state.mode = GameMode::ArmyPlacement;
                 }
@@ -230,7 +229,7 @@ pub fn next_turn(app_state: &mut AppState) {
     }
 
     // Computer turn?
-    if world_state.current_player.is_some() && !world_state.current_player.as_ref().unwrap().lock().unwrap().is_human()
+    if world_state.current_player.is_some() && !world_state.current_player.as_ref().unwrap().borrow().is_human()
     {
         match world_state.mode {
             GameMode::ArmyPlacement => computer_turn(app_state),
