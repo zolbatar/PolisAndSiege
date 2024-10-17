@@ -157,6 +157,7 @@ impl AppState {
                 name: possible_names[i].parse().unwrap(),
                 colours: player_colours[i].clone(),
                 armies_to_assign: 10,
+                armies_to_assign_fractional: 0.0,
                 cities: Vec::new(),
                 score: 0,
                 profile: if i == 0 {

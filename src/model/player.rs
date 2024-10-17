@@ -13,6 +13,7 @@ pub struct Player {
     pub colours: Vec<Color>,
     pub cities: Vec<CityRR>,
     pub armies_to_assign: u32,
+    pub armies_to_assign_fractional: f32,
     pub profile: Profile,
 }
 

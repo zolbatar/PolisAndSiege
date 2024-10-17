@@ -34,6 +34,7 @@ mod render {
     pub mod surround;
     pub mod title_bar;
 }
+
 use crate::ai::computer_turn::computer_turn;
 use crate::app_state::GameMode;
 use crate::input::{handle_mouse_button_down, handle_mouse_button_up, handle_mouse_motion, handle_mouse_wheel};
@@ -44,6 +45,8 @@ use crate::render::randomising::assign;
 use app_state::AppState;
 use sdl2::video::GLProfile;
 use std::time::{Duration, Instant};
+
+const ARMIES_PER_SIZE: f32 = 0.1;
 
 fn main() {
     // Initialize SDL2
@@ -234,7 +237,21 @@ pub fn next_turn(app_state: &mut AppState) {
                     world_state.mode = GameMode::ArmyPlacement;
                 }
             }
-            GameMode::Game => { // Need to calculate victory conditions
+            GameMode::Game => {
+                // Time to update armies
+                for player in &app_state.world_state.players {
+                    let mut frac = 0.0f32;
+                    for city in &player.borrow().cities {
+                        frac += city.borrow().size as f32 * ARMIES_PER_SIZE;
+                    }
+                    player.borrow_mut().armies_to_assign_fractional += frac;
+                    let frac_int = player.borrow().armies_to_assign_fractional as u32;
+                    player.borrow_mut().armies_to_assign = frac_int;
+                    player.borrow_mut().armies_to_assign_fractional -= frac_int as f32;
+                }
+                app_state.world_state.mode = GameMode::ArmyPlacement;
+
+                // Need to calculate victory conditions
             }
             GameMode::End => {}
         }

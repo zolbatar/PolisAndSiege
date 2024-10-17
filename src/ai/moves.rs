@@ -4,6 +4,7 @@ use rand::Rng;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+use sdl2::sys::XFocusOutEvent;
 
 #[derive(Debug, Default)]
 pub enum MoveType {
@@ -73,7 +74,7 @@ impl Move {
                 let source = self.city_source.as_ref().unwrap().borrow().original.clone().unwrap();
                 let target = self.city_target.as_ref().unwrap().borrow().original.clone().unwrap();
                 let target_armies = target.borrow().armies;
-                let source_armies = rng.gen_range(target_armies..(source.borrow().armies - 1));
+                let mut source_armies = rng.gen_range(target_armies..(source.borrow().armies - 1));
 
                 // Roll dice
                 let mut dice_source = Vec::new();
@@ -103,30 +104,28 @@ impl Move {
                     source.borrow().armies,
                     target.borrow().armies
                 );
-                let mut source_win = 0usize;
-                let mut target_win = 0usize;
+                
                 for i in 0..dice_source.len() {
                     if i >= dice_target.len() || dice_source[i] > dice_target[i] {
-                        source_win += 1;
+                        if  target.borrow().armies == 0 {
+                            break;
+                        }
+                        target.borrow_mut().armies -= 1;
                     } else {
-                        target_win += 1;
+                        source.borrow_mut().armies -= 1;
+                        source_armies -= 1;
                     }
                 }
 
-                // Now do the result
-                if source_win >= target_armies {
-                    print!("attack success. ");
+                println!("After is {},{}.", source.borrow().armies, target.borrow().armies);
+
+                // Take over!
+                if target.borrow().armies == 0 {
                     // Take the city
                     target.borrow_mut().owner = source.borrow().owner.clone();
-                    target.borrow_mut().armies = source_win;
+                    target.borrow_mut().armies = source_armies;
                     source.borrow_mut().armies -= source_armies;
-                } else {
-                    print!("attack fail. ");
-                    // Both take damage
-                    source.borrow_mut().armies -= target_win;
-                    target.borrow_mut().armies -= source_win;
                 }
-                println!("After is {},{}.", source.borrow().armies, target.borrow().armies);
             }
         }
     }
