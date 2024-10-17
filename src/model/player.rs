@@ -1,9 +1,9 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use crate::model::ai_profile::AIProfile;
+use crate::model::city::CityRR;
+use crate::model::profile::Profile;
 use rand::{thread_rng, Rng};
 use skia_safe::Color;
-use crate::model::city::CityRR;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub struct Player {
@@ -13,7 +13,7 @@ pub struct Player {
     pub colours: Vec<Color>,
     pub cities: Vec<CityRR>,
     pub armies_to_assign: u32,
-    pub profile: AIProfile,
+    pub profile: Profile,
 }
 
 pub type PlayerRR = Rc<RefCell<Player>>;
@@ -30,29 +30,8 @@ impl Player {
     pub fn get_score(&mut self) -> f32 {
         let mut score = 0f32;
         for city in self.cities.iter() {
-            // Get connections
-            let mut outgoing_connections = Vec::new();
-            for connection in &city.borrow().connections {
-                if Rc::ptr_eq(&connection.city1, city) {
-                    outgoing_connections.push(connection.city2.clone());
-                }
-            }
-        }
-
-        // Update per city
-        for city in self.cities.iter() {
             score += city.borrow().score(&self.profile);
         }
-        /*            for city in &self.cities {
-            score += score_for_city(
-                &cities,
-                city_entity.unwrap(),
-                city.lock().unwrap().clone(),
-                &outgoing_connections,
-                self,
-                player_entity,
-            );
-        }*/
 
         // Add randomness to keep it interesting and less easy to guess intentions
         let mut range = score * self.profile.random_fraction;

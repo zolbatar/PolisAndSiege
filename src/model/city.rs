@@ -1,14 +1,14 @@
-use std::cell::RefCell;
 use crate::app_state::AppState;
 use crate::model::connection::ConnectionArc;
 use crate::model::location::{calculate_distance, Location};
+use crate::model::player::PlayerRR;
+use crate::model::profile::Profile;
 use crate::model::territory::{Territory, TerritoryArc};
 use petgraph::graph::NodeIndex;
+use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 use std::sync::Arc;
-use crate::model::ai_profile::AIProfile;
-use crate::model::player::PlayerRR;
 
 #[derive(Debug, Default, Clone)]
 pub struct City {
@@ -19,7 +19,7 @@ pub struct City {
     pub size: u8,
     pub node: NodeIndex,
     pub population: i64,
-    pub armies: u32,
+    pub armies: usize,
     pub additional_armies: u32,
     pub owner: Option<PlayerRR>,
     pub original: Option<CityRR>,
@@ -50,7 +50,7 @@ impl City {
         }
     }
 
-    pub fn score(&self, profile: &AIProfile) -> f32 {
+    pub fn score(&self, profile: &Profile) -> f32 {
         let mut score = 0f32;
         score += self.size as f32 * profile.city_size_multiplier;
         score += self.armies as f32 * profile.army_multiplier;
@@ -90,8 +90,7 @@ pub fn select_evenly_spaced_cities(
         let mut selected_cities = Vec::new();
 
         // Sort the cities by population (largest first)
-        territory.cities
-            .sort_by(|a, b| b.borrow().population.cmp(&a.borrow().population));
+        territory.cities.sort_by(|a, b| b.borrow().population.cmp(&a.borrow().population));
 
         // Loop through all cities
         for city in &territory.cities {

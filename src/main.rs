@@ -6,19 +6,19 @@ mod lib {
 mod ai {
     pub mod army_placement;
     pub mod computer_turn;
-    pub mod difficulty;
+    pub mod game;
     pub mod moves;
     pub mod possible_move;
 }
 mod input;
 
 mod model {
-    pub mod ai_profile;
     pub mod city;
     pub mod connection;
     pub mod location;
     pub mod math;
     pub mod player;
+    pub mod profile;
     pub mod territory;
     pub mod territory_polygon;
     pub mod world_fixed;
@@ -229,8 +229,7 @@ pub fn next_turn(app_state: &mut AppState) {
     }
 
     // Computer turn?
-    if world_state.current_player.is_some() && !world_state.current_player.as_ref().unwrap().borrow().is_human()
-    {
+    if world_state.current_player.is_some() && !world_state.current_player.as_ref().unwrap().borrow().is_human() {
         match world_state.mode {
             GameMode::ArmyPlacement => computer_turn(app_state),
             GameMode::Game => computer_turn(app_state),

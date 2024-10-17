@@ -1,7 +1,6 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use crate::model::ai_profile::AIProfile;
+use crate::model::city::CityRR;
 use crate::model::player::Player;
+use crate::model::profile::Profile;
 use crate::model::world_fixed::WorldFixed;
 use crate::model::world_state::WorldState;
 use rand::prelude::SliceRandom;
@@ -9,8 +8,9 @@ use rand::thread_rng;
 use sdl2::video::Window;
 use skia_safe::svg::Dom;
 use skia_safe::{Color, FontMgr, Path, Point, Size};
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::time::Instant;
-use crate::model::city::CityRR;
 
 const SVG_CORNER: &str = include_str!("../assets/Corner.svg");
 const SVG_SIDE: &str = include_str!("../assets/Side.svg");
@@ -133,7 +133,7 @@ impl AppState {
             vec![Color::from_rgb(128, 255, 255), Color::BLACK],
         ];
 
-        let profile = AIProfile {
+        let profile = Profile {
             human: false,
             no_choices: 3,
             search_depth: 3,
@@ -142,18 +142,12 @@ impl AppState {
             army_same_territory: 2.0,
             army_bordering: 3.0,
             random_fraction: 0.1,
+            minimum_armies: 2,
+            minimum_army_delta: 1,
         };
 
-        let ai_profile = AIProfile {
-            human: false,
-            no_choices: 3,
-            search_depth: 3,
-            city_size_multiplier: 1.5,
-            army_multiplier: 1.0,
-            army_same_territory: 2.0,
-            army_bordering: 3.0,
-            random_fraction: 0.1,
-        };
+        let mut ai_profile = profile.clone();
+        ai_profile.human = false;
 
         // Create player(s)
         for i in 0..num_of_players {
