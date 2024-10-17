@@ -4,7 +4,6 @@ use rand::Rng;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use sdl2::sys::XFocusOutEvent;
 
 #[derive(Debug, Default)]
 pub enum MoveType {
@@ -29,6 +28,7 @@ impl fmt::Debug for Move {
         f.debug_struct("Move")
             .field("move_type", &self.move_type)
             .field("best_score", &self.best_score)
+            .field("attack delta", &source.attacking_delta)
             .field("armies (source)", &source.armies)
             .field("+armies (source)", &source.additional_armies)
             .field("child_moves", &self.child_moves)
@@ -42,6 +42,8 @@ impl Move {
         new_city_source.borrow_mut().original = Some(city_source.clone());
         let new_city_target = Rc::new(RefCell::new(city_target.borrow().clone()));
         new_city_target.borrow_mut().original = Some(city_target.clone());
+        let attacking_delta = new_city_source.borrow().armies as i32 - new_city_target.borrow().armies as i32;
+        new_city_source.borrow_mut().attacking_delta = attacking_delta;
         Self {
             move_type: MoveType::AttackCity,
             city_source: Some(new_city_source),
@@ -74,7 +76,11 @@ impl Move {
                 let source = self.city_source.as_ref().unwrap().borrow().original.clone().unwrap();
                 let target = self.city_target.as_ref().unwrap().borrow().original.clone().unwrap();
                 let target_armies = target.borrow().armies;
-                let mut source_armies = rng.gen_range(target_armies..(source.borrow().armies - 1));
+                let mut source_armies = if target_armies >= (source.borrow().armies - 1) {
+                    source.borrow().armies - 1
+                } else {
+                    rng.gen_range(target_armies..=(source.borrow().armies - 1))
+                };
 
                 // Roll dice
                 let mut dice_source = Vec::new();
@@ -104,10 +110,10 @@ impl Move {
                     source.borrow().armies,
                     target.borrow().armies
                 );
-                
+
                 for i in 0..dice_source.len() {
                     if i >= dice_target.len() || dice_source[i] > dice_target[i] {
-                        if  target.borrow().armies == 0 {
+                        if target.borrow().armies == 0 {
                             break;
                         }
                         target.borrow_mut().armies -= 1;
@@ -121,6 +127,8 @@ impl Move {
 
                 // Take over!
                 if target.borrow().armies == 0 {
+                    println!("City taken!");
+
                     // Take the city
                     target.borrow_mut().owner = source.borrow().owner.clone();
                     target.borrow_mut().armies = source_armies;

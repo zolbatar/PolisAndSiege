@@ -69,7 +69,12 @@ pub fn possible_moves(world_state: &WorldState, world_fixed: &WorldFixed, depth:
     let current_player = world_state.get_current_player();
     match world_state.mode {
         GameMode::Randomising => panic!("This should not happen"),
-        GameMode::ArmyPlacement => results = ap_build_list_of_possibles(current_player.clone()),
+        GameMode::ArmyPlacement => {
+            if  current_player.borrow().armies_to_assign == 0 {
+                return results;
+            }
+            results = ap_build_list_of_possibles(current_player.clone());
+        }
         GameMode::Game => results = game_build_list_of_possibles(current_player.clone()),
         GameMode::End => {}
     }

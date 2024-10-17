@@ -215,11 +215,19 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
                 randomising(skia, app_state, rr);
             }
             GameMode::ArmyPlacement => {
-                army_placement(skia, world_state, &app_state.gfx, rr);
+                if world_state.current_player.as_ref().unwrap().borrow().is_human() {
+                    army_placement(skia, world_state, &app_state.gfx, rr);
+                } else {
+                    region_summary(skia, app_state, rr);
+                }
             }
             GameMode::Game => {
-                if app_state.selection.last_city_selection.is_some() {
-                    city_selection(skia, app_state, rr);
+                if world_state.current_player.as_ref().unwrap().borrow().is_human() {
+                    if app_state.selection.last_city_selection.is_some() {
+                        city_selection(skia, app_state, rr);
+                    } else {
+                        region_summary(skia, app_state, rr);
+                    }
                 } else {
                     region_summary(skia, app_state, rr);
                 }

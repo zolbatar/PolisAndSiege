@@ -141,10 +141,10 @@ impl AppState {
             city_size_multiplier: 1.5,
             army_multiplier: 1.0,
             army_same_territory: 2.0,
-            army_bordering: 3.0,
-            random_fraction: 0.1,
+            army_bordering: 5.0,
+            random_fraction: 0.2,
             minimum_armies: 2,
-            minimum_army_delta: 1,
+            attack_delta_multiplier: 5.0,
         };
 
         let mut ai_profile = profile.clone();

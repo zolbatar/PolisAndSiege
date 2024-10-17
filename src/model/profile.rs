@@ -9,5 +9,5 @@ pub struct Profile {
     pub random_fraction: f32,
     pub no_choices: usize,
     pub minimum_armies: usize,
-    pub minimum_army_delta: usize,
+    pub attack_delta_multiplier: f32,
 }

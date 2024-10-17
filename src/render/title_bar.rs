@@ -18,14 +18,20 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
     // Mode
     let phase = match world_state.mode {
         GameMode::Randomising => "Assigning Cities",
-        GameMode::ArmyPlacement => "Initial Army Placement",
+        GameMode::ArmyPlacement => {
+            if player.unwrap().borrow().is_human() {
+                "Initial Army Placement"
+            } else {
+                "Computer Turn"
+            }
+        }
         GameMode::Game => {
             if player.is_none() {
                 "No turn"
             } else if player.unwrap().borrow().is_human() {
                 "Player Turn"
             } else {
-                "Enemy Turn"
+                "Computer Turn"
             }
         }
         GameMode::End => "Game over",
@@ -55,7 +61,7 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
             skia.write_text_right(
                 20.0,
                 &paint_title,
-                &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), world_state.cities.len(),),
+                &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), world_state.cities.len(), ),
                 Point::new(0.0, 0.0),
                 app_state.gfx.width as f32 - 160.0,
                 &FontFamily::EbGaramond,
