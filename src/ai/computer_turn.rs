@@ -1,5 +1,5 @@
 use crate::ai::possible_move::possible_moves;
-use crate::app_state::{AppState, GameMode};
+use crate::app_state::AppState;
 use crate::next_turn;
 
 pub fn computer_turn(app_state: &mut AppState) {
@@ -16,7 +16,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     let mut possibles = possible_moves(&world_state, &app_state.world_fixed, depth);
     if possibles.is_empty() {
         println!("no possible moves");
-        app_state.world_state.mode = GameMode::End;
+        //app_state.world_state.mode = GameMode::End;
         next_turn(app_state);
         return;
     } else {

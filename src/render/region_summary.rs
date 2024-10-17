@@ -2,6 +2,7 @@ use crate::app_state::AppState;
 use crate::lib::skia::{FontFamily, Skia};
 use skia_safe::paint::Style;
 use skia_safe::{Color, Paint, Point, RRect, Rect};
+use std::collections::{BTreeMap, HashMap};
 
 pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
     let world_fixed = &app_state.world_fixed;
@@ -59,13 +60,14 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             skia.write_text(20.0, &paint_white, &msg, Point::new(rr.right - 128.0, y), 0.0, &FontFamily::EbGaramond);
 
             // Work out proportions of ownership
-            /*            let mut map = HashMap::new();
-            for city in &snd.lock().unwrap().cities {
-                let owner = &city.lock().unwrap().owner;
-                map.entry(owner.clone()).and_modify(|v| *v += 1).or_insert(1);
+            let mut map = HashMap::new();
+            for city in &territory.1.cities {
+                let owner = &city.borrow().owner;
+                map.entry(owner.clone().unwrap().borrow().index).and_modify(|v| *v += 1.0f32).or_insert(1.0f32);
+                //                map.entry(owner.clone()).and_modify(|v| *v += 1).or_insert(1);
             }
             let mut prop = BTreeMap::new();
-            let total = snd.lock().unwrap().cities.len() as f32;
+            let total = territory.1.cities.len() as f32;
             for entry in map {
                 prop.insert(entry.0, entry.1 as f32 / total * 64.0);
             }
@@ -80,7 +82,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             paint_player.set_style(Style::Stroke);
             paint_player.set_stroke_width(4.0);
             for entry in prop {
-                paint_player.set_color(app_state.res.player_colours.get(&entry.0.unwrap()).unwrap()[0]);
+                paint_player.set_color(app_state.world_state.players[entry.0].borrow().colours[0]);
                 skia.get_canvas().draw_line(Point::new(xx, yy), Point::new(xx + entry.1, yy), &paint_player);
                 xx += entry.1;
             }
@@ -91,7 +93,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
                     3.0,
                 ),
                 &paint_border,
-            );*/
+            );
         }
     }
 
