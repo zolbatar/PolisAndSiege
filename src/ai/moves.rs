@@ -1,7 +1,6 @@
-use crate::ai::game::do_attack_city;
 use crate::app_state::AppState;
 use crate::model::city::CityRR;
-use crate::next_turn;
+use rand::Rng;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -62,7 +61,7 @@ impl Move {
         }
     }
 
-    pub fn do_move_and_next_turn(&self, app_state: &mut AppState) {
+    pub fn do_move(&self, app_state: &mut AppState) {
         let player = app_state.world_state.get_current_player();
         match self.move_type {
             MoveType::PlaceArmy => {
@@ -70,9 +69,65 @@ impl Move {
                 player.borrow_mut().armies_to_assign -= 1;
             }
             MoveType::AttackCity => {
-                do_attack_city(player, self);
+                let mut rng = rand::thread_rng();
+                let source = self.city_source.as_ref().unwrap().borrow().original.clone().unwrap();
+                let target = self.city_target.as_ref().unwrap().borrow().original.clone().unwrap();
+                let target_armies = target.borrow().armies;
+                let source_armies = rng.gen_range(target_armies..(source.borrow().armies - 1));
+
+                // Roll dice
+                let mut dice_source = Vec::new();
+                let mut dice_target = Vec::new();
+
+                // source dice
+                for _i in 0..source_armies {
+                    let dice = rng.gen_range(1u8..=6u8);
+                    dice_source.push(dice);
+                }
+
+                // Target dice
+                for _i in 0..target_armies {
+                    let dice = rng.gen_range(1u8..=6u8);
+                    dice_target.push(dice);
+                }
+
+                // Now order by
+                dice_source.sort();
+                dice_target.sort();
+
+                // And compare each
+                print!(
+                    "Attacking with {}/{} (out of {},{}), ",
+                    source_armies,
+                    target_armies,
+                    source.borrow().armies,
+                    target.borrow().armies
+                );
+                let mut source_win = 0usize;
+                let mut target_win = 0usize;
+                for i in 0..dice_source.len() {
+                    if i >= dice_target.len() || dice_source[i] > dice_target[i] {
+                        source_win += 1;
+                    } else {
+                        target_win += 1;
+                    }
+                }
+
+                // Now do the result
+                if source_win >= target_armies {
+                    print!("attack success. ");
+                    // Take the city
+                    target.borrow_mut().owner = source.borrow().owner.clone();
+                    target.borrow_mut().armies = source_win;
+                    source.borrow_mut().armies -= source_armies;
+                } else {
+                    print!("attack fail. ");
+                    // Both take damage
+                    source.borrow_mut().armies -= target_win;
+                    target.borrow_mut().armies -= source_win;
+                }
+                println!("After is {},{}.", source.borrow().armies, target.borrow().armies);
             }
         }
-        next_turn(app_state);
     }
 }

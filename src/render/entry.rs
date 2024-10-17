@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::app_state::{AppState, GameMode};
 use crate::lib::skia;
 use crate::lib::skia::{FontFamily, Skia};
@@ -14,6 +13,7 @@ use crate::render::surround::render_surround;
 use crate::render::title_bar::render_title_bar;
 use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, RRect, Rect};
+use std::rc::Rc;
 
 fn render_connections(skia: &mut Skia, world_fixed: &WorldFixed) {
     // Paint
@@ -100,8 +100,13 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia
-                .text_dimensions(font_size, &paint_name, &city.borrow().name.clone(),
-                                 &FontFamily::EbGaramond, TextAlign::Left)
+                .text_dimensions(
+                    font_size,
+                    &paint_name,
+                    &city.borrow().name.clone(),
+                    &FontFamily::EbGaramond,
+                    TextAlign::Left,
+                )
                 .clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
                 skia.get_canvas().draw_round_rect(
@@ -219,6 +224,7 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
                     region_summary(skia, app_state, rr);
                 }
             }
+            GameMode::End => {}
         }
     }
 

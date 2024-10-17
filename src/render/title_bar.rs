@@ -28,6 +28,7 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
                 "Enemy Turn"
             }
         }
+        GameMode::End => "Game over",
     };
     skia.write_text_centre(
         30.0,
@@ -54,7 +55,7 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
             skia.write_text_right(
                 20.0,
                 &paint_title,
-                &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), world_state.cities.len(), ),
+                &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), world_state.cities.len(),),
                 Point::new(0.0, 0.0),
                 app_state.gfx.width as f32 - 160.0,
                 &FontFamily::EbGaramond,

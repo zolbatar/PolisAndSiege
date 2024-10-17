@@ -24,6 +24,7 @@ pub enum GameMode {
     Randomising,
     ArmyPlacement,
     Game,
+    End,
 }
 
 pub struct GFXState {

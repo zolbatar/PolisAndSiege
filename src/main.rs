@@ -184,6 +184,17 @@ fn main() {
             }
         }
 
+        // Waiting on AI action?
+        if app_state.world_state.current_player.is_some()
+            && !app_state.world_state.current_player.as_ref().unwrap().borrow().is_human()
+        {
+            match app_state.world_state.mode {
+                GameMode::ArmyPlacement => computer_turn(&mut app_state),
+                GameMode::Game => computer_turn(&mut app_state),
+                _ => {}
+            }
+        }
+
         render::entry::main(&mut skia, &mut app_state);
         window.gl_swap_window();
     }
@@ -225,15 +236,7 @@ pub fn next_turn(app_state: &mut AppState) {
             }
             GameMode::Game => { // Need to calculate victory conditions
             }
-        }
-    }
-
-    // Computer turn?
-    if world_state.current_player.is_some() && !world_state.current_player.as_ref().unwrap().borrow().is_human() {
-        match world_state.mode {
-            GameMode::ArmyPlacement => computer_turn(app_state),
-            GameMode::Game => computer_turn(app_state),
-            _ => {}
+            GameMode::End => {}
         }
     }
 }

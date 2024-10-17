@@ -71,6 +71,7 @@ pub fn possible_moves(world_state: &WorldState, world_fixed: &WorldFixed, depth:
         GameMode::Randomising => panic!("This should not happen"),
         GameMode::ArmyPlacement => results = ap_build_list_of_possibles(current_player.clone()),
         GameMode::Game => results = game_build_list_of_possibles(current_player.clone()),
+        GameMode::End => {}
     }
 
     // Update scores

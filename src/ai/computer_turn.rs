@@ -1,6 +1,6 @@
 use crate::ai::possible_move::possible_moves;
-use crate::app_state::AppState;
-use std::process::exit;
+use crate::app_state::{AppState, GameMode};
+use crate::next_turn;
 
 pub fn computer_turn(app_state: &mut AppState) {
     // Clone the world state totally
@@ -16,7 +16,9 @@ pub fn computer_turn(app_state: &mut AppState) {
     let mut possibles = possible_moves(&world_state, &app_state.world_fixed, depth);
     if possibles.is_empty() {
         println!("no possible moves");
-        exit(0);
+        app_state.world_state.mode = GameMode::End;
+        next_turn(app_state);
+        return;
     } else {
         print!("there are {} possible moves, ", possibles.len());
     }
@@ -29,6 +31,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     // Select move
     possibles.sort_by(|a, b| a.best_score.cmp(&b.best_score));
     let best = &possibles[0];
-    best.do_move_and_next_turn(app_state);
+    best.do_move(app_state);
+    next_turn(app_state);
     //    println!("{:#?}", possibles);
 }
