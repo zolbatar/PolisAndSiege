@@ -1,7 +1,6 @@
-use crate::model::city::CityRR;
+use crate::model::city::{City, CityRR};
 use crate::model::world_state::WorldState;
 use rand::Rng;
-use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
@@ -37,10 +36,8 @@ impl fmt::Debug for Move {
 
 impl Move {
     pub fn new_attack_city(city_source: &CityRR, city_target: &CityRR) -> Self {
-        let new_city_source = Rc::new(RefCell::new(city_source.borrow().clone()));
-        new_city_source.borrow_mut().original = Some(city_source.clone());
-        let new_city_target = Rc::new(RefCell::new(city_target.borrow().clone()));
-        new_city_target.borrow_mut().original = Some(city_target.clone());
+        let new_city_source = City::full_clone(city_source);
+        let new_city_target = City::full_clone(city_target);
         Self {
             move_type: MoveType::AttackCity,
             city_source: Some(new_city_source),
@@ -50,8 +47,7 @@ impl Move {
     }
 
     pub fn new_place_army(city_source: &CityRR) -> Self {
-        let new_city_source = Rc::new(RefCell::new(city_source.borrow().clone()));
-        new_city_source.borrow_mut().original = Some(city_source.clone());
+        let new_city_source = City::full_clone(city_source);
         new_city_source.borrow_mut().armies += 1;
         Self {
             move_type: MoveType::PlaceArmy,
@@ -60,7 +56,7 @@ impl Move {
         }
     }
 
-    pub fn do_move(&self, world_state: &mut WorldState) {
+    pub fn do_move(&self, world_state: &mut WorldState, is_final_move: bool) {
         let player = world_state.get_current_player();
         match self.move_type {
             MoveType::PlaceArmy => {
@@ -69,8 +65,17 @@ impl Move {
             }
             MoveType::AttackCity => {
                 let mut rng = rand::thread_rng();
-                let source = self.city_source.as_ref().unwrap().borrow().original.clone().unwrap();
-                let target = self.city_target.as_ref().unwrap().borrow().original.clone().unwrap();
+                let source = if is_final_move {
+                    self.city_source.as_ref().unwrap().borrow().original.clone().unwrap()
+                } else {
+                    self.city_source.clone().unwrap()
+                };
+                let target = if is_final_move {
+                    self.city_target.as_ref().unwrap().borrow().original.clone().unwrap()
+                } else {
+                    self.city_target.clone().unwrap()
+                };
+                assert!(!Rc::ptr_eq(source.borrow().owner.as_ref().unwrap(), target.borrow().owner.as_ref().unwrap()));
                 let target_armies = target.borrow().armies;
                 let mut source_armies = if target_armies >= (source.borrow().armies - 1) {
                     source.borrow().armies - 1

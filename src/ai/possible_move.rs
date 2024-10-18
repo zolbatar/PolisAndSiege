@@ -97,7 +97,7 @@ pub fn possible_moves(world_state: &WorldState, depth: usize) -> Vec<Move> {
             0
         };
 
-        result.do_move(&mut world_state);
+        result.do_move(&mut world_state, false);
         world_state.update_scores();
         let all_scores: i32 = world_state.players.iter().map(|p| p.borrow().score).sum();
         let mut current_player_score = world_state.current_player.as_ref().unwrap().borrow().score;

@@ -31,7 +31,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     // Select move
     possibles.sort_by(|a, b| a.score_portion.cmp(&b.score_portion));
     let best = &possibles[0];
-    best.do_move(&mut app_state.world_state);
+    best.do_move(&mut app_state.world_state, true);
     next_turn(app_state);
     //    println!("{:#?}", possibles);
 }

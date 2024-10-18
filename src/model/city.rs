@@ -31,6 +31,12 @@ pub const SIZE_SELECTED: f32 = 4.0;
 pub const MAXIMUM_LABEL_WIDTH: f32 = 32.0;
 
 impl City {
+    pub fn full_clone(city_rr: &CityRR) -> CityRR {
+        let cloned = Rc::new(RefCell::new(city_rr.borrow().clone()));
+        cloned.borrow_mut().original = Some(city_rr.clone());
+        cloned
+    }
+
     pub fn new(name: String, longitude: f32, latitude: f32, population: i64) -> Self {
         let size = match population {
             0..150000 => 1,
