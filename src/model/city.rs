@@ -20,8 +20,6 @@ pub struct City {
     pub node: NodeIndex,
     pub population: i64,
     pub armies: usize,
-    pub additional_armies: u32,
-    pub attacking_delta: i32,
     pub owner: Option<PlayerRR>,
     pub original: Option<CityRR>,
 }
@@ -55,7 +53,6 @@ impl City {
         let mut score = 0f32;
         score += self.size as f32 * profile.city_size_multiplier;
         score += self.armies as f32 * profile.army_multiplier;
-        score += (self.attacking_delta + 10) as f32 * profile.attack_delta_multiplier;
 
         // Logic for additional armies, extra score if bordering enemy concentrations
         for connection in self.connections.iter() {
@@ -65,10 +62,10 @@ impl City {
             // If enemy city, add a boost
             if other_city_owner.is_some() {
                 let boost = score;
-                if Rc::ptr_eq(&other_city_owner.as_ref().unwrap(), &self.owner.as_ref().unwrap()) {
-                    score += self.additional_armies as f32 * profile.army_bordering;
+                if !Rc::ptr_eq(other_city_owner.as_ref().unwrap(), self.owner.as_ref().unwrap()) {
+                    score += self.armies as f32 * profile.army_bordering;
                     if Arc::ptr_eq(other_city_territory, &self.territory) {
-                        score += self.additional_armies as f32 * profile.army_same_territory;
+                        score += self.armies as f32 * profile.army_same_territory;
                     }
                 }
                 let boost_diff = score - boost;

@@ -1,6 +1,6 @@
 use crate::ai::army_placement::ap_build_list_of_possibles;
 use crate::ai::game::game_build_list_of_possibles;
-use crate::ai::moves::Move;
+use crate::ai::moves::{Move, MoveType};
 use crate::app_state::GameMode;
 use crate::model::profile::Profile;
 use crate::model::world_fixed::WorldFixed;
@@ -8,7 +8,7 @@ use crate::model::world_state::WorldState;
 
 fn reduce_down_to_limited_list(profile: &Profile, data_in: Vec<Move>) -> Vec<Move> {
     let mut results = data_in;
-    results.sort_by(|a, b| a.best_score.partial_cmp(&b.best_score).unwrap().reverse());
+    results.sort_by(|a, b| a.score_portion.partial_cmp(&b.score_portion).unwrap().reverse());
     results.into_iter().take(profile.no_choices).collect()
 }
 
@@ -62,7 +62,7 @@ where
     results
 }
 
-pub fn possible_moves(world_state: &WorldState, world_fixed: &WorldFixed, depth: usize) -> Vec<Move> {
+pub fn possible_moves(world_state: &WorldState, depth: usize) -> Vec<Move> {
     let mut results: Vec<Move> = Vec::new();
     let world_state = world_state.deep_clone();
 
@@ -70,7 +70,7 @@ pub fn possible_moves(world_state: &WorldState, world_fixed: &WorldFixed, depth:
     match world_state.mode {
         GameMode::Randomising => panic!("This should not happen"),
         GameMode::ArmyPlacement => {
-            if  current_player.borrow().armies_to_assign == 0 {
+            if current_player.borrow().armies_to_assign == 0 {
                 return results;
             }
             results = ap_build_list_of_possibles(current_player.clone());
@@ -79,25 +79,44 @@ pub fn possible_moves(world_state: &WorldState, world_fixed: &WorldFixed, depth:
         GameMode::End => {}
     }
 
-    // Update scores
+    // Now do each of the moves and work out the scores
     for result in &mut results {
-        result.best_score = current_player.borrow_mut().get_score() as i32;
+        let mut world_state = world_state.deep_clone();
+
+        // If this is an attack, work out combat delta
+        let attack_delta = if result.move_type == MoveType::AttackCity {
+            if result.city_source.as_ref().unwrap().borrow().armies
+                > result.city_target.as_ref().unwrap().borrow().armies
+            {
+                result.city_source.as_ref().unwrap().borrow().armies
+                    - result.city_target.as_ref().unwrap().borrow().armies
+            } else {
+                5
+            }
+        } else {
+            0
+        };
+
+        result.do_move(&mut world_state);
+        world_state.update_scores();
+        let all_scores: i32 = world_state.players.iter().map(|p| p.borrow().score).sum();
+        let mut current_player_score = world_state.current_player.as_ref().unwrap().borrow().score;
+
+        // If this is an attack, encourage it
+        if result.move_type == MoveType::AttackCity {
+            current_player_score +=
+                (attack_delta as f32 * current_player.borrow().profile.attack_delta_multiplier) as i32;
+        }
+
+        result.score_portion = (current_player_score * 10000) / all_scores;
+        result.world_state = world_state;
     }
 
     // Select x of the list
     results = reduce_down_to_limited_list(&current_player.borrow().profile, results);
 
     // Go deeper if required
-    results = go_deeper(&world_state, world_fixed, results, possible_moves, depth);
-
-    // Set best score
-    for result in &mut results {
-        let top = result.child_moves.iter().max_by_key(|p| p.best_score);
-        if let Some(top) = top {
-            let highest = top.best_score;
-            result.best_score = highest;
-        }
-    }
+    //    results = go_deeper(&world_state, results, possible_moves, depth);
 
     results
 }

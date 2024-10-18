@@ -1,6 +1,5 @@
 use crate::model::city::CityRR;
 use crate::model::profile::Profile;
-use rand::{thread_rng, Rng};
 use skia_safe::Color;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -33,14 +32,6 @@ impl Player {
         for city in self.cities.iter() {
             score += city.borrow().score(&self.profile);
         }
-
-        // Add randomness to keep it interesting and less easy to guess intentions
-        let mut range = score * self.profile.random_fraction;
-        if range < 5.0 {
-            range = 5.0
-        }
-        let mut r = thread_rng();
-        score += r.gen_range(0f32..range);
         score
     }
 }

@@ -138,13 +138,12 @@ impl AppState {
             human: false,
             no_choices: 3,
             search_depth: 3,
-            city_size_multiplier: 1.5,
+            city_size_multiplier: 5.0,
             army_multiplier: 1.0,
             army_same_territory: 2.0,
-            army_bordering: 5.0,
-            random_fraction: 0.2,
+            army_bordering: 25.0,
             minimum_armies: 2,
-            attack_delta_multiplier: 5.0,
+            attack_delta_multiplier: 50.0,
         };
 
         let mut ai_profile = profile.clone();
@@ -176,7 +175,7 @@ impl AppState {
                 last_city_selection: None,
                 last_city_hover: None,
                 last_army_city_selection: None,
-                minimum_allowed_distance: 25.0, //18.0, //12.0,
+                minimum_allowed_distance: 18.0, //12.0,
                 assign_speed: 0,
             },
             hover: Default::default(),

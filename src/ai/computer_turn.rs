@@ -13,7 +13,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     // Create initial game state
     let depth = 0;
 
-    let mut possibles = possible_moves(&world_state, &app_state.world_fixed, depth);
+    let mut possibles = possible_moves(&world_state, depth);
     if possibles.is_empty() {
         println!("no possible moves");
         //app_state.world_state.mode = GameMode::End;
@@ -24,14 +24,14 @@ pub fn computer_turn(app_state: &mut AppState) {
     }
 
     // Score range
-    let lowest = possibles.iter().min_by_key(|p| p.best_score).unwrap().best_score;
-    let highest = possibles.iter().max_by_key(|p| p.best_score).unwrap().best_score;
+    let lowest = possibles.iter().min_by_key(|p| p.score_portion).unwrap().score_portion;
+    let highest = possibles.iter().max_by_key(|p| p.score_portion).unwrap().score_portion;
     println!("lowest and highest score: {}/{}", lowest, highest);
 
     // Select move
-    possibles.sort_by(|a, b| a.best_score.cmp(&b.best_score));
+    possibles.sort_by(|a, b| a.score_portion.cmp(&b.score_portion));
     let best = &possibles[0];
-    best.do_move(app_state);
+    best.do_move(&mut app_state.world_state);
     next_turn(app_state);
     //    println!("{:#?}", possibles);
 }

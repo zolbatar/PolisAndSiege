@@ -1,11 +1,11 @@
-use crate::app_state::AppState;
 use crate::model::city::CityRR;
+use crate::model::world_state::WorldState;
 use rand::Rng;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub enum MoveType {
     #[default]
     PlaceArmy,
@@ -18,7 +18,8 @@ pub struct Move {
     pub city_source: Option<CityRR>,
     pub city_target: Option<CityRR>,
     pub child_moves: Vec<Move>,
-    pub best_score: i32,
+    pub score_portion: i32,
+    pub world_state: WorldState,
 }
 
 impl fmt::Debug for Move {
@@ -27,10 +28,8 @@ impl fmt::Debug for Move {
         //        let target = self.city_target.as_ref().unwrap().borrow();
         f.debug_struct("Move")
             .field("move_type", &self.move_type)
-            .field("best_score", &self.best_score)
-            .field("attack delta", &source.attacking_delta)
+            .field("score_portion", &self.score_portion)
             .field("armies (source)", &source.armies)
-            .field("+armies (source)", &source.additional_armies)
             .field("child_moves", &self.child_moves)
             .finish()
     }
@@ -42,8 +41,6 @@ impl Move {
         new_city_source.borrow_mut().original = Some(city_source.clone());
         let new_city_target = Rc::new(RefCell::new(city_target.borrow().clone()));
         new_city_target.borrow_mut().original = Some(city_target.clone());
-        let attacking_delta = new_city_source.borrow().armies as i32 - new_city_target.borrow().armies as i32;
-        new_city_source.borrow_mut().attacking_delta = attacking_delta;
         Self {
             move_type: MoveType::AttackCity,
             city_source: Some(new_city_source),
@@ -56,7 +53,6 @@ impl Move {
         let new_city_source = Rc::new(RefCell::new(city_source.borrow().clone()));
         new_city_source.borrow_mut().original = Some(city_source.clone());
         new_city_source.borrow_mut().armies += 1;
-        new_city_source.borrow_mut().additional_armies += 1;
         Self {
             move_type: MoveType::PlaceArmy,
             city_source: Some(new_city_source),
@@ -64,8 +60,8 @@ impl Move {
         }
     }
 
-    pub fn do_move(&self, app_state: &mut AppState) {
-        let player = app_state.world_state.get_current_player();
+    pub fn do_move(&self, world_state: &mut WorldState) {
+        let player = world_state.get_current_player();
         match self.move_type {
             MoveType::PlaceArmy => {
                 self.city_source.as_ref().unwrap().borrow().original.clone().unwrap().borrow_mut().armies += 1;
