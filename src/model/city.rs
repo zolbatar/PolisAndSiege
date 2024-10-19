@@ -1,29 +1,35 @@
 use crate::app_state::AppState;
 use crate::model::connection::ConnectionArc;
 use crate::model::location::{calculate_distance, Location};
-use crate::model::player::PlayerRR;
 use crate::model::profile::Profile;
-use crate::model::territory::{Territory, TerritoryArc};
+use crate::model::territory::Territory;
+use crate::model::world_fixed::WorldFixed;
+use crate::model::world_state::WorldState;
 use petgraph::graph::NodeIndex;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
-use std::sync::Arc;
 
 #[derive(Debug, Default, Clone)]
-pub struct City {
-    pub territory: TerritoryArc,
+pub struct CityStatic {
+    pub territory_name: String,
     pub connections: Vec<ConnectionArc>,
-    pub location: Location,
     pub name: String,
-    pub size: u8,
     pub node: NodeIndex,
     pub population: i64,
-    pub armies: usize,
-    pub owner: Option<PlayerRR>,
-    pub original: Option<CityRR>,
+    pub location: Location,
+    pub index: usize,
 }
 
+#[derive(Debug, Clone)]
+pub struct City {
+    pub statics: CityStaticRR,
+    pub size: u8,
+    pub armies: usize,
+    pub owner: Option<usize>,
+}
+
+pub type CityStaticRR = Rc<RefCell<CityStatic>>;
 pub type CityRR = Rc<RefCell<City>>;
 
 pub const SIZE: f32 = 3.0;
@@ -31,13 +37,13 @@ pub const SIZE_SELECTED: f32 = 4.0;
 pub const MAXIMUM_LABEL_WIDTH: f32 = 32.0;
 
 impl City {
-    pub fn full_clone(city_rr: &CityRR) -> CityRR {
-        let cloned = Rc::new(RefCell::new(city_rr.borrow().clone()));
-        cloned.borrow_mut().original = Some(city_rr.clone());
-        cloned
-    }
-
-    pub fn new(name: String, longitude: f32, latitude: f32, population: i64) -> Self {
+    pub fn new(
+        name: String,
+        longitude: f32,
+        latitude: f32,
+        population: i64,
+        territory_name: String,
+    ) -> Self {
         let size = match population {
             0..150000 => 1,
             150000..500000 => 2,
@@ -45,39 +51,52 @@ impl City {
             2500000..5000000 => 4,
             _ => 5,
         };
-        Self {
+        let statics = Rc::new(RefCell::new(CityStatic {
+            territory_name,
             name,
-            size,
             location: Location::new(longitude, latitude),
             population,
+            ..CityStatic::default()
+        }));
+
+        Self {
+            statics,
+            size,
             armies: 1,
-            ..City::default()
+            owner: None,
         }
     }
 
-    pub fn score(&self, profile: &Profile) -> f32 {
+    pub fn full_clone(city_rr: &CityRR) -> CityRR {
+        let cloned_raw = city_rr.borrow().clone();
+        Rc::new(RefCell::new(cloned_raw))
+    }
+
+    pub fn score(&self, world_state: &WorldState, world_fixed: &WorldFixed, profile: &Profile) -> f32 {
         let mut score = 0f32;
         score += self.size as f32 * profile.city_size_multiplier;
         score += self.armies as f32 * profile.army_multiplier;
 
         // Logic for additional armies, extra score if bordering enemy concentrations
-        for connection in self.connections.iter() {
-            let other_city_owner = &connection.city2.borrow().owner;
-            let other_city_territory = &connection.city2.borrow().territory;
+        for connection in self.statics.borrow().connections.iter() {
+            let other_city = &world_state.cities[connection.city2];
+            let other_city_owner = other_city.borrow().owner;
+            let other_city_territory = other_city.borrow().statics.borrow().territory_name.clone();
+            score += self.armies as f32 * profile.army_multiplier;
 
             // If enemy city, add a boost
             if other_city_owner.is_some() {
                 let boost = score;
-                if !Rc::ptr_eq(other_city_owner.as_ref().unwrap(), self.owner.as_ref().unwrap()) {
+                if other_city_owner != self.owner {
                     score += self.armies as f32 * profile.army_bordering;
-                    if Arc::ptr_eq(other_city_territory, &self.territory) {
+                    if other_city_territory.eq(&self.statics.borrow().territory_name) {
                         score += self.armies as f32 * profile.army_same_territory;
                     }
                 }
                 let boost_diff = score - boost;
-                if boost_diff > 0.0 {
+                /*                if boost_diff > 0.0 {
                     println!("City {} has a boost of {}", self.name, boost_diff);
-                }
+                }*/
             }
         }
 
@@ -91,20 +110,28 @@ pub fn select_evenly_spaced_cities(
     num_cities_to_select: usize,
     territories: BTreeMap<String, Territory>,
 ) {
+    let world_state = &mut app_state.world_state;
+    let world_fixed = &mut app_state.world_fixed;
+    let mut city_index = 0usize;
     for (territory_name, mut territory) in territories {
         let mut selected_cities = Vec::new();
 
         // Sort the cities by population (largest first)
-        territory.cities.sort_by(|a, b| b.borrow().population.cmp(&a.borrow().population));
+        territory.cities.sort_by(|a, b| {
+            b.borrow().statics.borrow().population.cmp(&a.borrow().statics.borrow().population)
+        });
 
         // Loop through all cities
         for city in &territory.cities {
             let mut want = true;
 
             // Check distance to already selected cities
-            for existing in &app_state.world_fixed.city_locations {
-                if existing.p != city.borrow().location.p {
-                    let dist = calculate_distance(&city.borrow().location, &existing);
+            for existing in world_fixed.city_locations.iter() {
+                if existing.p != city.borrow().statics.borrow().location.p {
+                    let dist = calculate_distance(
+                        &city.borrow().statics.borrow().location,
+                        existing,
+                    );
                     if dist <= app_state.selection.minimum_allowed_distance {
                         want = false;
                         break;
@@ -114,7 +141,11 @@ pub fn select_evenly_spaced_cities(
 
             // If the city is far enough, select it
             if want {
-                app_state.world_fixed.city_locations.push(city.borrow().location.clone());
+                city.borrow().statics.borrow_mut().index = city_index;
+                city_index += 1;
+                world_fixed
+                    .city_locations
+                    .push(city.borrow().statics.borrow().location.clone());
                 selected_cities.push(city.clone());
 
                 // Stop if we have selected enough cities
@@ -125,6 +156,10 @@ pub fn select_evenly_spaced_cities(
         }
 
         territory.cities = selected_cities;
-        app_state.world_fixed.territories.insert(territory_name, territory.containerise());
+        for city in &territory.cities {
+            world_state.cities.push(city.clone());
+        }
+        let contained = territory.containerise(world_fixed);
+        world_fixed.territories.insert(territory_name, contained);
     }
 }

@@ -1,7 +1,8 @@
 use crate::model::city::CityRR;
 use crate::model::territory_polygon::TerritoryPolygon;
+use crate::model::world_fixed::WorldFixed;
 use skia_safe::Color;
-use std::sync::{Arc};
+use std::sync::Arc;
 
 pub fn get_colour_for_territory_name(name: &String) -> Color {
     match name.as_str() {
@@ -28,11 +29,12 @@ pub struct Territory {
 pub type TerritoryArc = Arc<Territory>;
 
 impl Territory {
-    pub fn containerise(self) -> TerritoryArc {
+    pub fn containerise(self, world_fixed: &mut WorldFixed) -> TerritoryArc {
         let container = Arc::new(self);
 
         // Update cities
-        container.cities.iter().for_each(|city| city.borrow_mut().territory = container.clone());
+        container.cities.iter().for_each(|city| city.borrow().statics.borrow_mut().territory_name =
+            container.name.clone());
 
         container
     }

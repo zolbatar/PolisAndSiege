@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::app_state::{AppState, GameMode};
 use crate::model::city::SIZE;
 use crate::next_turn;
@@ -15,6 +14,7 @@ pub fn handle_mouse_wheel(app_state: &mut AppState, _direction: MouseWheelDirect
 
 pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32, y_rel: i32) {
     let world_state = &app_state.world_state;
+    let world_fixed = &mut app_state.world_fixed;
     app_state.hover = Point::new(x as f32, y as f32);
     if app_state.panning {
         // Calculate mouse movement delta
@@ -46,16 +46,14 @@ pub fn handle_mouse_motion(app_state: &mut AppState, x: i32, y: i32, x_rel: i32,
         }
         for city in &world_state.cities {
             if city.borrow().owner.is_some() {
-                let owner = &city.borrow().owner.clone().unwrap();
-                let delta = city.borrow_mut().location.p - mp;
+                let owner = city.borrow().owner.unwrap();
+                let delta = city.borrow().statics.borrow().location.p - mp;
                 let diff = (delta.x * delta.x + delta.y * delta.y).sqrt();
-                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 {
-                    if Rc::ptr_eq(owner, current_player) {
-                        if world_state.mode == GameMode::ArmyPlacement {
-                            app_state.selection.last_city_selection = Some(city.clone());
-                        } else {
-                            app_state.selection.last_city_hover = Some(city.clone());
-                        }
+                if diff <= SIZE * app_state.zoom / app_state.gfx.dpi / 2.0 && owner == current_player.borrow().index {
+                    if world_state.mode == GameMode::ArmyPlacement {
+                        app_state.selection.last_city_selection = Some(city.clone());
+                    } else {
+                        app_state.selection.last_city_hover = Some(city.clone());
                     }
                 }
             }
@@ -77,8 +75,9 @@ pub fn handle_mouse_button_down(app_state: &mut AppState, button: MouseButton) {
             GameMode::ArmyPlacement => {
                 if is_human && app_state.selection.last_city_selection.is_some() {
                     let city = app_state.selection.last_city_selection.clone();
-                    let owner = city.as_ref().unwrap().borrow().owner.clone();
-                    if owner.unwrap().borrow().is_human() {
+                    let owner = app_state.world_state.get_player_for_index(city.as_ref().unwrap()
+                        .borrow().owner.unwrap());
+                    if owner.borrow().is_human() {
                         city.unwrap().borrow_mut().armies += 1;
                         player.unwrap().borrow_mut().armies_to_assign -= 1;
                         if player.unwrap().borrow().armies_to_assign == 0 {

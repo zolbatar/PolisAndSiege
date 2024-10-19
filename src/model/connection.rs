@@ -1,20 +1,20 @@
-use crate::model::city::CityRR;
 use crate::model::location::calculate_distance;
 use crate::model::territory::TerritoryArc;
 use crate::model::world_fixed::WorldFixed;
+use crate::model::world_state::WorldState;
 use petgraph::algo::min_spanning_tree;
 use petgraph::data::FromElements;
 use petgraph::prelude::UnGraph;
 use std::collections::BTreeMap;
 use std::rc::Rc;
-use std::sync::{Arc};
+use std::sync::Arc;
 
 pub const LINE_WIDTH: f32 = 0.25;
 
 #[derive(Debug, Clone)]
 pub struct Connection {
-    pub city1: CityRR,
-    pub city2: CityRR,
+    pub city1: usize,
+    pub city2: usize,
     pub render: bool,
     pub same_territory: bool,
 }
@@ -33,12 +33,15 @@ fn build_territory_connections(
     for city1 in territory1.cities.iter() {
         for city2 in territory2.cities.iter() {
             if !Rc::ptr_eq(city1, city2) {
-                let distance = calculate_distance(&city1.borrow().location, &city2.borrow().location);
+                let distance = calculate_distance(
+                    &city1.borrow().statics.borrow().location,
+                    &city2.borrow().statics.borrow().location,
+                );
                 m1.insert(
                     distance as usize,
                     Arc::new(Connection {
-                        city1: city1.clone(),
-                        city2: city2.clone(),
+                        city1: city1.borrow().statics.borrow().index,
+                        city2: city2.borrow().statics.borrow().index,
                         render: true,
                         same_territory: false,
                     }),
@@ -46,8 +49,8 @@ fn build_territory_connections(
                 m2.insert(
                     distance as usize,
                     Arc::new(Connection {
-                        city2: city1.clone(),
-                        city1: city2.clone(),
+                        city2: city1.borrow().statics.borrow().index,
+                        city1: city2.borrow().statics.borrow().index,
                         render: false,
                         same_territory: false,
                     }),
@@ -71,24 +74,32 @@ fn build_territory_connections(
     }
 }
 
-pub fn build_connections(world_fixed: &mut WorldFixed) {
+pub fn build_connections(world_state: &WorldState, world_fixed: &mut WorldFixed) {
     let mut connections = Vec::new();
-    for territory in world_fixed.territories.values_mut() {
+    let mut connections_in = world_fixed.territories.clone();
+    for territory in connections_in.values() {
         let mut graph = UnGraph::new_undirected();
         let cities = &territory.cities;
 
         // Cities
-        for city in cities {
-            let node = graph.add_node(city.clone());
-            city.borrow_mut().node = node;
+        for (city_index, city) in cities.iter().enumerate() {
+            let node = graph.add_node(city);
+            city.borrow().statics.borrow_mut().node = node;
         }
 
         // Distances
-        for city1 in cities {
-            for city2 in cities {
+        for city1 in cities.iter() {
+            for city2 in cities.iter() {
                 if !Rc::ptr_eq(city1, city2) {
-                    let distance = calculate_distance(&city1.borrow().location, &city2.borrow().location);
-                    graph.add_edge(city1.borrow().node, city2.borrow().node, distance);
+                    let distance = calculate_distance(
+                        &city1.borrow().statics.borrow().location,
+                        &city2.borrow().statics.borrow().location,
+                    );
+                    graph.add_edge(
+                        city1.borrow().statics.borrow().node,
+                        city2.borrow().statics.borrow().node,
+                        distance,
+                    );
                 }
             }
         }
@@ -97,26 +108,26 @@ pub fn build_connections(world_fixed: &mut WorldFixed) {
         let mst = UnGraph::<_, _>::from_elements(min_spanning_tree(&graph));
         for edge in mst.raw_edges() {
             let _weight = edge.weight;
-            let source = graph[edge.source()].clone();
-            let target = graph[edge.target()].clone();
+            let source = graph[edge.source()];
+            let target = graph[edge.target()];
 
             // Create connections, but only render one
             let connection1 = Arc::new(Connection {
-                city1: source.clone(),
-                city2: target.clone(),
+                city1: source.borrow().statics.borrow().index,
+                city2: target.borrow().statics.borrow().index,
                 render: true,
                 same_territory: true,
             });
             let connection2 = Arc::new(Connection {
-                city1: target.clone(),
-                city2: source.clone(),
+                city1: target.borrow().statics.borrow().index,
+                city2: source.borrow().statics.borrow().index,
                 render: false,
                 same_territory: true,
             });
             connections.push(connection1.clone());
             connections.push(connection2.clone());
-            source.borrow_mut().connections.push(connection1);
-            target.borrow_mut().connections.push(connection2);
+            source.borrow().statics.borrow_mut().connections.push(connection1);
+            target.borrow().statics.borrow_mut().connections.push(connection2);
         }
     }
     println!("Built intra-territory connections");

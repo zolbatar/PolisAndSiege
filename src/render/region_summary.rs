@@ -62,8 +62,8 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             // Work out proportions of ownership
             let mut map = HashMap::new();
             for city in &territory.1.cities {
-                let owner = &city.borrow().owner;
-                map.entry(owner.clone().unwrap().borrow().index).and_modify(|v| *v += 1.0f32).or_insert(1.0f32);
+                let owner = city.borrow().owner.unwrap();
+                map.entry(owner).and_modify(|v| *v += 1.0f32).or_insert(1.0f32);
                 //                map.entry(owner.clone()).and_modify(|v| *v += 1).or_insert(1);
             }
             let mut prop = BTreeMap::new();
@@ -82,7 +82,7 @@ pub fn region_summary(skia: &mut Skia, app_state: &mut AppState, rr: Rect) {
             paint_player.set_style(Style::Stroke);
             paint_player.set_stroke_width(4.0);
             for entry in prop {
-                paint_player.set_color(app_state.world_state.players[entry.0].borrow().colours[0]);
+                paint_player.set_color(app_state.world_state.get_player_for_index(entry.0).borrow().colours[0]);
                 skia.get_canvas().draw_line(Point::new(xx, yy), Point::new(xx + entry.1, yy), &paint_player);
                 xx += entry.1;
             }

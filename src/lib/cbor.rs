@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use crate::app_state::AppState;
 use crate::lib::skia::Skia;
 use crate::model::city::{select_evenly_spaced_cities, City};
@@ -10,6 +9,7 @@ use ciborium::de::from_reader;
 use ciborium::Value;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
@@ -20,7 +20,7 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
     let reader = from_reader::<Value, _>(REGIONS_CBOR).expect("Can't load CBOR file");
     let mut polygon_count = 0;
     let mut point_count_total = 0;
-    let mut cities_count = 0;
+    let mut cities_count = 0usize;
 
     // Top level is a map of territories
     let mut territories = BTreeMap::new();
@@ -91,7 +91,13 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
             let longitude = city_details[2].as_float().unwrap() as f32;
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
             if !name.eq("Honolulu") && longitude > -140.0 {
-                let city = City::new(name.to_string(), longitude, latitude, population);
+                let city = City::new(
+                    name.to_string(),
+                    longitude,
+                    latitude,
+                    population,
+                    territory.name.clone(),
+                );
                 territory.cities.push(Rc::new(RefCell::new(city)));
                 cities_count += 1;
             }
@@ -106,7 +112,7 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
     println!("Cities have been selected");
 
     // Build connections
-    build_connections(&mut app_state.world_fixed);
+    build_connections(&app_state.world_state, &mut app_state.world_fixed);
     println!("Connections have been built");
 
     // And a list of all cities

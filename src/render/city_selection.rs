@@ -13,8 +13,8 @@ pub fn city_selection(skia: &mut Skia, app_state: &AppState, rr: Rect) {
 
     // City
     let city = app_state.selection.last_city_selection.clone().unwrap();
-    let city_name = &city.borrow().name;
-    let territory_name = city.borrow().territory.name.clone();
+    let city_name = city.borrow().statics.borrow().name.clone();
+    let territory_name = city.borrow().statics.borrow().territory_name.clone();
 
     // Positions
     let text_w = 80.0;

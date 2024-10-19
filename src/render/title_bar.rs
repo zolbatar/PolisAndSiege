@@ -58,10 +58,17 @@ pub fn render_title_bar(skia: &mut Skia, app_state: &mut AppState) {
         // City/territory count
         {
             let player = player.unwrap().borrow();
+
+            let mut count = 0;
+            for city in world_state.cities.iter() {
+                if city.borrow().owner.is_some() && city.borrow().owner.unwrap() == player.index {
+                    count += 1;
+                }
+            }
             skia.write_text_right(
                 20.0,
                 &paint_title,
-                &format!("Score: {} Cities: {} of {}", player.score, player.cities.len(), world_state.cities.len(), ),
+                &format!("Score: {} Cities: {} of {}", player.score, count, world_state.cities.len(),),
                 Point::new(0.0, 0.0),
                 app_state.gfx.width as f32 - 160.0,
                 &FontFamily::EbGaramond,

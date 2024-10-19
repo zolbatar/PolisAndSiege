@@ -9,7 +9,8 @@ use crate::model::world_state::WorldState;
 fn reduce_down_to_limited_list(profile: &Profile, data_in: Vec<Move>) -> Vec<Move> {
     let mut results = data_in;
     results.sort_by(|a, b| a.score_portion.partial_cmp(&b.score_portion).unwrap().reverse());
-    results.into_iter().take(profile.no_choices).collect()
+//    results = results.into_iter().take(profile.no_choices).collect();
+    results
 }
 
 fn go_deeper<F>(
@@ -20,13 +21,13 @@ fn go_deeper<F>(
     depth: usize,
 ) -> Vec<Move>
 where
-    F: FnMut(&WorldState, &WorldFixed, usize) -> Vec<Move>,
+    F: FnMut(&WorldState, usize) -> Vec<Move>,
 {
     let mut results = data_in;
     let desired_depth = world_state.current_player.as_ref().unwrap().borrow().profile.search_depth;
     if depth != desired_depth {
         for result in &mut results {
-            let mut world_state = world_state.deep_clone();
+            let mut world_state = result.world_state.deep_clone();
 
             // Update player
             {
@@ -55,17 +56,18 @@ where
             }*/
 
             // Recurse
-            let mut additional_moves = f(&world_state, world_fixed, depth + 1);
+            let mut additional_moves = f(&world_state, depth + 1);
             result.child_moves.append(&mut additional_moves);
         }
     }
     results
 }
 
-pub fn possible_moves(world_state: &WorldState, depth: usize) -> Vec<Move> {
+pub fn possible_moves(world_state: &WorldState, world_fixed: &mut WorldFixed, depth: usize) -> Vec<Move> {
     let mut results: Vec<Move> = Vec::new();
-    let world_state = world_state.deep_clone();
 
+    // Build a list of all possible moves
+    let world_state = world_state.deep_clone();
     let current_player = world_state.get_current_player();
     match world_state.mode {
         GameMode::Randomising => panic!("This should not happen"),
@@ -73,39 +75,36 @@ pub fn possible_moves(world_state: &WorldState, depth: usize) -> Vec<Move> {
             if current_player.borrow().armies_to_assign == 0 {
                 return results;
             }
-            results = ap_build_list_of_possibles(current_player.clone());
+            results = ap_build_list_of_possibles(&world_state, current_player.borrow().index);
         }
-        GameMode::Game => results = game_build_list_of_possibles(current_player.clone()),
-        GameMode::End => {}
+        GameMode::Game => {
+            results = game_build_list_of_possibles(&world_state, current_player.borrow().index)
+        }
+        _ => {}
     }
 
     // Now do each of the moves and work out the scores
     for result in &mut results {
         let mut world_state = world_state.deep_clone();
+        let current_player = world_state.get_current_player();
 
         // If this is an attack, work out combat delta
         let attack_delta = if result.move_type == MoveType::AttackCity {
-            if result.city_source.as_ref().unwrap().borrow().armies
-                > result.city_target.as_ref().unwrap().borrow().armies
-            {
-                result.city_source.as_ref().unwrap().borrow().armies
-                    - result.city_target.as_ref().unwrap().borrow().armies
-            } else {
-                5
-            }
+            let source_armies = world_state.cities[result.city_source.unwrap()].borrow().armies as f32;
+            let target_armies = world_state.cities[result.city_target.unwrap()].borrow().armies as f32;
+            source_armies - target_armies
         } else {
-            0
+            0f32
         };
 
-        result.do_move(&mut world_state, false);
-        world_state.update_scores();
+        result.do_move(&mut world_state);
+        world_state.update_scores(world_fixed);
         let all_scores: i32 = world_state.players.iter().map(|p| p.borrow().score).sum();
         let mut current_player_score = world_state.current_player.as_ref().unwrap().borrow().score;
 
         // If this is an attack, encourage it
         if result.move_type == MoveType::AttackCity {
-            current_player_score +=
-                (attack_delta as f32 * current_player.borrow().profile.attack_delta_multiplier) as i32;
+            current_player_score += (attack_delta * current_player.borrow().profile.attack_delta_multiplier) as i32;
         }
 
         result.score_portion = (current_player_score * 10000) / all_scores;
@@ -113,6 +112,7 @@ pub fn possible_moves(world_state: &WorldState, depth: usize) -> Vec<Move> {
     }
 
     // Select x of the list
+    let current_player = world_state.get_current_player();
     results = reduce_down_to_limited_list(&current_player.borrow().profile, results);
 
     // Go deeper if required

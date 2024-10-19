@@ -1,4 +1,4 @@
-use crate::model::city::CityRR;
+use crate::model::city::{CityRR};
 use crate::model::connection::ConnectionArc;
 use crate::model::location::Location;
 use crate::model::territory::TerritoryArc;

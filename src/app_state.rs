@@ -157,7 +157,6 @@ impl AppState {
                 colours: player_colours[i].clone(),
                 armies_to_assign: 10,
                 armies_to_assign_fractional: 0.0,
-                cities: Vec::new(),
                 score: 0,
                 profile: if i == 0 {
                     profile.clone()
@@ -179,7 +178,7 @@ impl AppState {
                 assign_speed: 0,
             },
             hover: Default::default(),
-            target: Default::default(),
+            target: Point::new(25.0, -9.5),
             panning: false,
             world_fixed: WorldFixed::default(),
             gfx,
@@ -195,7 +194,7 @@ impl AppState {
 
     pub fn reset(&mut self) {
         self.zoom = MIN_ZOOM;
-        self.target = Point::new(25.0, -10.0);
+        self.target = Point::new(25.0, -9.5);
     }
 
     pub fn show_all_info(&self) -> bool {

@@ -1,11 +1,8 @@
 use crate::ai::possible_move::possible_moves;
-use crate::app_state::AppState;
+use crate::app_state::{AppState, GameMode};
 use crate::next_turn;
 
 pub fn computer_turn(app_state: &mut AppState) {
-    // Clone the world state totally
-    let world_state = app_state.world_state.clone();
-
     // Get current player
     let player = app_state.world_state.current_player.as_ref().unwrap();
     print!("Starting score: {}, ", player.borrow().score);
@@ -13,7 +10,7 @@ pub fn computer_turn(app_state: &mut AppState) {
     // Create initial game state
     let depth = 0;
 
-    let mut possibles = possible_moves(&world_state, depth);
+    let mut possibles = possible_moves(&app_state.world_state, &mut app_state.world_fixed, depth);
     if possibles.is_empty() {
         println!("no possible moves");
         //app_state.world_state.mode = GameMode::End;
@@ -28,10 +25,29 @@ pub fn computer_turn(app_state: &mut AppState) {
     let highest = possibles.iter().max_by_key(|p| p.score_portion).unwrap().score_portion;
     println!("lowest and highest score: {}/{}", lowest, highest);
 
-    // Select move
+    // Select move(s)
     possibles.sort_by(|a, b| a.score_portion.cmp(&b.score_portion));
-    let best = &possibles[0];
-    best.do_move(&mut app_state.world_state, true);
+    for possible in &possibles {
+        println!("Score: {}", possible.score_portion);
+    }
+//    println!("{:#?}", possibles);
+
+    let world_state = &mut app_state.world_state;
+    match world_state.mode {
+        GameMode::ArmyPlacement => {
+            while !possibles.is_empty() && world_state.current_player.as_ref().unwrap().borrow()
+                .armies_to_assign > 0 {
+                let the_move = possibles.pop().unwrap();
+                the_move.do_move(world_state);
+            }
+        }
+        GameMode::Game => {
+            for the_move in possibles {
+                the_move.do_move(world_state);
+            }
+        }
+        _ => {}
+    }
+
     next_turn(app_state);
-    //    println!("{:#?}", possibles);
 }

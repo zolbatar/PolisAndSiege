@@ -4,6 +4,7 @@ use crate::lib::skia::{FontFamily, Skia};
 use crate::model::city::{MAXIMUM_LABEL_WIDTH, SIZE, SIZE_SELECTED};
 use crate::model::connection::LINE_WIDTH;
 use crate::model::world_fixed::WorldFixed;
+use crate::model::world_state::WorldState;
 use crate::render::army_placement::army_placement;
 use crate::render::city_selection::city_selection;
 use crate::render::lower_panel::render_lower_panel;
@@ -15,7 +16,7 @@ use skia_safe::textlayout::TextAlign;
 use skia_safe::{dash_path_effect, Color, Paint, PaintStyle, Point, RRect, Rect};
 use std::rc::Rc;
 
-fn render_connections(skia: &mut Skia, world_fixed: &WorldFixed) {
+fn render_connections(skia: &mut Skia, world_state: &WorldState, world_fixed: &mut WorldFixed) {
     // Paint
     let mut paint = Paint::default();
     paint.set_anti_alias(true);
@@ -32,11 +33,15 @@ fn render_connections(skia: &mut Skia, world_fixed: &WorldFixed) {
     paint_alt.set_path_effect(dash_path_effect::new(&[1.0, 1.0], phase + 1.0).unwrap());
 
     for connection in &world_fixed.connections {
-        let city1 = connection.city1.clone();
-        let city2 = connection.city2.clone();
+        let city1_index = connection.city1;
+        let city2_index = connection.city2;
+        let city1 = &world_state.cities[city1_index];
+        let city2 = &world_state.cities[city2_index];
 
-        skia.get_canvas().draw_line(city1.borrow().location.p, city2.borrow().location.p, &paint);
-        skia.get_canvas().draw_line(city1.borrow().location.p, city2.borrow().location.p, &paint_alt);
+        skia.get_canvas().draw_line(city1.borrow().statics.borrow().location.p, city2.borrow()
+            .statics.borrow().location.p, &paint);
+        skia.get_canvas().draw_line(city1.borrow().statics.borrow().location.p, city2.borrow()
+            .statics.borrow().location.p, &paint_alt);
     }
 }
 
@@ -50,6 +55,7 @@ fn render_territories(skia: &mut Skia, world_fixed: &WorldFixed) {
 
 fn render_cities(skia: &mut Skia, app_state: &AppState) {
     let world_state = &app_state.world_state;
+    let world_fixed = &app_state.world_fixed;
     let is_human = if world_state.current_player.is_none() {
         false
     } else {
@@ -66,8 +72,8 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
         } else {
             false
         };
-        let centre = city.borrow().location.p;
-        let territory = city.borrow().territory.clone();
+        let centre = city.borrow().statics.borrow().location.p;
+        let territory = world_fixed.territories.get(&city.borrow().statics.borrow().territory_name).unwrap();
         let font_size: f32 = 2.4;
 
         let mut paint_name = Paint::default();
@@ -82,8 +88,8 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
         paint_fill.set_color(skia::mix_colors(territory.colour, Color::WHITE, 0.6));
         let mut paint_fill_circle = Paint::default();
         paint_fill_circle.set_style(PaintStyle::Fill);
-        let colours = match &city.borrow().owner {
-            Some(x) => x.borrow().colours.clone(),
+        let colours = match city.borrow().owner {
+            Some(x) => world_state.get_player_for_index(x).borrow().colours.clone(),
             None => vec![Color::from_rgb(128, 128, 128), Color::BLACK],
         };
         paint_fill_circle.set_color(colours[0]);
@@ -100,13 +106,7 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia
-                .text_dimensions(
-                    font_size,
-                    &paint_name,
-                    &city.borrow().name.clone(),
-                    &FontFamily::EbGaramond,
-                    TextAlign::Left,
-                )
+                .text_dimensions(font_size, &paint_name, &city.borrow().statics.borrow().name, &FontFamily::EbGaramond, TextAlign::Left)
                 .clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
                 skia.get_canvas().draw_round_rect(
@@ -153,7 +153,7 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
             skia.write_text(
                 font_size,
                 &paint_name,
-                &city.borrow().name,
+                &city.borrow().statics.borrow().name,
                 Point::new(centre.x + SIZE + 0.5, centre.y - 1.2),
                 MAXIMUM_LABEL_WIDTH,
                 &FontFamily::EbGaramond,
@@ -194,9 +194,10 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
 
     // Now render parts
     {
-        let world_fixed = &app_state.world_fixed;
+        let world_state = &app_state.world_state;
+        let world_fixed = &mut app_state.world_fixed;
         render_territories(skia, world_fixed);
-        render_connections(skia, world_fixed);
+        render_connections(skia, world_state, world_fixed);
         render_cities(skia, app_state);
     }
 

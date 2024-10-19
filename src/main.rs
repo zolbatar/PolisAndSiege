@@ -205,8 +205,8 @@ fn main() {
 
 pub fn next_turn(app_state: &mut AppState) {
     let world_state = &mut app_state.world_state;
-    let world_fixed = &mut app_state.world_fixed;
-    world_state.update_scores();
+    let world_fixed = &app_state.world_fixed;
+    world_state.update_scores(world_fixed);
 
     // Switch to next player
     let (turn_done, index) = {
@@ -239,11 +239,15 @@ pub fn next_turn(app_state: &mut AppState) {
             }
             GameMode::Game => {
                 // Time to update armies
-                for player in &app_state.world_state.players {
+                for player in &world_state.players {
                     let mut frac = 0.0f32;
-                    for city in &player.borrow().cities {
-                        frac += city.borrow().size as f32 * ARMIES_PER_SIZE;
+
+                    for city in world_state.cities.iter() {
+                        if city.borrow().owner.unwrap() == player.borrow().index {
+                            frac += city.borrow().size as f32 * ARMIES_PER_SIZE;
+                        }
                     }
+
                     player.borrow_mut().armies_to_assign_fractional += frac;
                     let frac_int = player.borrow().armies_to_assign_fractional as u32;
                     player.borrow_mut().armies_to_assign = frac_int;

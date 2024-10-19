@@ -1,8 +1,5 @@
-use crate::model::city::{City, CityRR};
 use crate::model::world_state::WorldState;
 use rand::Rng;
-use std::fmt;
-use std::rc::Rc;
 
 #[derive(Debug, Default, PartialEq)]
 pub enum MoveType {
@@ -11,90 +8,62 @@ pub enum MoveType {
     AttackCity,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Move {
     pub move_type: MoveType,
-    pub city_source: Option<CityRR>,
-    pub city_target: Option<CityRR>,
+    pub city_source: Option<usize>,
+    pub city_target: Option<usize>,
     pub child_moves: Vec<Move>,
     pub score_portion: i32,
     pub world_state: WorldState,
 }
 
-impl fmt::Debug for Move {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let source = self.city_source.as_ref().unwrap().borrow();
-        //        let target = self.city_target.as_ref().unwrap().borrow();
-        f.debug_struct("Move")
-            .field("move_type", &self.move_type)
-            .field("score_portion", &self.score_portion)
-            .field("armies (source)", &source.armies)
-            .field("child_moves", &self.child_moves)
-            .finish()
-    }
-}
-
 impl Move {
-    pub fn new_attack_city(city_source: &CityRR, city_target: &CityRR) -> Self {
-        let new_city_source = City::full_clone(city_source);
-        let new_city_target = City::full_clone(city_target);
+    pub fn new_attack_city(city_source: usize, city_target: usize) -> Self {
         Self {
             move_type: MoveType::AttackCity,
-            city_source: Some(new_city_source),
-            city_target: Some(new_city_target),
+            city_source: Some(city_source),
+            city_target: Some(city_target),
             ..Default::default()
         }
     }
 
-    pub fn new_place_army(city_source: &CityRR) -> Self {
-        let new_city_source = City::full_clone(city_source);
-        new_city_source.borrow_mut().armies += 1;
+    pub fn new_place_army(city_source: usize) -> Self {
         Self {
             move_type: MoveType::PlaceArmy,
-            city_source: Some(new_city_source),
+            city_source: Some(city_source),
             ..Default::default()
         }
     }
 
-    pub fn do_move(&self, world_state: &mut WorldState, is_final_move: bool) {
+    pub fn do_move(&self, world_state: &mut WorldState) {
         let player = world_state.get_current_player();
         match self.move_type {
             MoveType::PlaceArmy => {
-                self.city_source.as_ref().unwrap().borrow().original.clone().unwrap().borrow_mut().armies += 1;
+                let city = &world_state.cities[self.city_source.unwrap()];
+                city.borrow_mut().armies += 1;
                 player.borrow_mut().armies_to_assign -= 1;
             }
             MoveType::AttackCity => {
                 let mut rng = rand::thread_rng();
-                let source = if is_final_move {
-                    self.city_source.as_ref().unwrap().borrow().original.clone().unwrap()
-                } else {
-                    self.city_source.clone().unwrap()
-                };
-                let target = if is_final_move {
-                    self.city_target.as_ref().unwrap().borrow().original.clone().unwrap()
-                } else {
-                    self.city_target.clone().unwrap()
-                };
-                assert!(!Rc::ptr_eq(source.borrow().owner.as_ref().unwrap(), target.borrow().owner.as_ref().unwrap()));
-                let target_armies = target.borrow().armies;
-                let mut source_armies = if target_armies >= (source.borrow().armies - 1) {
-                    source.borrow().armies - 1
-                } else {
-                    rng.gen_range(target_armies..=(source.borrow().armies - 1))
-                };
+                let source = self.city_source.unwrap();
+                let target = self.city_target.unwrap();
+                assert_ne!(world_state.cities[source].borrow().owner, world_state.cities[target].borrow().owner);
+                let mut source_armies = world_state.cities[source].borrow().armies - 1;
+                let target_armies = world_state.cities[target].borrow().armies;
 
                 // Roll dice
                 let mut dice_source = Vec::new();
                 let mut dice_target = Vec::new();
 
                 // source dice
-                for _i in 0..source_armies {
+                for _i in 1..=source_armies {
                     let dice = rng.gen_range(1u8..=6u8);
                     dice_source.push(dice);
                 }
 
                 // Target dice
-                for _i in 0..target_armies {
+                for _i in 1..=target_armies {
                     let dice = rng.gen_range(1u8..=6u8);
                     dice_target.push(dice);
                 }
@@ -108,32 +77,36 @@ impl Move {
                     "Attacking with {}/{} (out of {},{}), ",
                     source_armies,
                     target_armies,
-                    source.borrow().armies,
-                    target.borrow().armies
+                    world_state.cities[source].borrow().armies,
+                    world_state.cities[target].borrow().armies,
                 );
 
                 for i in 0..dice_source.len() {
                     if i >= dice_target.len() || dice_source[i] > dice_target[i] {
-                        if target.borrow().armies == 0 {
+                        world_state.cities[target].borrow_mut().armies -= 1;
+                        if world_state.cities[target].borrow().armies == 0 {
                             break;
                         }
-                        target.borrow_mut().armies -= 1;
                     } else {
-                        source.borrow_mut().armies -= 1;
+                        world_state.cities[source].borrow_mut().armies -= 1;
                         source_armies -= 1;
                     }
                 }
 
-                println!("After is {},{}.", source.borrow().armies, target.borrow().armies);
+                println!(
+                    "After is {},{}.",
+                    world_state.cities[source].borrow().armies,
+                    world_state.cities[target].borrow().armies
+                );
 
                 // Take over!
-                if target.borrow().armies == 0 {
+                if world_state.cities[target].borrow().armies == 0 {
                     println!("City taken!");
 
                     // Take the city
-                    target.borrow_mut().owner = source.borrow().owner.clone();
-                    target.borrow_mut().armies = source_armies;
-                    source.borrow_mut().armies -= source_armies;
+                    let source_owner = world_state.cities[source].borrow().owner.unwrap();
+                    world_state.cities[target].borrow_mut().owner = Some(source_owner);
+                    world_state.cities[target].borrow_mut().armies = source_armies;
                 }
             }
         }

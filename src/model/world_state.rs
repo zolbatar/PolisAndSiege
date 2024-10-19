@@ -1,8 +1,9 @@
+use crate::app_state::GameMode;
+use crate::model::city::{City, CityRR};
+use crate::model::player::PlayerRR;
+use crate::model::world_fixed::WorldFixed;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::app_state::GameMode;
-use crate::model::city::CityRR;
-use crate::model::player::PlayerRR;
 
 #[derive(Debug, Default, Clone)]
 pub struct WorldState {
@@ -20,13 +21,8 @@ impl WorldState {
         }
         let mut cities = Vec::new();
         for city in &self.cities {
-            let mut new_city = city.borrow().clone();
-            if city.borrow().original.is_some() {
-                new_city.original = new_city.original.clone();
-            } else {
-                new_city.original = Some(city.clone());
-            }
-            cities.push(Rc::new(RefCell::new(new_city)));
+            let new_city = City::full_clone(city);
+            cities.push(new_city);
         }
         Self {
             mode: self.mode.clone(),
@@ -36,13 +32,23 @@ impl WorldState {
         }
     }
 
-    pub fn update_scores(&mut self) {
-        for player in self.players.iter_mut() {
-            player.borrow_mut().calculate_score();
+    pub fn update_scores(&mut self, world_fixed: &WorldFixed) {
+        for player in self.players.iter() {
+            player.borrow_mut().calculate_score(self, world_fixed);
         }
     }
 
     pub fn get_current_player(&self) -> PlayerRR {
         self.current_player.clone().unwrap()
+    }
+
+    pub fn get_current_player_index(&self) -> usize {
+        assert!(self.current_player.as_ref().unwrap().borrow().index < self.players.len());
+        self.current_player.as_ref().unwrap().borrow().index
+    }
+
+    pub fn get_player_for_index(&self, player: usize) -> PlayerRR {
+        assert!(player < self.players.len());
+        self.players[player].clone()
     }
 }
