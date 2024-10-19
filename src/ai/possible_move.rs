@@ -2,14 +2,12 @@ use crate::ai::army_placement::ap_build_list_of_possibles;
 use crate::ai::game::game_build_list_of_possibles;
 use crate::ai::moves::{Move, MoveType};
 use crate::app_state::GameMode;
-use crate::model::profile::Profile;
 use crate::model::world_fixed::WorldFixed;
 use crate::model::world_state::WorldState;
 
-fn reduce_down_to_limited_list(profile: &Profile, data_in: Vec<Move>) -> Vec<Move> {
+fn reduce_down_to_limited_list(data_in: Vec<Move>) -> Vec<Move> {
     let mut results = data_in;
     results.sort_by(|a, b| a.score_portion.partial_cmp(&b.score_portion).unwrap().reverse());
-//    results = results.into_iter().take(profile.no_choices).collect();
     results
 }
 
@@ -63,13 +61,13 @@ where
     results
 }
 
-pub fn possible_moves(world_state: &WorldState, world_fixed: &mut WorldFixed, depth: usize) -> Vec<Move> {
+pub fn possible_moves(world_state: &WorldState, world_fixed: &mut WorldFixed, depth: usize, mode: GameMode) -> Vec<Move> {
     let mut results: Vec<Move> = Vec::new();
 
     // Build a list of all possible moves
     let world_state = world_state.deep_clone();
     let current_player = world_state.get_current_player();
-    match world_state.mode {
+    match mode {
         GameMode::Randomising => panic!("This should not happen"),
         GameMode::ArmyPlacement => {
             if current_player.borrow().armies_to_assign == 0 {
@@ -113,7 +111,7 @@ pub fn possible_moves(world_state: &WorldState, world_fixed: &mut WorldFixed, de
 
     // Select x of the list
     let current_player = world_state.get_current_player();
-    results = reduce_down_to_limited_list(&current_player.borrow().profile, results);
+    results = reduce_down_to_limited_list(results);
 
     // Go deeper if required
     //    results = go_deeper(&world_state, results, possible_moves, depth);

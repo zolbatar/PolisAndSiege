@@ -46,7 +46,7 @@ use app_state::AppState;
 use sdl2::video::GLProfile;
 use std::time::{Duration, Instant};
 
-const ARMIES_PER_SIZE: f32 = 0.1;
+const ARMIES_PER_SIZE: f32 = 0.05;
 
 fn main() {
     // Initialize SDL2
@@ -253,7 +253,6 @@ pub fn next_turn(app_state: &mut AppState) {
                     player.borrow_mut().armies_to_assign = frac_int;
                     player.borrow_mut().armies_to_assign_fractional -= frac_int as f32;
                 }
-                app_state.world_state.mode = GameMode::ArmyPlacement;
 
                 // Need to calculate victory conditions
             }

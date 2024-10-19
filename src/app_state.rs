@@ -98,7 +98,7 @@ impl AppState {
             button_path,
         };
 
-        let num_of_players = 2;
+        let num_of_players = 5;
 
         let mut possible_names = vec![
             "The Britannian Dominion",
@@ -136,11 +136,10 @@ impl AppState {
 
         let profile = Profile {
             human: false,
-            no_choices: 3,
             search_depth: 3,
             city_size_multiplier: 5.0,
             army_multiplier: 1.0,
-            army_same_territory: 2.0,
+            army_same_territory: 10.0,
             army_bordering: 25.0,
             minimum_armies: 2,
             attack_delta_multiplier: 50.0,

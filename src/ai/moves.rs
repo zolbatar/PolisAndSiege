@@ -48,65 +48,66 @@ impl Move {
                 let mut rng = rand::thread_rng();
                 let source = self.city_source.unwrap();
                 let target = self.city_target.unwrap();
-                assert_ne!(world_state.cities[source].borrow().owner, world_state.cities[target].borrow().owner);
-                let mut source_armies = world_state.cities[source].borrow().armies - 1;
-                let target_armies = world_state.cities[target].borrow().armies;
+                if world_state.cities[source].borrow().owner != world_state.cities[target].borrow().owner {
+                    let mut source_armies = world_state.cities[source].borrow().armies - 1;
+                    let target_armies = world_state.cities[target].borrow().armies;
 
-                // Roll dice
-                let mut dice_source = Vec::new();
-                let mut dice_target = Vec::new();
+                    // Roll dice
+                    let mut dice_source = Vec::new();
+                    let mut dice_target = Vec::new();
 
-                // source dice
-                for _i in 1..=source_armies {
-                    let dice = rng.gen_range(1u8..=6u8);
-                    dice_source.push(dice);
-                }
-
-                // Target dice
-                for _i in 1..=target_armies {
-                    let dice = rng.gen_range(1u8..=6u8);
-                    dice_target.push(dice);
-                }
-
-                // Now order by
-                dice_source.sort();
-                dice_target.sort();
-
-                // And compare each
-                print!(
-                    "Attacking with {}/{} (out of {},{}), ",
-                    source_armies,
-                    target_armies,
-                    world_state.cities[source].borrow().armies,
-                    world_state.cities[target].borrow().armies,
-                );
-
-                for i in 0..dice_source.len() {
-                    if i >= dice_target.len() || dice_source[i] > dice_target[i] {
-                        world_state.cities[target].borrow_mut().armies -= 1;
-                        if world_state.cities[target].borrow().armies == 0 {
-                            break;
-                        }
-                    } else {
-                        world_state.cities[source].borrow_mut().armies -= 1;
-                        source_armies -= 1;
+                    // source dice
+                    for _i in 1..=source_armies {
+                        let dice = rng.gen_range(1u8..=6u8);
+                        dice_source.push(dice);
                     }
-                }
 
-                println!(
-                    "After is {},{}.",
-                    world_state.cities[source].borrow().armies,
-                    world_state.cities[target].borrow().armies
-                );
+                    // Target dice
+                    for _i in 1..=target_armies {
+                        let dice = rng.gen_range(1u8..=6u8);
+                        dice_target.push(dice);
+                    }
 
-                // Take over!
-                if world_state.cities[target].borrow().armies == 0 {
-                    println!("City taken!");
+                    // Now order by
+                    dice_source.sort();
+                    dice_target.sort();
 
-                    // Take the city
-                    let source_owner = world_state.cities[source].borrow().owner.unwrap();
-                    world_state.cities[target].borrow_mut().owner = Some(source_owner);
-                    world_state.cities[target].borrow_mut().armies = source_armies;
+                    // And compare each
+                    print!(
+                        "Attacking with {}/{} (out of {},{}), ",
+                        source_armies,
+                        target_armies,
+                        world_state.cities[source].borrow().armies,
+                        world_state.cities[target].borrow().armies,
+                    );
+
+                    for i in 0..dice_source.len() {
+                        if i >= dice_target.len() || dice_source[i] > dice_target[i] {
+                            world_state.cities[target].borrow_mut().armies -= 1;
+                            if world_state.cities[target].borrow().armies == 0 {
+                                break;
+                            }
+                        } else {
+                            world_state.cities[source].borrow_mut().armies -= 1;
+                            source_armies -= 1;
+                        }
+                    }
+
+                    println!(
+                        "After is {},{}.",
+                        world_state.cities[source].borrow().armies,
+                        world_state.cities[target].borrow().armies
+                    );
+
+                    // Take over!
+                    if world_state.cities[target].borrow().armies == 0 {
+                        println!("City taken!");
+
+                        // Take the city
+                        let source_owner = world_state.cities[source].borrow().owner.unwrap();
+                        world_state.cities[target].borrow_mut().owner = Some(source_owner);
+                        world_state.cities[target].borrow_mut().armies = source_armies;
+                    }
                 }
             }
         }

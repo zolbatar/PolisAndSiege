@@ -85,18 +85,11 @@ impl City {
             score += self.armies as f32 * profile.army_multiplier;
 
             // If enemy city, add a boost
-            if other_city_owner.is_some() {
-                let boost = score;
-                if other_city_owner != self.owner {
-                    score += self.armies as f32 * profile.army_bordering;
-                    if other_city_territory.eq(&self.statics.borrow().territory_name) {
-                        score += self.armies as f32 * profile.army_same_territory;
-                    }
+            if other_city_owner.is_some() && other_city_owner != self.owner {
+                score += self.armies as f32 * profile.army_bordering;
+                if other_city_territory.eq(&self.statics.borrow().territory_name) {
+                    score += self.armies as f32 * profile.army_same_territory;
                 }
-                let boost_diff = score - boost;
-                /*                if boost_diff > 0.0 {
-                    println!("City {} has a boost of {}", self.name, boost_diff);
-                }*/
             }
         }
 
