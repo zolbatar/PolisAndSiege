@@ -61,7 +61,12 @@ where
     results
 }
 
-pub fn possible_moves(world_state: &WorldState, world_fixed: &mut WorldFixed, depth: usize, mode: GameMode) -> Vec<Move> {
+pub fn possible_moves(
+    world_state: &WorldState,
+    world_fixed: &mut WorldFixed,
+    depth: usize,
+    mode: GameMode,
+) -> Vec<Move> {
     let mut results: Vec<Move> = Vec::new();
 
     // Build a list of all possible moves
@@ -75,9 +80,7 @@ pub fn possible_moves(world_state: &WorldState, world_fixed: &mut WorldFixed, de
             }
             results = ap_build_list_of_possibles(&world_state, current_player.borrow().index);
         }
-        GameMode::Game => {
-            results = game_build_list_of_possibles(&world_state, current_player.borrow().index)
-        }
+        GameMode::Game => results = game_build_list_of_possibles(&world_state, current_player.borrow().index),
         _ => {}
     }
 
@@ -110,7 +113,6 @@ pub fn possible_moves(world_state: &WorldState, world_fixed: &mut WorldFixed, de
     }
 
     // Select x of the list
-    let current_player = world_state.get_current_player();
     results = reduce_down_to_limited_list(results);
 
     // Go deeper if required

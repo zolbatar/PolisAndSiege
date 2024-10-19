@@ -1,5 +1,7 @@
+use crate::ai::army_placement::MAXIMUM_ARMIES_PER_CITY;
 use crate::model::world_state::WorldState;
 use rand::Rng;
+use std::fmt;
 
 #[derive(Debug, Default, PartialEq)]
 pub enum MoveType {
@@ -8,7 +10,7 @@ pub enum MoveType {
     AttackCity,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct Move {
     pub move_type: MoveType,
     pub city_source: Option<usize>,
@@ -16,6 +18,18 @@ pub struct Move {
     pub child_moves: Vec<Move>,
     pub score_portion: i32,
     pub world_state: WorldState,
+}
+
+impl fmt::Debug for Move {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Move")
+            .field("move_type", &self.move_type)
+            .field("score_portion", &self.score_portion)
+            .field("source", &self.city_source)
+            .field("target", &self.city_target)
+            .field("child_moves", &self.child_moves)
+            .finish()
+    }
 }
 
 impl Move {
@@ -41,14 +55,20 @@ impl Move {
         match self.move_type {
             MoveType::PlaceArmy => {
                 let city = &world_state.cities[self.city_source.unwrap()];
-                city.borrow_mut().armies += 1;
-                player.borrow_mut().armies_to_assign -= 1;
+                if city.borrow().armies < MAXIMUM_ARMIES_PER_CITY {
+                    city.borrow_mut().armies += 1;
+                    player.borrow_mut().armies_to_assign -= 1;
+                }
             }
             MoveType::AttackCity => {
                 let mut rng = rand::thread_rng();
                 let source = self.city_source.unwrap();
                 let target = self.city_target.unwrap();
-                if world_state.cities[source].borrow().owner != world_state.cities[target].borrow().owner {
+
+                // Make sure we haven't already taken it and have enough armies
+                if world_state.cities[source].borrow().owner != world_state.cities[target].borrow().owner
+                    && world_state.cities[source].borrow().armies >= player.borrow().profile.minimum_armies
+                {
                     let mut source_armies = world_state.cities[source].borrow().armies - 1;
                     let target_armies = world_state.cities[target].borrow().armies;
 

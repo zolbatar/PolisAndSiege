@@ -22,6 +22,7 @@ pub struct Connection {
 pub type ConnectionArc = Arc<Connection>;
 
 fn build_territory_connections(
+    world_state: &WorldState,
     connections: &mut Vec<ConnectionArc>,
     territory1: &TerritoryArc,
     territory2: &TerritoryArc,
@@ -61,22 +62,24 @@ fn build_territory_connections(
     assert!(m1.len() >= num_connections);
     assert!(m2.len() >= num_connections);
 
-    // Shrink and return
+    // Shrink
     let mut iter = m1.iter();
     for _ in 0..num_connections {
         let v = iter.next().unwrap();
         connections.push(v.1.clone());
+        world_state.cities[v.1.city1].borrow().statics.borrow_mut().connections.push(v.1.clone());
     }
     let mut iter = m2.iter();
     for _ in 0..num_connections {
         let v = iter.next().unwrap();
         connections.push(v.1.clone());
+        world_state.cities[v.1.city2].borrow().statics.borrow_mut().connections.push(v.1.clone());
     }
 }
 
 pub fn build_connections(world_state: &WorldState, world_fixed: &mut WorldFixed) {
     let mut connections = Vec::new();
-    let mut connections_in = world_fixed.territories.clone();
+    let connections_in = world_fixed.territories.clone();
     for territory in connections_in.values() {
         let mut graph = UnGraph::new_undirected();
         let cities = &territory.cities;
@@ -142,15 +145,15 @@ pub fn build_connections(world_state: &WorldState, world_fixed: &mut WorldFixed)
     let au = world_fixed.territories.get("Australia and New Zealand").unwrap();
 
     // Now we need inter-territory connections
-    build_territory_connections(&mut connections, na, la, 2);
-    build_territory_connections(&mut connections, na, eu, 1);
-    build_territory_connections(&mut connections, eu, ee, 2);
-    build_territory_connections(&mut connections, eu, me, 2);
-    build_territory_connections(&mut connections, af, me, 2);
-    build_territory_connections(&mut connections, af, la, 1);
-    build_territory_connections(&mut connections, asia, me, 2);
-    build_territory_connections(&mut connections, asia, au, 1);
-    build_territory_connections(&mut connections, asia, ee, 2);
+    build_territory_connections(world_state, &mut connections, na, la, 2);
+    build_territory_connections(world_state, &mut connections, na, eu, 1);
+    build_territory_connections(world_state, &mut connections, eu, ee, 2);
+    build_territory_connections(world_state, &mut connections, eu, me, 2);
+    build_territory_connections(world_state, &mut connections, af, me, 2);
+    build_territory_connections(world_state, &mut connections, af, la, 1);
+    build_territory_connections(world_state, &mut connections, asia, me, 2);
+    build_territory_connections(world_state, &mut connections, asia, au, 1);
+    build_territory_connections(world_state, &mut connections, asia, ee, 2);
     println!("Built inter-territory connections");
 
     world_fixed.connections = connections;

@@ -3,8 +3,10 @@ use crate::app_state::{AppState, GameMode};
 use crate::next_turn;
 
 pub fn computer_turn_by_phase(app_state: &mut AppState, mode: GameMode) {
-    let mut possibles = possible_moves(&app_state.world_state, &mut app_state.world_fixed, 0,
-                                       mode.clone());
+    let mut possibles = possible_moves(&app_state.world_state, &mut app_state.world_fixed, 0, mode.clone());
+    if mode == GameMode::Game {
+        println!("Attacks: {}", possibles.len());
+    }
 
     if possibles.is_empty() {
         println!("no possible {:?} moves", mode);
@@ -26,8 +28,7 @@ pub fn computer_turn_by_phase(app_state: &mut AppState, mode: GameMode) {
     let world_state = &mut app_state.world_state;
     match mode {
         GameMode::ArmyPlacement => {
-            while !possibles.is_empty() && world_state.current_player.as_ref().unwrap().borrow()
-                .armies_to_assign > 0 {
+            while !possibles.is_empty() && world_state.current_player.as_ref().unwrap().borrow().armies_to_assign > 0 {
                 let the_move = possibles.pop().unwrap();
                 the_move.do_move(world_state);
             }
