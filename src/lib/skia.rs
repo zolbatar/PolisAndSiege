@@ -129,19 +129,19 @@ impl Skia {
     }
 
     pub fn _test(&self, canvas: &Canvas, width: i32, height: i32) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut paint = Paint::default();
         paint.set_anti_alias(true);
         paint.set_style(PaintStyle::Stroke);
         for _ in 1..=10000 {
             canvas.draw_line(
                 Point {
-                    x: rng.gen_range(0..=width) as f32,
-                    y: rng.gen_range(0..=height) as f32,
+                    x: rng.random_range(0..=width) as f32,
+                    y: rng.random_range(0..=height) as f32,
                 },
                 Point {
-                    x: rng.gen_range(0..=width) as f32,
-                    y: rng.gen_range(0..=height) as f32,
+                    x: rng.random_range(0..=width) as f32,
+                    y: rng.random_range(0..=height) as f32,
                 },
                 &paint,
             );

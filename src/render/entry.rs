@@ -38,10 +38,16 @@ fn render_connections(skia: &mut Skia, world_state: &WorldState, world_fixed: &m
         let city1 = &world_state.cities[city1_index];
         let city2 = &world_state.cities[city2_index];
 
-        skia.get_canvas().draw_line(city1.borrow().statics.borrow().location.p, city2.borrow()
-            .statics.borrow().location.p, &paint);
-        skia.get_canvas().draw_line(city1.borrow().statics.borrow().location.p, city2.borrow()
-            .statics.borrow().location.p, &paint_alt);
+        skia.get_canvas().draw_line(
+            city1.borrow().statics.borrow().location.p,
+            city2.borrow().statics.borrow().location.p,
+            &paint,
+        );
+        skia.get_canvas().draw_line(
+            city1.borrow().statics.borrow().location.p,
+            city2.borrow().statics.borrow().location.p,
+            &paint_alt,
+        );
     }
 }
 
@@ -106,7 +112,13 @@ fn render_cities(skia: &mut Skia, app_state: &AppState) {
         // Name background
         if app_state.show_all_info() {
             let dimensions = skia
-                .text_dimensions(font_size, &paint_name, &city.borrow().statics.borrow().name, &FontFamily::EbGaramond, TextAlign::Left)
+                .text_dimensions(
+                    font_size,
+                    &paint_name,
+                    &city.borrow().statics.borrow().name,
+                    &FontFamily::EbGaramond,
+                    TextAlign::Left,
+                )
                 .clamp(1.0, MAXIMUM_LABEL_WIDTH);
             if app_state.show_shadows {
                 skia.get_canvas().draw_round_rect(
@@ -238,6 +250,7 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     }
 
     // FPS
+    /*
     let fps = format!(
         "FPS: {:.0} Zoom: {}, Position: {},{}",
         app_state.fps, app_state.zoom, app_state.target.x, app_state.target.y
@@ -245,7 +258,9 @@ pub fn main(skia: &mut Skia, app_state: &mut AppState) {
     let mut paint = Paint::default();
     paint.set_style(PaintStyle::Fill);
     paint.set_color(skia_safe::Color::WHITE);
-    skia.write_text(20.0, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0, &FontFamily::EbGaramond);
+    skia.write_text(20.0, &paint, fps.as_str(), Point::new(0.0, 0.0), 0.0,
+                     &FontFamily::EbGaramond);
+     */
 
     // Flush all Skia ops
     unsafe {

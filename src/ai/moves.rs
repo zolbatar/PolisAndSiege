@@ -61,7 +61,7 @@ impl Move {
                 }
             }
             MoveType::AttackCity => {
-                let mut rng = rand::thread_rng();
+                let mut rng = rand::rng();
                 let source = self.city_source.unwrap();
                 let target = self.city_target.unwrap();
 
@@ -78,13 +78,13 @@ impl Move {
 
                     // source dice
                     for _i in 1..=source_armies {
-                        let dice = rng.gen_range(1u8..=6u8);
+                        let dice = rng.random_range(1u8..=6u8);
                         dice_source.push(dice);
                     }
 
                     // Target dice
                     for _i in 1..=target_armies {
-                        let dice = rng.gen_range(1u8..=6u8);
+                        let dice = rng.random_range(1u8..=6u8);
                         dice_target.push(dice);
                     }
 

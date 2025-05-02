@@ -4,7 +4,7 @@ use crate::model::profile::Profile;
 use crate::model::world_fixed::WorldFixed;
 use crate::model::world_state::WorldState;
 use rand::prelude::SliceRandom;
-use rand::thread_rng;
+use rand::rng;
 use sdl2::video::Window;
 use skia_safe::svg::Dom;
 use skia_safe::{Color, FontMgr, Path, Point, Size};
@@ -57,9 +57,9 @@ pub struct AppState {
     pub num_of_players: usize,
     pub gfx: GFXState,
     pub res: Resource,
-    pub fps: f64,
     pub show_labels: bool,
     pub show_shadows: bool,
+    pub fps: f64,
     pub phase: f32,
     pub selection: CitySelection,
     pub hover: Point,
@@ -122,7 +122,7 @@ impl AppState {
             "The Andean Empire",
             "The Hellenic Guardians",
         ];
-        let mut rng = thread_rng(); // Create a random number generator
+        let mut rng = rng(); // Create a random number generator
         possible_names.shuffle(&mut rng);
 
         // Player colours
@@ -141,7 +141,7 @@ impl AppState {
             army_multiplier: 1.0,
             army_same_territory: 10.0,
             army_bordering: 25.0,
-            minimum_armies: 2,
+            minimum_armies: 3,
             attack_delta_multiplier: 50.0,
         };
 

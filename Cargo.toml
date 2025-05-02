@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-skia-safe = { version = "0.78.2", features = ["gl", "textlayout", "svg"] }
-rand = "0.8.5"
+skia-safe = { version = "0.81.0", features = ["gl", "textlayout", "svg"] }
+rand = "0.9.1"
+petgraph = "0.8.1"
 ciborium = "0.2.2"
-petgraph = "0.6.5"
 sdl2 = { version = "0.37.0", features = ["bundled", "static-link"] }
 gl = "0.14.0"

@@ -7,8 +7,8 @@ use crate::model::territory::{get_colour_for_territory_name, Territory};
 use crate::model::territory_polygon::TerritoryPolygon;
 use ciborium::de::from_reader;
 use ciborium::Value;
+use rand::rng;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
@@ -91,13 +91,7 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
             let longitude = city_details[2].as_float().unwrap() as f32;
             let population: i64 = city_details[3].as_integer().unwrap().try_into().unwrap();
             if !name.eq("Honolulu") && longitude > -140.0 {
-                let city = City::new(
-                    name.to_string(),
-                    longitude,
-                    latitude,
-                    population,
-                    territory.name.clone(),
-                );
+                let city = City::new(name.to_string(), longitude, latitude, population, territory.name.clone());
                 territory.cities.push(Rc::new(RefCell::new(city)));
                 cities_count += 1;
             }
@@ -124,7 +118,7 @@ pub fn import(skia: &mut Skia, app_state: &mut AppState) {
     }
 
     // Shuffle remaining ones randomly
-    let mut rng = thread_rng(); // Create a random number generator
+    let mut rng = rng(); // Create a random number generator
     app_state.world_fixed.cities_to_assign.shuffle(&mut rng); // Shuffle the vector in place
 
     println!("CBOR: Total territories: {}", app_state.world_fixed.territories.len());
